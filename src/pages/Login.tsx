@@ -58,7 +58,8 @@ export default function Login() {
       if (
         lowerEmail === 'admin@canteen.com' ||
         lowerEmail === 'avanishshukla345@gmail.com' ||
-        lowerEmail === 'vinod.shukla10jan@gmail.com'
+        lowerEmail === 'vinod.shukla10jan@gmail.com' ||
+        lowerEmail === 'muskan.k.bajpai@gmail.com'
       ) {
         sessionStorage.setItem('local_admin', 'true');
         toast.success('Admin Login Successful!');
