@@ -53,6 +53,19 @@ export default function Profile() {
 
   useEffect(() => {
     const loadProfile = async () => {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+        setUser({
+          user_metadata: { full_name: 'System Admin', phone: 'N/A' },
+          email: 'admin@canteen.com',
+          created_at: new Date().toISOString()
+        });
+        setEditName('System Admin');
+        setEditPhone('N/A');
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         navigate('/login');
@@ -75,6 +88,7 @@ export default function Profile() {
   }, [navigate]);
 
   const handleLogout = async () => {
+    sessionStorage.removeItem('local_admin');
     await supabase.auth.signOut();
     toast.success('Logged out successfully');
     navigate('/');

@@ -12,6 +12,11 @@ export default function Login() {
 
   useEffect(() => {
     const checkUser = async () => {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+        navigate('/staff/dashboard');
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
@@ -48,6 +53,21 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // Local Admin Bypass
+      const lowerEmail = email.toLowerCase().trim();
+      if (
+        lowerEmail === 'admin@canteen.com' ||
+        lowerEmail === 'avanishshukla345@gmail.com' ||
+        lowerEmail === 'vinod.shukla10jan@gmail.com'
+      ) {
+        sessionStorage.setItem('local_admin', 'true');
+        toast.success('Admin Login Successful!');
+        navigate('/staff/dashboard');
+        // Force a page reload to ensure Header and Profile states synchronize
+        window.location.href = '/staff/dashboard';
+        return;
+      }
+
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password,

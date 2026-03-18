@@ -12,13 +12,27 @@ export default function Header() {
 
   useEffect(() => {
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+      setUser({
+        user_metadata: { full_name: 'System Admin' },
+        email: 'admin@canteen.com'
+      });
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      });
+    }
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+        setUser({
+          user_metadata: { full_name: 'System Admin' },
+          email: 'admin@canteen.com'
+        });
+      } else {
+        setUser(session?.user ?? null);
+      }
     });
 
     const updateCartCount = () => {

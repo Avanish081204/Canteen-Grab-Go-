@@ -18,6 +18,20 @@ export function useProfile() {
     let mounted = true;
 
     async function fetchProfile() {
+      // Local Admin Bypass
+      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+        if (mounted) {
+          setProfile({
+            id: 'local-admin',
+            full_name: 'System Admin',
+            role: 'admin',
+            updated_at: new Date().toISOString()
+          });
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -73,6 +87,10 @@ export function useProfile() {
     fetchProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+        fetchProfile();
+        return;
+      }
       if (!session) {
         setProfile(null);
         setLoading(false);

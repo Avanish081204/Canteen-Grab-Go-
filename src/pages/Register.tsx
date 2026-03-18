@@ -12,6 +12,10 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+      navigate('/');
+      return;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) navigate('/');
     });
