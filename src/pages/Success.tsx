@@ -87,7 +87,7 @@ function generateInvoiceHTML(order: Order): string {
       ${deliveryInfo}
       <hr style="border:none;border-top:2px dashed #ddd;margin:24px 0 12px;"/>
       <p style="text-align:center;color:#888;font-size:12px;margin:0;">
-        Paid via UPI (Razorpay) • Thank you for your order!
+        ${order.paymentMethod === 'cash' ? 'Pay at Counter (Cash/UPI)' : 'Paid via UPI (Razorpay)'} • Thank you for your order!
       </p>
     </body>
     </html>
@@ -165,6 +165,16 @@ export default function Success() {
             <div className="border-t border-border mt-4 pt-4 flex justify-between font-bold">
               <span>Total</span>
               <span className="text-primary">₹{order.total}</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Payment</span>
+              <span className={`font-semibold px-3 py-1 rounded-full text-xs ${
+                order.paymentMethod === 'cash'
+                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                  : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              }`}>
+                {order.paymentMethod === 'cash' ? '💵 Pay at Counter' : '✅ Paid Online (UPI)'}
+              </span>
             </div>
           </div>
 

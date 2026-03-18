@@ -1,39 +1,59 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Clock, ChefHat, CheckCircle, Truck, RefreshCw, PackageCheck } from 'lucide-react';
-import { getOrders, Order } from '@/lib/store';
+import { getOrders, Order, fetchStaffOrders } from '@/lib/store';
+import { useProfile } from '@/hooks/use-profile';
 import OrderCard from '@/components/OrderCard';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 type TabType = 'new' | 'cooking' | 'ready' | 'collected' | 'delivery';
 
 export default function StaffDashboard() {
   const navigate = useNavigate();
+  const { role, loading } = useProfile();
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('new');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem('staff_logged_in');
-    if (!isLoggedIn) {
-      navigate('/staff/login');
+    if (loading) return;
+
+    if (role !== 'staff' && role !== 'admin') {
+      toast.error('Access Denied: Staff only');
+      navigate('/login');
       return;
     }
+    
     loadOrders();
     
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(loadOrders, 10000);
-    return () => clearInterval(interval);
-  }, [navigate]);
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => loadOrders()
+      )
+      .subscribe();
 
-  const loadOrders = () => {
-    setOrders(getOrders());
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [navigate, role, loading]);
+
+  const loadOrders = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await fetchStaffOrders();
+      setOrders(data);
+    } catch (err) {
+      console.error('Failed to load orders:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('staff_logged_in');
-    toast.success('Logged out successfully');
-    navigate('/staff/login');
-  };
 
   const filterOrders = (tab: TabType): Order[] => {
     switch (tab) {
@@ -78,17 +98,11 @@ export default function StaffDashboard() {
             <div className="flex items-center gap-3">
               <button
                 onClick={loadOrders}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                disabled={isRefreshing}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200 ${isRefreshing ? 'opacity-50' : ''}`}
               >
-                <RefreshCw className="w-4 h-4" />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-200"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
               </button>
             </div>
           </div>

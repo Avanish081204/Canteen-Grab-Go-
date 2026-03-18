@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 // Types
 export type OrderType = 'dine-in' | 'take-away' | 'staff-delivery';
 export type OrderStatus = 'placed' | 'cooking' | 'ready' | 'collected' | 'out-for-delivery' | 'delivered';
@@ -11,6 +13,7 @@ export interface MenuItem {
   description: string;
   isCombo?: boolean;
   isAvailable: boolean;
+  dietary?: 'veg' | 'non-veg';
 }
 
 export interface CartItem extends MenuItem {
@@ -29,7 +32,10 @@ export interface Order {
   department?: string;
   location?: string;
   timeSlot?: string;
+  paymentMethod?: 'upi' | 'cash';
+  paymentStatus?: 'pending' | 'paid' | 'failed';
   createdAt: string;
+  rating?: number;
 }
 
 // Food images
@@ -43,38 +49,38 @@ import coldCoffeeImg from '@/assets/food/cold-coffee.jpg';
 // Menu data
 export const menuItems: MenuItem[] = [
   // Snacks
-  { id: '1', name: 'Samosa', price: 15, category: 'Snacks', image: samosaImg, description: 'Crispy potato filled pastry', isAvailable: true },
-  { id: '2', name: 'Vada Pav', price: 20, category: 'Snacks', image: vadaPavImg, description: 'Mumbai style spicy potato burger', isAvailable: true },
-  { id: '3', name: 'French Fries', price: 50, category: 'Snacks', image: friesImg, description: 'Crispy golden fries with seasoning', isAvailable: true },
-  { id: '4', name: 'Pav Bhaji', price: 60, category: 'Snacks', image: vadaPavImg, description: 'Spicy mashed vegetables with buttered pav', isAvailable: true },
+  { id: '1', name: 'Samosa', price: 15, category: 'Snacks', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80', description: 'Crispy potato filled pastry with spices', isAvailable: true, dietary: 'veg' },
+  { id: '2', name: 'Vada Pav', price: 20, category: 'Snacks', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Mumbai style spicy potato burger in a bun', isAvailable: true, dietary: 'veg' },
+  { id: '3', name: 'French Fries', price: 50, category: 'Snacks', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80', description: 'Crispy golden fries with classic seasoning', isAvailable: true, dietary: 'veg' },
+  { id: '4', name: 'Pav Bhaji', price: 60, category: 'Snacks', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Spicy mashed vegetables served with buttered pav', isAvailable: true, dietary: 'veg' },
   
   // Sandwich & Burger
-  { id: '5', name: 'Veg Burger', price: 45, category: 'Sandwich/Burger', image: burgerImg, description: 'Classic vegetable patty burger', isAvailable: true },
-  { id: '6', name: 'Cheese Burger', price: 60, category: 'Sandwich/Burger', image: burgerImg, description: 'Loaded with cheese and veggies', isAvailable: true },
-  { id: '7', name: 'Grilled Sandwich', price: 40, category: 'Sandwich/Burger', image: burgerImg, description: 'Toasted sandwich with vegetables', isAvailable: true },
-  { id: '8', name: 'Club Sandwich', price: 70, category: 'Sandwich/Burger', image: burgerImg, description: 'Triple layered premium sandwich', isAvailable: true },
+  { id: '5', name: 'Veg Burger', price: 45, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80', description: 'Classic vegetable patty burger with fresh lettuce', isAvailable: true, dietary: 'veg' },
+  { id: '6', name: 'Cheese Burger', price: 60, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80', description: 'Loaded with melted cheese and fresh veggies', isAvailable: true, dietary: 'non-veg' },
+  { id: '7', name: 'Grilled Sandwich', price: 40, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80', description: 'Perfectly toasted sandwich with seasonal vegetables', isAvailable: true, dietary: 'veg' },
+  { id: '8', name: 'Club Sandwich', price: 70, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1553909489-cd47e0907980?auto=format&fit=crop&w=800&q=80', description: 'Triple layered premium sandwich with assorted fillings', isAvailable: true, dietary: 'non-veg' },
   
   // Chinese
-  { id: '9', name: 'Veg Noodles', price: 60, category: 'Chinese', image: noodlesImg, description: 'Stir-fried noodles with vegetables', isAvailable: true },
-  { id: '10', name: 'Manchurian', price: 70, category: 'Chinese', image: noodlesImg, description: 'Crispy veg balls in spicy sauce', isAvailable: true },
-  { id: '11', name: 'Fried Rice', price: 60, category: 'Chinese', image: noodlesImg, description: 'Wok-tossed rice with vegetables', isAvailable: true },
-  { id: '12', name: 'Spring Roll', price: 40, category: 'Chinese', image: samosaImg, description: 'Crispy rolls with veggie filling', isAvailable: true },
+  { id: '9', name: 'Veg Noodles', price: 60, category: 'Chinese', image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=800&q=80', description: 'Authentic stir-fried noodles with crisp vegetables', isAvailable: true, dietary: 'veg' },
+  { id: '10', name: 'Manchurian', price: 70, category: 'Chinese', image: 'https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=800&q=80', description: 'Crispy vegetable balls in a spicy, tangy sauce', isAvailable: true, dietary: 'veg' },
+  { id: '11', name: 'Fried Rice', price: 60, category: 'Chinese', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80', description: 'Wok-tossed aromatic rice with sautéed vegetables', isAvailable: true, dietary: 'veg' },
+  { id: '12', name: 'Spring Roll', price: 40, category: 'Chinese', image: 'https://images.unsplash.com/photo-1548507200-1cd5cf07b722?auto=format&fit=crop&w=800&q=80', description: 'Crispy rolls with a delicious vegetable filling', isAvailable: true, dietary: 'veg' },
   
   // Meals
-  { id: '13', name: 'Thali', price: 80, category: 'Meals', image: noodlesImg, description: 'Complete meal with roti, rice, dal, sabzi', isAvailable: true },
-  { id: '14', name: 'Rajma Chawal', price: 60, category: 'Meals', image: noodlesImg, description: 'Kidney beans curry with rice', isAvailable: true },
-  { id: '15', name: 'Chole Bhature', price: 70, category: 'Meals', image: vadaPavImg, description: 'Spicy chickpeas with fried bread', isAvailable: true },
+  { id: '13', name: 'Thali', price: 80, category: 'Meals', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80', description: 'Complete Indian meal with roti, rice, dal, and sabzi', isAvailable: true, dietary: 'veg' },
+  { id: '14', name: 'Rajma Chawal', price: 60, category: 'Meals', image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=800&q=80', description: 'Slow-cooked kidney beans curry served with steamed rice', isAvailable: true, dietary: 'veg' },
+  { id: '15', name: 'Chole Bhature', price: 70, category: 'Meals', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Spicy chickpeas served with fluffy deep-fried bread', isAvailable: true, dietary: 'veg' },
   
   // Cold Drinks
-  { id: '16', name: 'Cold Coffee', price: 40, category: 'Cold Drinks', image: coldCoffeeImg, description: 'Chilled coffee with ice cream', isAvailable: true },
-  { id: '17', name: 'Lemonade', price: 25, category: 'Cold Drinks', image: coldCoffeeImg, description: 'Fresh lime soda', isAvailable: true },
-  { id: '18', name: 'Mango Shake', price: 50, category: 'Cold Drinks', image: coldCoffeeImg, description: 'Thick mango milkshake', isAvailable: true },
-  { id: '19', name: 'Masala Chai', price: 15, category: 'Cold Drinks', image: coldCoffeeImg, description: 'Hot Indian spiced tea', isAvailable: true },
+  { id: '16', name: 'Cold Coffee', price: 40, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=800&q=80', description: 'Chilled creamy coffee served with a scoop of ice cream', isAvailable: true, dietary: 'veg' },
+  { id: '17', name: 'Lemonade', price: 25, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=800&q=80', description: 'Refreshing fresh lime soda with a hint of mint', isAvailable: true, dietary: 'veg' },
+  { id: '18', name: 'Mango Shake', price: 50, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?auto=format&fit=crop&w=800&q=80', description: 'Thick and creamy mango milkshake made with real fruit', isAvailable: true, dietary: 'veg' },
+  { id: '19', name: 'Masala Chai', price: 15, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?auto=format&fit=crop&w=800&q=80', description: 'Traditional hot Indian spiced tea with aromatic herbs', isAvailable: true, dietary: 'veg' },
   
   // Combos
-  { id: '20', name: 'Burger Combo', price: 99, category: 'Combos', image: burgerImg, description: 'Burger + Fries + Cold Drink', isCombo: true, isAvailable: true },
-  { id: '21', name: 'Vada Pav Combo', price: 40, category: 'Combos', image: vadaPavImg, description: 'Vada Pav + Masala Chai', isCombo: true, isAvailable: true },
-  { id: '22', name: 'Chinese Combo', price: 120, category: 'Combos', image: noodlesImg, description: 'Noodles + Manchurian + Cold Drink', isCombo: true, isAvailable: true },
+  { id: '20', name: 'Burger Combo', price: 99, category: 'Combos', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80', description: 'A satisfying meal of Burger, Fries, and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'non-veg' },
+  { id: '21', name: 'Vada Pav Combo', price: 40, category: 'Combos', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Classic Bombay Vada Pav served with hot Masala Chai', isCombo: true, isAvailable: true, dietary: 'veg' },
+  { id: '22', name: 'Chinese Combo', price: 120, category: 'Combos', image: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80', description: 'Delicious Noodles with Manchurian and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'veg' },
 ];
 
 export const categories = ['All', 'Snacks', 'Sandwich/Burger', 'Chinese', 'Meals', 'Cold Drinks', 'Combos'];
@@ -251,21 +257,174 @@ export function saveOrders(orders: Order[]) {
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
 }
 
-export function createOrder(orderData: Omit<Order, 'id' | 'token' | 'status' | 'createdAt'>): Order {
-  const orders = getOrders();
+export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'status' | 'createdAt'>, paymentMethod: 'upi' | 'cash', paymentStatus: 'pending' | 'paid' = 'pending'): Promise<Order> {
+  const token = generateToken(orderData.type);
+  const orderId = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  
+  let userId: string | null = null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id ?? null;
+  } catch (e) {
+    console.warn('Could not get user, proceeding as guest:', e);
+  }
+
+  // Try to save to Supabase (non-blocking for the order flow)
+  try {
+    // 1. Insert order into Supabase
+    const { error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        id: orderId,
+        token,
+        user_id: userId,
+        status: 'placed',
+        total: orderData.total,
+        order_type: orderData.type,
+        customer_name: orderData.customerName ?? null,
+        customer_phone: orderData.customerPhone ?? null,
+        department: orderData.department ?? null,
+        location: orderData.location ?? null,
+        time_slot: orderData.timeSlot ?? null,
+        payment_method: paymentMethod,
+        payment_status: paymentStatus,
+      });
+
+    if (orderError) {
+      console.error('Order insert error:', orderError);
+    } else {
+      // 2. Insert order items only if order insert succeeded
+      const itemsToInsert = orderData.items.map(item => ({
+        order_id: orderId,
+        menu_item_id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) {
+        console.error('Order items insert error:', itemsError);
+      }
+    }
+  } catch (e) {
+    console.error('Supabase save failed, using localStorage only:', e);
+  }
+
+  // Always create the order object and save to localStorage
   const order: Order = {
     ...orderData,
-    id: Date.now().toString(),
-    token: generateToken(orderData.type),
+    id: orderId,
+    token,
     status: 'placed',
-    createdAt: new Date().toISOString(),
+    paymentMethod,
+    paymentStatus,
+    createdAt,
   };
   
+  const orders = getOrders();
   orders.unshift(order);
   saveOrders(orders);
+  
   clearCart();
   
   return order;
+}
+
+export async function fetchUserOrders(): Promise<Order[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return getOrders();
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      order_items (*)
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching user orders:', error);
+    return getOrders();
+  }
+
+  const mappedOrders: Order[] = data.map((row: any) => ({
+    id: row.id,
+    token: row.token,
+    type: row.order_type as OrderType,
+    total: row.total,
+    status: row.status as OrderStatus,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    department: row.department,
+    location: row.location,
+    timeSlot: row.time_slot,
+    paymentMethod: row.payment_method,
+    paymentStatus: row.payment_status,
+    createdAt: row.created_at,
+    items: row.order_items.map((item: any) => ({
+      id: item.menu_item_id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      category: '',
+      image: '',
+      description: '',
+      isAvailable: true
+    }))
+  }));
+
+  saveOrders(mappedOrders);
+  return mappedOrders;
+}
+
+export async function fetchStaffOrders(): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      order_items (*)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching staff orders:', error);
+    return getOrders();
+  }
+
+  const mappedOrders: Order[] = data.map((row: any) => ({
+    id: row.id,
+    token: row.token,
+    type: row.order_type as OrderType,
+    total: row.total,
+    status: row.status as OrderStatus,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    department: row.department,
+    location: row.location,
+    timeSlot: row.time_slot,
+    paymentMethod: row.payment_method,
+    paymentStatus: row.payment_status,
+    createdAt: row.created_at,
+    items: row.order_items.map((item: any) => ({
+      id: item.menu_item_id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      category: '',
+      image: '',
+      description: '',
+      isAvailable: true
+    }))
+  }));
+
+  saveOrders(mappedOrders);
+  return mappedOrders;
 }
 
 export function updateOrderStatus(orderId: string, status: OrderStatus) {
@@ -274,6 +433,18 @@ export function updateOrderStatus(orderId: string, status: OrderStatus) {
   
   if (index >= 0) {
     orders[index].status = status;
+    saveOrders(orders);
+  }
+  
+  return orders;
+}
+
+export function rateOrder(orderId: string, rating: number) {
+  const orders = getOrders();
+  const index = orders.findIndex(o => o.id === orderId);
+  
+  if (index >= 0) {
+    orders[index].rating = rating;
     saveOrders(orders);
   }
   

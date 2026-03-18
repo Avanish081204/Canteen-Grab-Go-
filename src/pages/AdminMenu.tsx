@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LogOut, Plus, RefreshCw, Shield, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, ClipboardList } from 'lucide-react';
 import { MenuItem, getOrders, Order, updateOrderStatus, OrderStatus } from '@/lib/store';
 import {
   clearMenuOverrides,
@@ -12,7 +12,7 @@ import {
   upsertMenuItem,
 } from '@/lib/menu-overrides';
 import { builtInMenuImages } from '@/lib/menu-images';
-import { hasAdminPin, isAdminAuthed, logoutAdmin, setAdminPin, verifyAdminPin } from '@/lib/admin-pin';
+import { useProfile } from '@/hooks/use-profile';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,18 +90,12 @@ function draftToItem(d: ItemDraft): MenuItem {
 
 export default function AdminMenu() {
   const navigate = useNavigate();
+  const { role, loading } = useProfile();
 
   const [items, setItems] = useState<MenuItem[]>(() => getMenuItems());
   const [orders, setOrders] = useState<Order[]>(() => getOrders());
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [query, setQuery] = useState('');
-
-  // Auth states
-  const [pin, setPin] = useState('');
-  const [newPin, setNewPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [authed, setAuthed] = useState(() => isAdminAuthed());
-  const [hasPin, setHasPin] = useState(() => hasAdminPin());
 
   // Dialog states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -111,20 +105,12 @@ export default function AdminMenu() {
   const categories = useMemo(() => getMenuCategories(), [items]);
 
   useEffect(() => {
-    const sync = () => {
-      const next = getMenuItems();
-      setItems(next);
-      setOrders(getOrders());
-    };
-    window.addEventListener('menuUpdated', sync);
-    window.addEventListener('storage', sync);
-    const interval = setInterval(() => setOrders(getOrders()), 5000);
-    return () => {
-      window.removeEventListener('menuUpdated', sync);
-      window.removeEventListener('storage', sync);
-      clearInterval(interval);
-    };
-  }, []);
+    if (loading) return;
+    if (role !== 'admin') {
+      toast.error('Access Denied: Admin only');
+      navigate('/');
+    }
+  }, [role, loading, navigate]);
 
   useEffect(() => {
     // Keep category valid when categories change
@@ -193,152 +179,36 @@ export default function AdminMenu() {
     toast.success('Saved menu overrides');
   };
 
-  const handleLogin = () => {
-    const ok = verifyAdminPin(pin);
-    if (!ok) {
-      toast.error('Invalid PIN');
-      return;
-    }
-    setAuthed(true);
-    toast.success('Admin unlocked');
-  };
+  useEffect(() => {
+    const sync = () => {
+      const next = getMenuItems();
+      setItems(next);
+      setOrders(getOrders());
+    };
+    window.addEventListener('menuUpdated', sync);
+    window.addEventListener('storage', sync);
+    const interval = setInterval(() => setOrders(getOrders()), 5000);
+    return () => {
+      window.removeEventListener('menuUpdated', sync);
+      window.removeEventListener('storage', sync);
+      clearInterval(interval);
+    };
+  }, []);
 
-  const handleSetPin = () => {
-    if (newPin.length < 4) {
-      toast.error('PIN must be at least 4 digits');
-      return;
-    }
-    if (newPin !== confirmPin) {
-      toast.error('PINs do not match');
-      return;
-    }
-    setAdminPin(newPin);
-    setHasPin(true);
-    setNewPin('');
-    setConfirmPin('');
-    toast.success('Admin PIN set');
-  };
-
-  const handleLogout = () => {
-    logoutAdmin();
-    setAuthed(false);
-    toast.success('Locked');
-  };
-
-  if (!authed) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-              <span className="text-sm font-medium bg-muted px-3 py-1 rounded-full flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                Admin
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="container mx-auto px-4 py-8 max-w-lg">
-          <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Admin Menu Panel</h1>
-            <p className="text-muted-foreground mb-6">Enter your admin PIN to manage menu items.</p>
-
-            {!hasPin ? (
-              <div className="space-y-4">
-                <div className="rounded-xl border border-border bg-muted/30 p-4">
-                  <p className="text-sm text-muted-foreground">
-                    No admin PIN set on this device yet. Create one now.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPin">New PIN</Label>
-                  <Input
-                    id="newPin"
-                    type="password"
-                    inputMode="numeric"
-                    value={newPin}
-                    onChange={(e) => setNewPin(e.target.value)}
-                    placeholder="Enter new PIN"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPin">Confirm PIN</Label>
-                  <Input
-                    id="confirmPin"
-                    type="password"
-                    inputMode="numeric"
-                    value={confirmPin}
-                    onChange={(e) => setConfirmPin(e.target.value)}
-                    placeholder="Re-enter PIN"
-                  />
-                </div>
-                <Button className="w-full" onClick={handleSetPin}>
-                  Set PIN
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pin">Admin PIN</Label>
-                  <Input
-                    id="pin"
-                    type="password"
-                    inputMode="numeric"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    placeholder="Enter PIN"
-                  />
-                </div>
-                <Button className="w-full" onClick={handleLogin}>
-                  Unlock
-                </Button>
-                <div className="text-xs text-muted-foreground">
-                  Tip: PIN stays unlocked for 8 hours on this device.
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 text-sm text-muted-foreground">
-            <button
-              onClick={() => navigate('/staff/login')}
-              className="underline underline-offset-4 hover:text-foreground"
-            >
-              Go to Staff Login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Admin Panel...</div>;
 
   return (
     <div className="min-h-screen bg-background pb-12">
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-
-              <Button variant="outline" className="sm:hidden" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Lock
-              </Button>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
 
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">Items: {items.length}</Badge>
@@ -349,10 +219,6 @@ export default function AdminMenu() {
               </Button>
               <Button variant="outline" onClick={handleForceSaveCurrent}>
                 Save
-              </Button>
-              <Button variant="outline" className="hidden sm:inline-flex" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Lock
               </Button>
               <Button onClick={openAdd}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -377,101 +243,100 @@ export default function AdminMenu() {
             <header className="mb-6">
               <h1 className="text-2xl font-bold text-foreground">Menu Admin</h1>
               <p className="text-muted-foreground">
-                Add/edit items, toggle stock, and manage combos. Changes are saved to this device only.
+                Add/edit items, toggle stock, and manage combos.
               </p>
             </header>
 
-        <section className="bg-card rounded-2xl p-4 md:p-6 shadow-sm border border-border">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-              <div className="w-full sm:w-64">
-                <Label htmlFor="search">Search</Label>
-                <Input
-                  id="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search items..."
-                />
+            <section className="bg-card rounded-2xl p-4 md:p-6 shadow-sm border border-border">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <div className="w-full sm:w-64">
+                    <Label htmlFor="search">Search</Label>
+                    <Input
+                      id="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search items..."
+                    />
+                  </div>
+                  <div className="w-full sm:w-56">
+                    <Label>Category</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              <div className="w-full sm:w-56">
-                <Label>Category</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Combo</TableHead>
-                <TableHead>In Stock</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={item.image}
-                        alt={`${item.name} image`}
-                        className="h-10 w-10 rounded-lg object-cover border border-border"
-                        loading="lazy"
-                      />
-                      <div>
-                        <div className="font-semibold text-foreground">{item.name}</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">{item.description}</div>
-                        <div className="text-[11px] text-muted-foreground">ID: {item.id}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{item.category}</Badge>
-                  </TableCell>
-                  <TableCell>₹{item.price}</TableCell>
-                  <TableCell>{item.isCombo || item.category === 'Combos' ? 'Yes' : 'No'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item.id)} />
-                      <span className="text-sm text-muted-foreground">{item.isAvailable ? 'Available' : 'Out'}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" onClick={() => openEdit(item)}>
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-10 text-muted-foreground">No items match your filters.</div>
-          )}
-          </section>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Combo</TableHead>
+                    <TableHead>In Stock</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={item.image}
+                            alt={`${item.name} image`}
+                            className="h-10 w-10 rounded-lg object-cover border border-border"
+                            loading="lazy"
+                          />
+                          <div>
+                            <div className="font-semibold text-foreground">{item.name}</div>
+                            <div className="text-xs text-muted-foreground line-clamp-1">{item.description}</div>
+                            <div className="text-[11px] text-muted-foreground">ID: {item.id}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{item.category}</Badge>
+                      </TableCell>
+                      <TableCell>₹{item.price}</TableCell>
+                      <TableCell>{item.isCombo || item.category === 'Combos' ? 'Yes' : 'No'}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item.id)} />
+                          <span className="text-sm text-muted-foreground">{item.isAvailable ? 'Available' : 'Out'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="outline" onClick={() => openEdit(item)}>
+                          Edit
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filtered.length === 0 && (
+                <div className="text-center py-10 text-muted-foreground">No items match your filters.</div>
+              )}
+            </section>
           </TabsContent>
 
           <TabsContent value="orders">
             <header className="mb-6">
               <h1 className="text-2xl font-bold text-foreground">Order List</h1>
               <p className="text-muted-foreground">
-                View all orders placed. Token format: BAPHYYMMDD## (resets daily).
+                View all orders placed.
               </p>
             </header>
 
@@ -545,9 +410,6 @@ export default function AdminMenu() {
         </Tabs>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <span className="hidden" />
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[640px]">
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Edit Item' : 'Add Item'}</DialogTitle>

@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle, ChefHat, Clock, UtensilsCrossed } from 'lucide-react';
 import { getOrders, Order } from '@/lib/store';
 
 export default function Display() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [now, setNow] = useState(new Date());
 
@@ -50,7 +52,10 @@ export default function Display() {
     <div className="min-h-screen bg-[#1a1f2e] p-6 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+        <div 
+          className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate('/')}
+        >
           <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
             <UtensilsCrossed className="h-7 w-7 text-white" />
           </div>

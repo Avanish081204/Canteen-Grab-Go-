@@ -14,7 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          id: string
+          token: string
+          user_id: string | null
+          status: string
+          total: number
+          order_type: string
+          customer_name: string | null
+          customer_phone: string | null
+          department: string | null
+          location: string | null
+          time_slot: string | null
+          payment_method: string
+          payment_status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          token: string
+          user_id?: string | null
+          status?: string
+          total: number
+          order_type: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          department?: string | null
+          location?: string | null
+          time_slot?: string | null
+          payment_method: string
+          payment_status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          token?: string
+          user_id?: string | null
+          status?: string
+          total?: number
+          order_type?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          department?: string | null
+          location?: string | null
+          time_slot?: string | null
+          payment_method?: string
+          payment_status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          menu_item_id: string
+          name: string
+          price: number
+          quantity: number
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          menu_item_id: string
+          name: string
+          price: number
+          quantity: number
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          menu_item_id?: string
+          name?: string
+          price?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -129,23 +214,6 @@ export type Enums<
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {

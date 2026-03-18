@@ -13,9 +13,7 @@ import {
 } from '@/lib/store';
 import {
   loadRazorpayScript,
-  createRazorpayOrder,
   openRazorpayCheckout,
-  verifyRazorpayPayment,
 } from '@/lib/razorpay';
 import { toast } from 'sonner';
 
@@ -24,7 +22,6 @@ export default function Checkout() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [orderType, setOrderTypeState] = useState<OrderType | null>(null);
-  const [paymentMethod] = useState<'upi'>('upi');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
@@ -58,21 +55,12 @@ export default function Checkout() {
     setIsSubmitting(true);
 
     try {
-      // Create Razorpay order
-      const razorpayOrder = await createRazorpayOrder(
-        total,
-        `canteen_${Date.now()}`,
-        { orderType: orderType! }
-      );
-
-      // Open Razorpay checkout
+      // Open Razorpay checkout directly (client-side only, no server order needed)
       openRazorpayCheckout(
         {
-          keyId: razorpayOrder.keyId,
-          orderId: razorpayOrder.orderId,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency,
-          name: 'Canteen',
+          amount: total,
+          currency: 'INR',
+          name: 'Campus Canteen',
           description: 'Food Order Payment',
           customerName: name,
           customerPhone: phone,
@@ -80,31 +68,24 @@ export default function Checkout() {
         },
         async (result) => {
           try {
-            // Verify payment
-            const verification = await verifyRazorpayPayment(result);
+            // Payment succeeded — create order with payment ID
+            console.log('Payment successful, ID:', result.razorpay_payment_id);
+            const order = await createOrder({
+              type: orderType!,
+              items: cart,
+              total,
+              customerName: name || undefined,
+              customerPhone: phone || undefined,
+              department: orderType === 'staff-delivery' ? department : undefined,
+              location: orderType === 'staff-delivery' ? location : undefined,
+              timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
+            }, 'upi', 'paid');
 
-            if (verification.verified) {
-              // Create order after successful payment
-              const order = createOrder({
-                type: orderType!,
-                items: cart,
-                total,
-                customerName: name || undefined,
-                customerPhone: phone || undefined,
-                department: orderType === 'staff-delivery' ? department : undefined,
-                location: orderType === 'staff-delivery' ? location : undefined,
-                timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
-              });
-
-              toast.success('Payment successful! Order placed.');
-              navigate(`/success/${order.token}`);
-            } else {
-              toast.error('Payment verification failed. Please contact support.');
-              setIsSubmitting(false);
-            }
+            toast.success('Payment successful! Order placed.');
+            navigate(`/success/${order.token}`);
           } catch (error) {
-            console.error('Payment verification error:', error);
-            toast.error('Payment verification failed. Please try again.');
+            console.error('Order creation error after payment:', error);
+            toast.error('Payment was successful but order creation failed. Please contact support.');
             setIsSubmitting(false);
           }
         },
@@ -124,8 +105,19 @@ export default function Checkout() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone) {
-      toast.error('Please fill name and phone number');
+    const trimmedName = name.trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      toast.error('Please enter a valid name (at least 2 characters)');
+      return;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(trimmedName)) {
+      toast.error('Name should contain only letters and spaces');
+      return;
+    }
+
+    const trimmedPhone = phone.trim();
+    if (!/^\d{10}$/.test(trimmedPhone)) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
@@ -267,12 +259,15 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Payment Method */}
+          {/* Payment Info */}
           <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
-            <h2 className="font-semibold text-lg mb-4">Payment Method</h2>
-            <div className="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5">
+            <h2 className="font-semibold text-lg mb-4">Payment</h2>
+            <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5">
               <CreditCard className="w-6 h-6 text-primary" />
-              <span className="font-medium text-primary">UPI (Razorpay)</span>
+              <div className="text-left">
+                <p className="font-medium text-primary">Pay Online (UPI)</p>
+                <p className="text-xs text-muted-foreground">Secure payment via Razorpay</p>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground mt-3 text-center">
               You'll be redirected to Razorpay for secure payment

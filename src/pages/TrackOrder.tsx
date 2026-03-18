@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin } from 'lucide-react';
-import { getOrderByToken, Order, OrderStatus } from '@/lib/store';
+import { useState, useEffect } from 'react';
+import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin, Star, Clock, ArrowRight } from 'lucide-react';
+import { getOrderByToken, Order, OrderStatus, fetchUserOrders } from '@/lib/store';
+import { useProfile } from '@/hooks/use-profile';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusConfig: Record<OrderStatus, { label: string; icon: typeof Package; color: string }> = {
   placed: { label: 'Order Placed', icon: Package, color: 'text-blue-500' },
@@ -23,6 +25,53 @@ export default function TrackOrder() {
   const [tokenInput, setTokenInput] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
   const [searched, setSearched] = useState(false);
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const { profile, loading: profileLoading } = useProfile();
+
+  useEffect(() => {
+    if (profile) {
+      loadHistory();
+    }
+  }, [profile]);
+
+  // Subscribe to real-time status updates for the currently tracked order
+  useEffect(() => {
+    if (!order?.id) return;
+
+    const channel = supabase
+      .channel(`order-status-${order.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${order.id}`
+        },
+        (payload) => {
+          const nextStatus = payload.new.status as OrderStatus;
+          setOrder(prev => prev ? { ...prev, status: nextStatus } : null);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [order?.id]);
+
+  const loadHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const orders = await fetchUserOrders();
+      setMyOrders(orders);
+    } catch (err) {
+      console.error('Failed to load history:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +80,12 @@ export default function TrackOrder() {
     const found = getOrderByToken(trimmed);
     setOrder(found || null);
     setSearched(true);
+  };
+
+  const selectOrder = (o: Order) => {
+    setOrder(o);
+    setSearched(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const isDelivery = order?.type === 'staff-delivery';
@@ -64,6 +119,55 @@ export default function TrackOrder() {
             </button>
           </div>
         </form>
+
+        {/* Recent Orders for Logged-in Users */}
+        {profile && myOrders.length > 0 && !order && (
+          <div className="mb-8 animate-fade-in">
+            <div className="flex items-center gap-2 mb-4 text-foreground/80 font-semibold px-1">
+              <Clock className="w-4 h-4" />
+              <h2>My Recent Orders</h2>
+            </div>
+            <div className="space-y-3">
+              {myOrders.slice(0, 5).map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => selectOrder(o)}
+                  className="w-full text-left bg-card hover:bg-muted/50 p-4 rounded-2xl border border-border transition-all group flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${
+                      o.status === 'ready' || o.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-primary/10 text-primary'
+                    }`}>
+                      <Package className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm tracking-tight">{o.token}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">•</span>
+                        <span className={`text-[11px] font-medium uppercase tracking-wider ${statusConfig[o.status].color}`}>
+                          {statusConfig[o.status].label}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-sm text-primary">₹{o.total}</span>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {loadingHistory && !order && (
+           <div className="text-center py-10 animate-pulse text-muted-foreground">
+             Loading your order history...
+           </div>
+        )}
 
         {/* Results */}
         {searched && !order && (
@@ -163,6 +267,45 @@ export default function TrackOrder() {
                 <p><span className="text-muted-foreground">Department:</span> {order.department}</p>
                 <p><span className="text-muted-foreground">Location:</span> {order.location}</p>
                 <p><span className="text-muted-foreground">Time Slot:</span> {order.timeSlot}</p>
+              </div>
+            )}
+
+            {/* Rating Section */}
+            {(order.status === 'collected' || order.status === 'delivered') && (
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-sm text-center animate-bounce-in">
+                <h3 className="font-bold text-lg mb-2">Rate Your Experience</h3>
+                <p className="text-muted-foreground text-sm mb-4">How was your food and service?</p>
+                
+                {order.rating ? (
+                  <div className="flex flex-col items-center">
+                    <div className="flex gap-1 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-8 h-8 ${star <= order.rating! ? 'fill-secondary text-secondary' : 'text-muted'}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-success font-semibold text-sm">Thank you for your feedback!</p>
+                  </div>
+                ) : (
+                  <div className="flex justify-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => {
+                          import('@/lib/store').then(m => {
+                            m.rateOrder(order.id, star);
+                            setOrder({ ...order, rating: star });
+                          });
+                        }}
+                        className="hover:scale-125 transition-transform duration-200"
+                      >
+                        <Star className="w-10 h-10 text-muted hover:text-secondary hover:fill-secondary" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

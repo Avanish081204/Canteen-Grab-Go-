@@ -55,11 +55,11 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
             COMBO
           </div>
         )}
-        {!item.isAvailable && (
-          <div className="absolute inset-0 bg-foreground/60 backdrop-blur-sm flex items-center justify-center">
-            <span className="bg-destructive text-destructive-foreground px-5 py-2.5 rounded-2xl font-bold text-sm shadow-lg">
-              Out of Stock
-            </span>
+        {item.isAvailable && item.dietary && (
+          <div className="absolute top-3 right-3 z-10">
+            <div className={`w-6 h-6 bg-white rounded-md border-2 ${item.dietary === 'veg' ? 'border-green-600' : 'border-red-600'} flex items-center justify-center shadow-md`}>
+              <div className={`w-3 h-3 rounded-full ${item.dietary === 'veg' ? 'bg-green-600' : 'bg-red-600'}`} />
+            </div>
           </div>
         )}
       </div>

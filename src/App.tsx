@@ -15,6 +15,9 @@ import StaffLogin from "./pages/StaffLogin";
 import StaffDashboard from "./pages/StaffDashboard";
 import AdminMenu from "./pages/AdminMenu";
 import TrackOrder from "./pages/TrackOrder";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +41,9 @@ const App = () => (
           <Route path="/staff/login" element={<StaffLogin />} />
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/admin/menu" element={<AdminMenu />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

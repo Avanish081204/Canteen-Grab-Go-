@@ -1,61 +1,9 @@
-import { supabase } from '@/integrations/supabase/client';
-
-export interface RazorpayOrderResponse {
-  orderId: string;
-  amount: number;
-  currency: string;
-  keyId: string;
-}
+// Razorpay client-side integration (no Edge Functions needed)
 
 export interface RazorpayPaymentResult {
-  razorpay_order_id: string;
   razorpay_payment_id: string;
-  razorpay_signature: string;
-}
-
-export interface RazorpayVerifyResponse {
-  verified: boolean;
-  orderId?: string;
-  paymentId?: string;
-  error?: string;
-}
-
-// Create a Razorpay order
-export async function createRazorpayOrder(
-  amount: number,
-  receipt?: string,
-  notes?: Record<string, string>
-): Promise<RazorpayOrderResponse> {
-  const { data, error } = await supabase.functions.invoke('razorpay-order', {
-    body: { amount, currency: 'INR', receipt, notes },
-  });
-
-  if (error) {
-    console.error('Error creating Razorpay order:', error);
-    throw new Error(error.message || 'Failed to create payment order');
-  }
-
-  if (data.error) {
-    throw new Error(data.error);
-  }
-
-  return data;
-}
-
-// Verify payment after Razorpay checkout
-export async function verifyRazorpayPayment(
-  paymentResult: RazorpayPaymentResult
-): Promise<RazorpayVerifyResponse> {
-  const { data, error } = await supabase.functions.invoke('razorpay-verify', {
-    body: paymentResult,
-  });
-
-  if (error) {
-    console.error('Error verifying payment:', error);
-    throw new Error(error.message || 'Failed to verify payment');
-  }
-
-  return data;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
 }
 
 // Load Razorpay checkout script
@@ -74,32 +22,38 @@ export function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
-// Open Razorpay checkout
+// Open Razorpay checkout directly (without server-side order creation)
 export function openRazorpayCheckout(
   options: {
-    keyId: string;
-    orderId: string;
     amount: number;
     currency?: string;
     name?: string;
     description?: string;
     customerName?: string;
+    customerEmail?: string;
     customerPhone?: string;
     theme?: { color: string };
   },
   onSuccess: (result: RazorpayPaymentResult) => void,
   onFailure: (error: any) => void
 ): void {
+  const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+  if (!keyId) {
+    onFailure({ description: 'Razorpay Key ID not configured. Please add VITE_RAZORPAY_KEY_ID to your .env file.' });
+    return;
+  }
+
   const rzp = new (window as any).Razorpay({
-    key: options.keyId,
-    amount: options.amount,
+    key: keyId,
+    amount: Math.round(options.amount * 100), // Convert to paise
     currency: options.currency || 'INR',
-    name: options.name || 'Canteen',
+    name: options.name || 'Campus Canteen',
     description: options.description || 'Food Order Payment',
-    order_id: options.orderId,
     prefill: {
       name: options.customerName || '',
       contact: options.customerPhone || '',
+      email: options.customerEmail || '',
     },
     theme: options.theme || { color: '#f97316' },
     handler: function (response: RazorpayPaymentResult) {
