@@ -56,7 +56,7 @@ export default function Profile() {
       if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
         setUser({
           user_metadata: { full_name: 'System Admin', phone: 'N/A' },
-          email: 'admin@canteen.com',
+          email: 'avanishshukla234@gmail.com',
           created_at: new Date().toISOString()
         });
         setEditName('System Admin');
@@ -97,6 +97,17 @@ export default function Profile() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+        // Local Admin Bypass: Update local state only
+        setUser((prev: any) => ({
+          ...prev,
+          user_metadata: { ...prev.user_metadata, full_name: editName, phone: editPhone }
+        }));
+        setIsEditing(false);
+        toast.success('Profile updated locally!');
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         data: {
           full_name: editName,
