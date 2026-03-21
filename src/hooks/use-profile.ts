@@ -51,9 +51,7 @@ export function useProfile() {
 
         const userEmail = session.user.email?.toLowerCase();
         const adminEmails = [
-          'vinod.shukla10jan@gmail.com',
-          'avanishshukla345@gmail.com',
-          'admin@canteen.com'
+          'avanishshukla234@gmail.com'
         ];
         const isAdminEmail = userEmail && adminEmails.includes(userEmail);
 

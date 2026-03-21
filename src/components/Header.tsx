@@ -15,7 +15,7 @@ export default function Header() {
     if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
       setUser({
         user_metadata: { full_name: 'System Admin' },
-        email: 'admin@canteen.com'
+        email: 'avanishshukla234@gmail.com'
       });
     } else {
       supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,7 +28,7 @@ export default function Header() {
       if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
         setUser({
           user_metadata: { full_name: 'System Admin' },
-          email: 'admin@canteen.com'
+          email: 'avanishshukla234@gmail.com'
         });
       } else {
         setUser(session?.user ?? null);

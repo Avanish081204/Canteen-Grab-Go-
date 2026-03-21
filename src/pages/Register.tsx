@@ -37,6 +37,15 @@ export default function Register() {
       });
 
       if (signUpError) throw signUpError;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('profiles' as any).insert({
+          id: user.id,
+          full_name: fullName,
+          role: 'user'
+        });
+      }
 
       // Try auto-login immediately
       const { error: loginError } = await supabase.auth.signInWithPassword({
