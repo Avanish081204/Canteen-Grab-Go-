@@ -122,9 +122,9 @@ export default function Display() {
               {categorizedOrders.ready.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-white rounded-2xl py-5 px-6 text-center shadow-xl hover:scale-105 transition-transform duration-200"
+                  className="bg-white rounded-2xl py-5 px-3 text-center shadow-xl hover:scale-105 transition-transform duration-200 overflow-hidden"
                 >
-                  <span className="text-2xl md:text-3xl font-bold text-emerald-600">
+                  <span className="text-xl md:text-2xl font-bold text-emerald-600 whitespace-nowrap block tracking-tight">
                     {order.token}
                   </span>
                 </div>
