@@ -118,13 +118,13 @@ export default function Display() {
               <p className="text-white/60 text-base sm:text-lg md:text-2xl font-medium text-center">No orders ready for pickup</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 animate-fade-in">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 animate-fade-in">
               {categorizedOrders.ready.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-white rounded-xl md:rounded-2xl py-3 sm:py-4 md:py-5 px-2 text-center shadow-xl hover:scale-105 transition-transform duration-200 overflow-hidden"
+                  className="bg-white rounded-xl md:rounded-2xl py-3 sm:py-4 md:py-5 px-3 text-center shadow-xl hover:scale-105 transition-transform duration-200"
                 >
-                  <span className="text-sm sm:text-base md:text-xl font-bold text-emerald-600 whitespace-nowrap block tracking-tight">
+                  <span className="text-xs sm:text-sm md:text-base lg:text-xl font-bold text-emerald-600 whitespace-nowrap block tracking-tight">
                     {order.token}
                   </span>
                 </div>
