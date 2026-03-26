@@ -53,17 +53,32 @@ export default function Profile() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
-        setUser({
-          user_metadata: { full_name: 'Avanish', phone: '9503658089' },
-          email: 'avanishshukla234@gmail.com',
-          created_at: new Date().toISOString()
-        });
-        setEditName('Avanish');
-        setEditPhone('9503658089');
-        setOrders([]);
-        setLoading(false);
-        return;
+      if (typeof window !== 'undefined') {
+        if (sessionStorage.getItem('local_admin') === 'true') {
+          setUser({
+            user_metadata: { full_name: 'Avanish', phone: '9503658089' },
+            email: 'avanishshukla234@gmail.com',
+            created_at: new Date().toISOString()
+          });
+          setEditName('Avanish');
+          setEditPhone('9503658089');
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
+
+        if (sessionStorage.getItem('local_staff') === 'true') {
+          setUser({
+            user_metadata: { full_name: 'Staff Avanish', phone: '9503658089' },
+            email: 'avanish.v.shukla@slrtce.in',
+            created_at: new Date().toISOString()
+          });
+          setEditName('Staff Avanish');
+          setEditPhone('9503658089');
+          setOrders([]);
+          setLoading(false);
+          return;
+        }
       }
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -97,14 +112,14 @@ export default function Profile() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
-        // Local Admin Bypass: Update local state only
+      if (typeof window !== 'undefined' && (sessionStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_staff') === 'true')) {
+        // Local Bypass: Update local state only
         setUser((prev: any) => ({
           ...prev,
           user_metadata: { ...prev.user_metadata, full_name: editName, phone: editPhone }
         }));
         setIsEditing(false);
-        toast.success('Profile updated locally!');
+        toast.success('Profile updated successfully!');
         return;
       }
 

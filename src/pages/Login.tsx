@@ -22,8 +22,7 @@ export default function Login() {
       if (session?.user) {
         const userEmail = session.user.email?.toLowerCase();
         const adminEmails = [
-          'avanishshukla234@gmail.com',
-          'avanish.v.shukla@slrtce.in'
+          'avanishshukla234@gmail.com'
         ];
         if (userEmail && adminEmails.includes(userEmail)) {
           navigate('/staff/dashboard');
@@ -52,15 +51,21 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Local Admin Bypass
+      // Local Admin & Staff Bypass
       const lowerEmail = email.toLowerCase().trim();
-      if (
-        (lowerEmail === 'avanishshukla234@gmail.com' || lowerEmail === 'avanish.v.shukla@slrtce.in') && password === '123456'
-      ) {
+      
+      if (lowerEmail === 'avanishshukla234@gmail.com' && password === '123456') {
         sessionStorage.setItem('local_admin', 'true');
         toast.success('Admin Login Successful!');
         navigate('/staff/dashboard');
-        // Force a page reload to ensure Header and Profile states synchronize
+        window.location.href = '/staff/dashboard';
+        return;
+      }
+      
+      if (lowerEmail === 'avanish.v.shukla@slrtce.in' && password === '123456') {
+        sessionStorage.setItem('local_staff', 'true');
+        toast.success('Staff Login Successful!');
+        navigate('/staff/dashboard');
         window.location.href = '/staff/dashboard';
         return;
       }
@@ -78,8 +83,7 @@ export default function Login() {
 
         const userEmail = authData.user.email?.toLowerCase();
         const adminEmails = [
-          'avanishshukla234@gmail.com',
-          'avanish.v.shukla@slrtce.in'
+          'avanishshukla234@gmail.com'
         ];
         if (userEmail && adminEmails.includes(userEmail)) {
           navigate('/staff/dashboard');

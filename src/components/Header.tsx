@@ -12,26 +12,40 @@ export default function Header() {
 
   useEffect(() => {
     // Check initial session
-    if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
-      setUser({
-        user_metadata: { full_name: 'System Admin' },
-        email: 'avanishshukla234@gmail.com'
-      });
-    } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      });
+    if (typeof window !== 'undefined') {
+      if (sessionStorage.getItem('local_admin') === 'true') {
+        setUser({
+          user_metadata: { full_name: 'Avanish' },
+          email: 'avanishshukla234@gmail.com'
+        });
+      } else if (sessionStorage.getItem('local_staff') === 'true') {
+        setUser({
+          user_metadata: { full_name: 'Avanish Staff' },
+          email: 'avanish.v.shukla@slrtce.in'
+        });
+      } else {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setUser(session?.user ?? null);
+        });
+      }
     }
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
-        setUser({
-          user_metadata: { full_name: 'System Admin' },
-          email: 'avanishshukla234@gmail.com'
-        });
-      } else {
-        setUser(session?.user ?? null);
+      if (typeof window !== 'undefined') {
+        if (sessionStorage.getItem('local_admin') === 'true') {
+          setUser({
+            user_metadata: { full_name: 'Avanish' },
+            email: 'avanishshukla234@gmail.com'
+          });
+        } else if (sessionStorage.getItem('local_staff') === 'true') {
+          setUser({
+            user_metadata: { full_name: 'Avanish Staff' },
+            email: 'avanish.v.shukla@slrtce.in'
+          });
+        } else {
+          setUser(session?.user ?? null);
+        }
       }
     });
 

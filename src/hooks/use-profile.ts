@@ -16,20 +16,33 @@ export function useProfile() {
 
   useEffect(() => {
     let mounted = true;
-
     async function fetchProfile() {
-      // Local Admin Bypass
-      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
-        if (mounted) {
-          setProfile({
-            id: 'local-admin',
-            full_name: 'Avanish',
-            role: 'admin',
-            updated_at: new Date().toISOString()
-          });
-          setLoading(false);
+      if (typeof window !== 'undefined') {
+        if (sessionStorage.getItem('local_admin') === 'true') {
+          if (mounted) {
+            setProfile({
+              id: 'local-admin',
+              full_name: 'Avanish',
+              role: 'admin',
+              updated_at: new Date().toISOString()
+            });
+            setLoading(false);
+          }
+          return;
         }
-        return;
+
+        if (sessionStorage.getItem('local_staff') === 'true') {
+          if (mounted) {
+            setProfile({
+              id: 'local-staff',
+              full_name: 'Avanish Staff',
+              role: 'staff',
+              updated_at: new Date().toISOString()
+            });
+            setLoading(false);
+          }
+          return;
+        }
       }
 
       try {
@@ -85,7 +98,7 @@ export function useProfile() {
     fetchProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
+      if (typeof window !== 'undefined' && (sessionStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_staff') === 'true')) {
         fetchProfile();
         return;
       }
