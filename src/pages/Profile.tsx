@@ -104,9 +104,10 @@ export default function Profile() {
 
   const handleLogout = async () => {
     sessionStorage.removeItem('local_admin');
+    sessionStorage.removeItem('local_staff');
     await supabase.auth.signOut();
     toast.success('Logged out successfully');
-    navigate('/');
+    window.location.href = '/';
   };
 
   const handleSaveProfile = async () => {

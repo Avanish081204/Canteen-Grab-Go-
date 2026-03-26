@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, RefreshCw, ClipboardList } from 'lucide-react';
 import { 
   MenuItem, 
-  getOrders, 
   Order, 
   updateOrderStatus, 
   OrderStatus,
   fetchMenuItems,
   addMenuItem,
-  updateMenuItem
+  updateMenuItem,
+  fetchStaffOrders
 } from '@/lib/store';
 import {
   generateMenuItemId,
@@ -97,7 +97,7 @@ export default function AdminMenu() {
   const { role, loading } = useProfile();
 
   const [items, setItems] = useState<MenuItem[]>([]);
-  const [orders, setOrders] = useState<Order[]>(() => getOrders());
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [query, setQuery] = useState('');
   const [isMenuLoading, setIsMenuLoading] = useState(true);
@@ -214,12 +214,19 @@ export default function AdminMenu() {
   };
 
   useEffect(() => {
+    const loadOrders = async () => {
+      const data = await fetchStaffOrders();
+      setOrders(data);
+    };
+
+    loadOrders(); // Initial load
+
     const sync = () => {
       loadMenu();
-      setOrders(getOrders());
+      loadOrders();
     };
     window.addEventListener('menuUpdated', sync);
-    const interval = setInterval(() => setOrders(getOrders()), 5000);
+    const interval = setInterval(() => loadOrders(), 5000);
     return () => {
       window.removeEventListener('menuUpdated', sync);
       clearInterval(interval);
@@ -410,9 +417,9 @@ export default function AdminMenu() {
                         <TableCell>
                           <Select
                             value={order.status}
-                            onValueChange={(val) => {
-                              updateOrderStatus(order.id, val as OrderStatus);
-                              setOrders(getOrders());
+                            onValueChange={async (val) => {
+                              setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: val as OrderStatus } : o));
+                              await updateOrderStatus(order.id, val as OrderStatus);
                             }}
                           >
                             <SelectTrigger className="w-[140px]">
