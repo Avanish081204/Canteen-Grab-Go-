@@ -23,7 +23,7 @@ export function useProfile() {
         if (mounted) {
           setProfile({
             id: 'local-admin',
-            full_name: 'System Admin',
+            full_name: 'Avanish',
             role: 'admin',
             updated_at: new Date().toISOString()
           });

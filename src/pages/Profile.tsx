@@ -55,12 +55,12 @@ export default function Profile() {
     const loadProfile = async () => {
       if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
         setUser({
-          user_metadata: { full_name: 'System Admin', phone: 'N/A' },
+          user_metadata: { full_name: 'Avanish', phone: '9503658089' },
           email: 'avanishshukla234@gmail.com',
           created_at: new Date().toISOString()
         });
-        setEditName('System Admin');
-        setEditPhone('N/A');
+        setEditName('Avanish');
+        setEditPhone('9503658089');
         setOrders([]);
         setLoading(false);
         return;
