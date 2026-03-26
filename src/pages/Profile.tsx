@@ -105,6 +105,7 @@ export default function Profile() {
   const handleLogout = async () => {
     sessionStorage.removeItem('local_admin');
     sessionStorage.removeItem('local_staff');
+    window.dispatchEvent(new Event('userLoggedOut'));
     await supabase.auth.signOut();
     toast.success('Logged out successfully');
     window.location.href = '/';

@@ -58,12 +58,18 @@ export default function Header() {
     window.addEventListener('storage', updateCartCount);
     window.addEventListener('cartUpdated', updateCartCount);
     
+    const handleLogout = () => {
+      setUser(null);
+    };
+    window.addEventListener('userLoggedOut', handleLogout);
+
     return () => {
       window.removeEventListener('storage', updateCartCount);
       window.removeEventListener('cartUpdated', updateCartCount);
+      window.removeEventListener('userLoggedOut', handleLogout);
       subscription.unsubscribe();
     };
-  }, [location.pathname]);
+  }, []);
 
 
 
