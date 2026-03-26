@@ -165,12 +165,15 @@ export function generateToken(_type: OrderType): string {
   const counters = getTokenCounters();
   const today = getTodayDateString();
   
-  // Format: BAPHYYMMDD + sequential number (01, 02, ... 99, 100, 101...)
+  // Format: BAPHYYMMDD + sequential number + random string to avoid cross-device collisions
   const seq = counters.count;
   const seqStr = seq < 100 ? String(seq).padStart(2, '0') : String(seq);
-  const token = `BAPH${today}${seqStr}`;
   
-  // Increment for next order
+  // Generate random 3-character string
+  const randomSuffix = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const token = `BAPH${today}${seqStr}-${randomSuffix}`;
+  
+  // Increment for next order locally
   counters.date = today;
   counters.count = seq + 1;
   saveTokenCounters(counters);
@@ -345,8 +348,7 @@ export async function fetchOrderByToken(token: string): Promise<Order | null> {
 
   if (error || !data) {
     console.error('Error fetching order by token:', error);
-    // Fallback to local if absolutely necessary or return null
-    return getOrders().find(o => o.token === token) || null;
+    return null;
   }
 
   return {
@@ -360,8 +362,8 @@ export async function fetchOrderByToken(token: string): Promise<Order | null> {
     department: data.department,
     location: data.location,
     timeSlot: data.time_slot,
-    paymentMethod: data.payment_method,
-    paymentStatus: data.payment_status,
+    paymentMethod: data.payment_method as 'upi' | 'cash',
+    paymentStatus: data.payment_status as 'pending' | 'paid',
     createdAt: data.created_at,
     items: data.order_items.map((item: any) => ({
       id: item.menu_item_id,
@@ -378,7 +380,7 @@ export async function fetchOrderByToken(token: string): Promise<Order | null> {
 
 export async function fetchUserOrders(): Promise<Order[]> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return getOrders();
+  if (!session?.user) return [];
 
   const { data, error } = await supabase
     .from('orders')
@@ -391,7 +393,7 @@ export async function fetchUserOrders(): Promise<Order[]> {
 
   if (error) {
     console.error('Error fetching user orders:', error);
-    return getOrders();
+    return [];
   }
 
   const mappedOrders: Order[] = data.map((row: any) => ({
@@ -435,7 +437,7 @@ export async function fetchStaffOrders(): Promise<Order[]> {
 
   if (error) {
     console.error('Error fetching staff orders:', error);
-    return getOrders();
+    return [];
   }
 
   const mappedOrders: Order[] = data.map((row: any) => ({
@@ -521,8 +523,7 @@ export async function fetchMenuItems(): Promise<MenuItem[]> {
 
   if (error) {
     console.error('Error fetching menu items:', error);
-    // Fallback to local items if offline
-    return menuItems;
+    return [];
   }
 
   return data.map((dbItem: any) => ({

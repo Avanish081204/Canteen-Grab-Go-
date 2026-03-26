@@ -131,7 +131,34 @@ export default function Checkout() {
       }
     }
 
-    handleUpiPayment();
+    if (paymentMethod === 'cash') {
+      handleCashPayment();
+    } else {
+      handleUpiPayment();
+    }
+  };
+
+  const handleCashPayment = async () => {
+    setIsSubmitting(true);
+    try {
+      const order = await createOrder({
+        type: orderType!,
+        items: cart,
+        total,
+        customerName: name || undefined,
+        customerPhone: phone || undefined,
+        department: orderType === 'staff-delivery' ? department : undefined,
+        location: orderType === 'staff-delivery' ? location : undefined,
+        timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
+      }, 'cash', 'pending');
+
+      toast.success('Order placed successfully! Please pay at counter.');
+      navigate(`/success/${order.token}`);
+    } catch (error) {
+      console.error('Order creation error:', error);
+      toast.error('Order creation failed. Please check your connection.');
+      setIsSubmitting(false);
+    }
   };
 
   const orderTypeLabels = {
@@ -289,9 +316,32 @@ export default function Checkout() {
                 )}
               </button>
 
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('cash')}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                  paymentMethod === 'cash'
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    : 'border-border bg-card'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-6 h-6 flex items-center justify-center font-bold text-lg ${paymentMethod === 'cash' ? 'text-primary' : 'text-muted-foreground'}`}>₹</div>
+                  <div className="text-left">
+                    <p className={`font-medium ${paymentMethod === 'cash' ? 'text-primary' : 'text-foreground'}`}>Pay at Counter</p>
+                    <p className="text-xs text-muted-foreground">Pay when you collect your order</p>
+                  </div>
+                </div>
+                {paymentMethod === 'cash' && (
+                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </div>
+                )}
+              </button>
+
             </div>
             <p className="text-xs text-muted-foreground mt-4 text-center">
-              You'll be redirected to Razorpay for secure payment
+              {paymentMethod === 'upi' ? "You'll be redirected to Razorpay for secure payment" : "Order will be placed immediately"}
             </p>
           </div>
 
