@@ -22,7 +22,8 @@ export default function Login() {
       if (session?.user) {
         const userEmail = session.user.email?.toLowerCase();
         const adminEmails = [
-          'avanishshukla234@gmail.com'
+          'avanishshukla234@gmail.com',
+          'avanish.v.shukla@slrtce.in'
         ];
         if (userEmail && adminEmails.includes(userEmail)) {
           navigate('/staff/dashboard');
@@ -54,7 +55,7 @@ export default function Login() {
       // Local Admin Bypass
       const lowerEmail = email.toLowerCase().trim();
       if (
-        lowerEmail === 'avanishshukla234@gmail.com' && password === '123456'
+        (lowerEmail === 'avanishshukla234@gmail.com' || lowerEmail === 'avanish.v.shukla@slrtce.in') && password === '123456'
       ) {
         sessionStorage.setItem('local_admin', 'true');
         toast.success('Admin Login Successful!');
@@ -77,7 +78,8 @@ export default function Login() {
 
         const userEmail = authData.user.email?.toLowerCase();
         const adminEmails = [
-          'avanishshukla234@gmail.com'
+          'avanishshukla234@gmail.com',
+          'avanish.v.shukla@slrtce.in'
         ];
         if (userEmail && adminEmails.includes(userEmail)) {
           navigate('/staff/dashboard');
