@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, ChefHat, Clock, UtensilsCrossed } from 'lucide-react';
-import { getOrders, Order } from '@/lib/store';
+import { fetchStaffOrders, Order } from '@/lib/store';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Display() {
   const navigate = useNavigate();
@@ -9,16 +10,31 @@ export default function Display() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const updateOrders = () => {
-      setOrders(getOrders());
+    const loadOrders = async () => {
+      try {
+        const data = await fetchStaffOrders();
+        setOrders(data);
+      } catch (err) {
+        console.error('Failed to load orders for display:', err);
+      }
     };
 
-    updateOrders();
-    const interval = setInterval(updateOrders, 3000);
+    loadOrders();
+
+    // Subscribe to real-time status updates
+    const channel = supabase
+      .channel('display-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => loadOrders()
+      )
+      .subscribe();
+
     const clockInterval = setInterval(() => setNow(new Date()), 1000);
 
     return () => {
-      clearInterval(interval);
+      supabase.removeChannel(channel);
       clearInterval(clockInterval);
     };
   }, []);

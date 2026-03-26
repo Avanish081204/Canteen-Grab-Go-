@@ -38,14 +38,8 @@ export default function Register() {
 
       if (signUpError) throw signUpError;
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('profiles' as any).insert({
-          id: user.id,
-          full_name: fullName,
-          role: 'user'
-        });
-      }
+      // The database trigger will automatically create the profile row
+      // using the full_name from the options.data metadata.
 
       // Try auto-login immediately
       const { error: loginError } = await supabase.auth.signInWithPassword({

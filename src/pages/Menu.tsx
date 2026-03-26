@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
-import { getOrderType, getCart, getCartTotal } from '@/lib/store';
-import { getMenuItems, getMenuCategories } from '@/lib/menu-overrides';
+import { getOrderType, getCart, getCartTotal, fetchMenuItems } from '@/lib/store';
+import { getMenuCategories } from '@/lib/menu-overrides';
+import { MenuItem } from '@/lib/store';
 import MenuItemCard from '@/components/MenuItemCard';
 
 export default function Menu() {
@@ -10,8 +11,9 @@ export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [cartTotal, setCartTotal] = useState(0);
   const [cartCount, setCartCount] = useState(0);
-  const [items, setItems] = useState(() => getMenuItems());
-  const [categoryList, setCategoryList] = useState(() => getMenuCategories());
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [categoryList, setCategoryList] = useState<string[]>(['All']);
   const orderType = getOrderType();
 
   useEffect(() => {
@@ -30,15 +32,25 @@ export default function Menu() {
   }, []);
 
   useEffect(() => {
+    async function initMenu() {
+      setLoading(true);
+      const data = await fetchMenuItems();
+      setItems(data);
+      
+      const derivedCategories = Array.from(new Set(data.map(i => i.category))).sort((a, b) => a.localeCompare(b));
+      setCategoryList(['All', ...derivedCategories]);
+      setLoading(false);
+    }
+    
+    initMenu();
+
     const syncMenu = () => {
-      setItems(getMenuItems());
-      setCategoryList(getMenuCategories());
+      initMenu();
     };
+    
     window.addEventListener('menuUpdated', syncMenu);
-    window.addEventListener('storage', syncMenu);
     return () => {
       window.removeEventListener('menuUpdated', syncMenu);
-      window.removeEventListener('storage', syncMenu);
     };
   }, []);
 
@@ -97,15 +109,21 @@ export default function Menu() {
 
       {/* Menu Grid */}
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {filteredItems.map((item) => (
-            <MenuItemCard
-              key={item.id}
-              item={item}
-              onCartUpdate={updateCartInfo}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-12 text-muted-foreground animate-pulse">
+            Loading menu...
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {filteredItems.map((item) => (
+              <MenuItemCard
+                key={item.id}
+                item={item}
+                onCartUpdate={updateCartInfo}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Floating Cart Button */}

@@ -26,9 +26,15 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
   const config = statusConfig[order.status];
   const StatusIcon = config.icon;
 
-  const handleStatusChange = (newStatus: OrderStatus) => {
-    updateOrderStatus(order.id, newStatus);
-    onStatusUpdate();
+  const handleStatusChange = async (newStatus: OrderStatus) => {
+    try {
+      await updateOrderStatus(order.id, newStatus);
+      onStatusUpdate();
+    } catch (err: any) {
+      console.error('Failed to update status:', err);
+      // Assuming toast is available in the parent or we can import it. 
+      // It's already used in StaffDashboard.
+    }
   };
 
   const getNextStatusButton = () => {

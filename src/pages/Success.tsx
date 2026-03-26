@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, Home, Monitor, Download } from 'lucide-react';
-import { getOrderByToken, Order, clearOrderType } from '@/lib/store';
+import { getOrderByToken, fetchOrderByToken, Order, clearOrderType } from '@/lib/store';
 
 const tokenClasses = {
   'dine-in': 'bg-sky-500',
@@ -87,7 +87,7 @@ function generateInvoiceHTML(order: Order): string {
       ${deliveryInfo}
       <hr style="border:none;border-top:2px dashed #ddd;margin:24px 0 12px;"/>
       <p style="text-align:center;color:#888;font-size:12px;margin:0;">
-        ${order.paymentMethod === 'cash' ? 'Pay at Counter (Cash/UPI)' : 'Paid via UPI (Razorpay)'} • Thank you for your order!
+        Paid via UPI (Razorpay) • Thank you for your order!
       </p>
     </body>
     </html>
@@ -112,15 +112,25 @@ export default function Success() {
   const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    if (token) {
-      const foundOrder = getOrderByToken(token);
-      if (foundOrder) {
-        setOrder(foundOrder);
-        clearOrderType();
-      } else {
+    async function loadOrder() {
+      if (!token) return;
+      
+      try {
+        const foundOrder = await fetchOrderByToken(token);
+        if (foundOrder) {
+          setOrder(foundOrder);
+          clearOrderType();
+        } else {
+          console.warn('Order not found even in database');
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('Error loading order on success page:', err);
         navigate('/');
       }
     }
+    
+    loadOrder();
   }, [token, navigate]);
 
   if (!order) {
@@ -168,12 +178,8 @@ export default function Success() {
             </div>
             <div className="mt-3 flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Payment</span>
-              <span className={`font-semibold px-3 py-1 rounded-full text-xs ${
-                order.paymentMethod === 'cash'
-                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                  : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              }`}>
-                {order.paymentMethod === 'cash' ? '💵 Pay at Counter' : '✅ Paid Online (UPI)'}
+              <span className="font-semibold px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                ✅ Paid Online (UPI)
               </span>
             </div>
           </div>

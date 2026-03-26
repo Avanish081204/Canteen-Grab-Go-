@@ -247,6 +247,7 @@ export function clearOrderType() {
 }
 
 // Order functions
+// Order functions
 export function getOrders(): Order[] {
   const stored = localStorage.getItem(ORDERS_KEY);
   if (stored) return JSON.parse(stored);
@@ -264,58 +265,54 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
   
   let userId: string | null = null;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    userId = user?.id ?? null;
+    const { data: { session } } = await supabase.auth.getSession();
+    userId = session?.user?.id ?? null;
   } catch (e) {
     console.warn('Could not get user, proceeding as guest:', e);
   }
 
-  // Try to save to Supabase (non-blocking for the order flow)
-  try {
-    // 1. Insert order into Supabase
-    const { error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        id: orderId,
-        token,
-        user_id: userId,
-        status: 'placed',
-        total: orderData.total,
-        order_type: orderData.type,
-        customer_name: orderData.customerName ?? null,
-        customer_phone: orderData.customerPhone ?? null,
-        department: orderData.department ?? null,
-        location: orderData.location ?? null,
-        time_slot: orderData.timeSlot ?? null,
-        payment_method: paymentMethod,
-        payment_status: paymentStatus,
-      });
+  // 1. Insert order into Supabase
+  const { error: orderError } = await supabase
+    .from('orders')
+    .insert({
+      id: orderId,
+      token,
+      user_id: userId,
+      status: 'placed',
+      total: orderData.total,
+      order_type: orderData.type,
+      customer_name: orderData.customerName ?? null,
+      customer_phone: orderData.customerPhone ?? null,
+      department: orderData.department ?? null,
+      location: orderData.location ?? null,
+      time_slot: orderData.timeSlot ?? null,
+      payment_method: paymentMethod,
+      payment_status: paymentStatus,
+    });
 
-    if (orderError) {
-      console.error('Order insert error:', orderError);
-    } else {
-      // 2. Insert order items only if order insert succeeded
-      const itemsToInsert = orderData.items.map(item => ({
-        order_id: orderId,
-        menu_item_id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(itemsToInsert);
-
-      if (itemsError) {
-        console.error('Order items insert error:', itemsError);
-      }
-    }
-  } catch (e) {
-    console.error('Supabase save failed, using localStorage only:', e);
+  if (orderError) {
+    console.error('Order insert error:', orderError);
+    throw new Error('Failed to create order in database. Please check your connection.');
   }
 
-  // Always create the order object and save to localStorage
+  // 2. Insert order items
+  const itemsToInsert = orderData.items.map(item => ({
+    order_id: orderId,
+    menu_item_id: item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+  }));
+
+  const { error: itemsError } = await supabase
+    .from('order_items')
+    .insert(itemsToInsert);
+
+  if (itemsError) {
+    console.error('Order items insert error:', itemsError);
+    // Ideally we would rollback the order here, but for now we'll just log
+  }
+
   const order: Order = {
     ...orderData,
     id: orderId,
@@ -326,6 +323,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
     createdAt,
   };
   
+  // Save to local for immediate feedback
   const orders = getOrders();
   orders.unshift(order);
   saveOrders(orders);
@@ -335,9 +333,52 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
   return order;
 }
 
+export async function fetchOrderByToken(token: string): Promise<Order | null> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      order_items (*)
+    `)
+    .eq('token', token)
+    .single();
+
+  if (error || !data) {
+    console.error('Error fetching order by token:', error);
+    // Fallback to local if absolutely necessary or return null
+    return getOrders().find(o => o.token === token) || null;
+  }
+
+  return {
+    id: data.id,
+    token: data.token,
+    type: data.order_type as OrderType,
+    total: data.total,
+    status: data.status as OrderStatus,
+    customerName: data.customer_name,
+    customerPhone: data.customer_phone,
+    department: data.department,
+    location: data.location,
+    timeSlot: data.time_slot,
+    paymentMethod: data.payment_method,
+    paymentStatus: data.payment_status,
+    createdAt: data.created_at,
+    items: data.order_items.map((item: any) => ({
+      id: item.menu_item_id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      category: '',
+      image: '',
+      description: '',
+      isAvailable: true
+    }))
+  };
+}
+
 export async function fetchUserOrders(): Promise<Order[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return getOrders();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return getOrders();
 
   const { data, error } = await supabase
     .from('orders')
@@ -345,7 +386,7 @@ export async function fetchUserOrders(): Promise<Order[]> {
       *,
       order_items (*)
     `)
-    .eq('user_id', user.id)
+    .eq('user_id', session.user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -427,7 +468,19 @@ export async function fetchStaffOrders(): Promise<Order[]> {
   return mappedOrders;
 }
 
-export function updateOrderStatus(orderId: string, status: OrderStatus) {
+export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+  // 1. Update Supabase
+  const { error } = await supabase
+    .from('orders')
+    .update({ status })
+    .eq('id', orderId);
+
+  if (error) {
+    console.error('Error updating order status in Supabase:', error);
+    throw new Error('Failed to update order status in database.');
+  }
+
+  // 2. Update local state
   const orders = getOrders();
   const index = orders.findIndex(o => o.id === orderId);
   
@@ -457,4 +510,76 @@ export function getReadyOrders(): Order[] {
 
 export function getOrderByToken(token: string): Order | undefined {
   return getOrders().find(o => o.token === token);
+}
+
+// Menu Supabase API functions
+export async function fetchMenuItems(): Promise<MenuItem[]> {
+  const { data, error } = await supabase
+    .from('menu_items')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching menu items:', error);
+    // Fallback to local items if offline
+    return menuItems;
+  }
+
+  return data.map((dbItem: any) => ({
+    id: dbItem.id,
+    name: dbItem.name,
+    price: Number(dbItem.price),
+    category: dbItem.category,
+    image: dbItem.image,
+    description: dbItem.description,
+    isCombo: dbItem.is_combo,
+    isAvailable: dbItem.is_available,
+    dietary: dbItem.dietary
+  }));
+}
+
+export async function addMenuItem(item: Omit<MenuItem, "id">): Promise<MenuItem | null> {
+  const { data, error } = await supabase
+    .from('menu_items')
+    .insert({
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      image: item.image,
+      description: item.description,
+      is_combo: item.isCombo || false,
+      is_available: item.isAvailable,
+      dietary: item.dietary || null
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding menu item:', error);
+    return null;
+  }
+  return { ...item, id: data.id };
+}
+
+export async function updateMenuItem(id: string, item: Partial<MenuItem>): Promise<boolean> {
+  const updateData: any = {};
+  if (item.name !== undefined) updateData.name = item.name;
+  if (item.price !== undefined) updateData.price = item.price;
+  if (item.category !== undefined) updateData.category = item.category;
+  if (item.image !== undefined) updateData.image = item.image;
+  if (item.description !== undefined) updateData.description = item.description;
+  if (item.isCombo !== undefined) updateData.is_combo = item.isCombo;
+  if (item.isAvailable !== undefined) updateData.is_available = item.isAvailable;
+  if (item.dietary !== undefined) updateData.dietary = item.dietary;
+
+  const { error } = await supabase
+    .from('menu_items')
+    .update(updateData)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating menu item:', error);
+    return false;
+  }
+  return true;
 }

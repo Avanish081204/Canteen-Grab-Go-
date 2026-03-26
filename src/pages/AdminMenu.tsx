@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, RefreshCw, ClipboardList } from 'lucide-react';
-import { MenuItem, getOrders, Order, updateOrderStatus, OrderStatus } from '@/lib/store';
+import { 
+  MenuItem, 
+  getOrders, 
+  Order, 
+  updateOrderStatus, 
+  OrderStatus,
+  fetchMenuItems,
+  addMenuItem,
+  updateMenuItem
+} from '@/lib/store';
 import {
-  clearMenuOverrides,
   generateMenuItemId,
-  getMenuItems,
   getMenuCategories,
-  setMenuOverrides,
-  toggleItemAvailability,
-  upsertMenuItem,
 } from '@/lib/menu-overrides';
 import { builtInMenuImages } from '@/lib/menu-images';
 import { useProfile } from '@/hooks/use-profile';
@@ -92,17 +96,21 @@ export default function AdminMenu() {
   const navigate = useNavigate();
   const { role, loading } = useProfile();
 
-  const [items, setItems] = useState<MenuItem[]>(() => getMenuItems());
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [orders, setOrders] = useState<Order[]>(() => getOrders());
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [query, setQuery] = useState('');
+  const [isMenuLoading, setIsMenuLoading] = useState(true);
 
   // Dialog states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [draft, setDraft] = useState<ItemDraft>(() => toDraft());
 
-  const categories = useMemo(() => getMenuCategories(), [items]);
+  const categories = useMemo(() => {
+    const derived = Array.from(new Set(items.map((i) => i.category))).sort((a, b) => a.localeCompare(b));
+    return ['All', ...derived];
+  }, [items]);
 
   useEffect(() => {
     if (loading) return;
@@ -140,7 +148,18 @@ export default function AdminMenu() {
     setIsDialogOpen(true);
   };
 
-  const saveItem = () => {
+  const loadMenu = async () => {
+    setIsMenuLoading(true);
+    const data = await fetchMenuItems();
+    setItems(data);
+    setIsMenuLoading(false);
+  };
+
+  useEffect(() => {
+    loadMenu();
+  }, []);
+
+  const saveItem = async () => {
     if (!draft.name.trim()) {
       toast.error('Name is required');
       return;
@@ -158,39 +177,51 @@ export default function AdminMenu() {
       toast.error('Category is required');
       return;
     }
-    const item = draftToItem(draft);
-    upsertMenuItem(item);
-    toast.success(editingItem ? 'Item updated' : 'Item added');
+    const itemData = draftToItem(draft);
+    
+    if (editingItem) {
+      await updateMenuItem(editingItem.id, itemData);
+      toast.success('Item updated');
+    } else {
+      await addMenuItem(itemData);
+      toast.success('Item added');
+    }
+    
     setIsDialogOpen(false);
+    loadMenu();
+    window.dispatchEvent(new Event('menuUpdated'));
   };
 
-  const handleToggleStock = (itemId: string) => {
-    toggleItemAvailability(itemId);
+  const handleToggleStock = async (item: MenuItem) => {
+    const newStatus = !item.isAvailable;
+    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isAvailable: newStatus } : i)));
+    
+    const success = await updateMenuItem(item.id, { isAvailable: newStatus });
+    if (!success) {
+      toast.error('Failed to update stock');
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isAvailable: !newStatus } : i)));
+    } else {
+      window.dispatchEvent(new Event('menuUpdated'));
+    }
   };
 
   const handleResetMenu = () => {
-    clearMenuOverrides();
-    toast.success('Menu reset to default');
+    toast.error('Reset is disabled when using database.');
   };
 
   const handleForceSaveCurrent = () => {
-    // Ensures we persist current menu as overrides (useful after resetting and editing quickly)
-    setMenuOverrides(items);
-    toast.success('Saved menu overrides');
+    toast.info('Menu is automatically synced with database.');
   };
 
   useEffect(() => {
     const sync = () => {
-      const next = getMenuItems();
-      setItems(next);
+      loadMenu();
       setOrders(getOrders());
     };
     window.addEventListener('menuUpdated', sync);
-    window.addEventListener('storage', sync);
     const interval = setInterval(() => setOrders(getOrders()), 5000);
     return () => {
       window.removeEventListener('menuUpdated', sync);
-      window.removeEventListener('storage', sync);
       clearInterval(interval);
     };
   }, []);
@@ -313,7 +344,7 @@ export default function AdminMenu() {
                       <TableCell>{item.isCombo || item.category === 'Combos' ? 'Yes' : 'No'}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item.id)} />
+                          <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item)} />
                           <span className="text-sm text-muted-foreground">{item.isAvailable ? 'Available' : 'Out'}</span>
                         </div>
                       </TableCell>

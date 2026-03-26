@@ -31,6 +31,7 @@ export default function Checkout() {
   const [department, setDepartment] = useState('');
   const [location, setLocation] = useState('');
   const [timeSlot, setTimeSlot] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cash'>('upi');
 
   useEffect(() => {
     const type = getOrderType();
@@ -101,6 +102,8 @@ export default function Checkout() {
       setIsSubmitting(false);
     }
   };
+
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,15 +264,33 @@ export default function Checkout() {
 
           {/* Payment Info */}
           <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
-            <h2 className="font-semibold text-lg mb-4">Payment</h2>
-            <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5">
-              <CreditCard className="w-6 h-6 text-primary" />
-              <div className="text-left">
-                <p className="font-medium text-primary">Pay Online (UPI)</p>
-                <p className="text-xs text-muted-foreground">Secure payment via Razorpay</p>
-              </div>
+            <h2 className="font-semibold text-lg mb-4">Payment Method</h2>
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('upi')}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                  paymentMethod === 'upi'
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    : 'border-border bg-card'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <CreditCard className={`w-6 h-6 ${paymentMethod === 'upi' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className="text-left">
+                    <p className={`font-medium ${paymentMethod === 'upi' ? 'text-primary' : 'text-foreground'}`}>Pay Online (UPI)</p>
+                    <p className="text-xs text-muted-foreground">Secure payment via Razorpay</p>
+                  </div>
+                </div>
+                {paymentMethod === 'upi' && (
+                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </div>
+                )}
+              </button>
+
             </div>
-            <p className="text-xs text-muted-foreground mt-3 text-center">
+            <p className="text-xs text-muted-foreground mt-4 text-center">
               You'll be redirected to Razorpay for secure payment
             </p>
           </div>

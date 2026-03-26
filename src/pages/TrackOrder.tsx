@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin, Star, Clock, ArrowRight } from 'lucide-react';
-import { getOrderByToken, Order, OrderStatus, fetchUserOrders } from '@/lib/store';
+import { getOrderByToken, fetchOrderByToken, Order, OrderStatus, fetchUserOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -73,12 +73,19 @@ export default function TrackOrder() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = tokenInput.trim().toUpperCase();
     if (!trimmed) return;
-    const found = getOrderByToken(trimmed);
-    setOrder(found || null);
+    
+    setSearched(false);
+    try {
+      const found = await fetchOrderByToken(trimmed);
+      setOrder(found || null);
+    } catch (err) {
+      console.error('Search error:', err);
+      setOrder(null);
+    }
     setSearched(true);
   };
 
