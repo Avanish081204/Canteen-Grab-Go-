@@ -16,11 +16,26 @@
    ```sh
    npm install
    ```
-2. **Run the dev server**
+2. **Configure environment variables**
+
+   Copy the example file and fill in your own credentials:
+   ```sh
+   cp .env.example .env
+   ```
+   Then open `.env` and add your values:
+   | Variable | Description |
+   |---|---|
+   | `VITE_SUPABASE_PUBLISHABLE_KEY` | Your Supabase anon/public key |
+   | `VITE_SUPABASE_URL` | Your Supabase project URL |
+   | `VITE_RAZORPAY_KEY_ID` | Your Razorpay Key ID (test or live) |
+
+   > ⚠️ **Never commit `.env` to version control.** It is listed in `.gitignore`.
+
+3. **Run the dev server**
    ```sh
    npm run dev
    ```
-3. Open the printed `http://localhost:PORT/` URL in your browser.
+4. Open the printed `http://localhost:PORT/` URL in your browser.
 
 ## Build for production
 
