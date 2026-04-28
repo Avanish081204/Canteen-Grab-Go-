@@ -149,9 +149,12 @@ export default function Reviews() {
                       <p className="font-semibold text-foreground text-sm leading-tight">
                         {review.customerName}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        Order: {review.orderToken}
-                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                          Verified Purchase
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
