@@ -584,3 +584,72 @@ export async function updateMenuItem(id: string, item: Partial<MenuItem>): Promi
   }
   return true;
 }
+
+// ── Reviews ───────────────────────────────────────────────────────────────────
+
+export interface Review {
+  id: string;
+  orderId: string;
+  orderToken: string;
+  customerName: string;
+  rating: number;        // 1 – 5
+  comment: string;
+  createdAt: string;
+}
+
+export async function submitReview(review: {
+  orderId: string;
+  orderToken: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+}): Promise<boolean> {
+  const { error } = await supabase
+    .from('reviews')
+    .insert({
+      order_id: review.orderId,
+      order_token: review.orderToken,
+      customer_name: review.customerName,
+      rating: review.rating,
+      comment: review.comment,
+    });
+
+  if (error) {
+    console.error('Error submitting review:', error);
+    return false;
+  }
+  return true;
+}
+
+export async function fetchAllReviews(): Promise<Review[]> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching reviews:', error);
+    return [];
+  }
+
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    orderId: r.order_id,
+    orderToken: r.order_token,
+    customerName: r.customer_name,
+    rating: r.rating,
+    comment: r.comment,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function hasReviewForOrder(orderId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id')
+    .eq('order_id', orderId)
+    .limit(1);
+
+  if (error) return false;
+  return (data?.length ?? 0) > 0;
+}

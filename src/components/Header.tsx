@@ -4,6 +4,7 @@ import { getCart } from '@/lib/store';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/use-profile';
+import Logo from './Logo';
 
 export default function Header() {
   const location = useLocation();
@@ -92,9 +93,7 @@ export default function Header() {
           {/* Brand */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2.5 text-foreground group">
-              <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <UtensilsCrossed className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <Logo size="sm" />
               <span className="text-lg font-bold tracking-tight hidden sm:inline">Campus Canteen</span>
             </Link>
           </div>

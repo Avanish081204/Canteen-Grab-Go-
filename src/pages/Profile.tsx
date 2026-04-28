@@ -399,14 +399,17 @@ export default function Profile() {
             <ProfileLink
               icon={<HelpCircle className="w-5 h-5" />}
               label="Help & Support"
+              onClick={() => navigate('/help')}
             />
             <ProfileLink
               icon={<Info className="w-5 h-5" />}
               label="About"
+              onClick={() => navigate('/about')}
             />
             <ProfileLink
               icon={<Mail className="w-5 h-5" />}
               label="Send feedback"
+              onClick={() => navigate('/feedback')}
             />
           </div>
         </div>
@@ -422,7 +425,7 @@ export default function Profile() {
 
         {/* App version */}
         <p className="text-center text-xs text-muted-foreground pb-4">
-          Campus Canteen v1.0 • Made with ❤️
+          Campus Canteen v1.0 • All rights reserved
         </p>
       </div>
     </div>

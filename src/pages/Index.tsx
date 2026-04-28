@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { UtensilsCrossed, Package, Truck, Sparkles, Clock, Ticket } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { UtensilsCrossed, Package, Truck, Sparkles, Clock, Ticket, Star, ChevronRight } from 'lucide-react';
 import OrderTypeCard from '@/components/OrderTypeCard';
 import heroImage from '@/assets/hero-food.jpg';
-import { setOrderType } from '@/lib/store';
+import { setOrderType, fetchAllReviews, Review } from '@/lib/store';
+import Logo from '@/components/Logo';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -20,35 +22,37 @@ export default function Index() {
     <div className="page-container">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background with overlay */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/95 via-primary/90 to-orange-600/85" />
-        
+
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="relative container mx-auto px-4 py-20 md:py-32">
           <div className="text-center max-w-4xl mx-auto">
+            <div className="flex justify-center mb-8 animate-bounce-in">
+              <Logo size="lg" className="shadow-2xl" />
+            </div>
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-6 animate-fade-in">
               <Sparkles className="w-4 h-4 text-secondary" />
-              <span className="text-white/90 text-sm font-medium">Fresh & Delicious</span>
+              <span className="text-white/90 text-sm font-medium">Fresh &amp; Delicious</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 animate-slide-up leading-tight">
               Welcome to
               <span className="block text-secondary drop-shadow-lg">Campus Canteen</span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-white/85 mb-10 animate-slide-up max-w-2xl mx-auto">
               Quick bites, delicious meals — order your way and skip the queue!
             </p>
-            
+
             <div className="flex flex-wrap items-center justify-center gap-4 animate-bounce-in">
               <div className="bg-white/15 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 hover-scale">
                 <span className="text-lg font-semibold text-white flex items-center gap-2">
@@ -68,7 +72,7 @@ export default function Index() {
             </div>
           </div>
         </div>
-        
+
         {/* Wave decoration */}
         <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" fill="none" preserveAspectRatio="none">
           <path
@@ -126,10 +130,10 @@ export default function Index() {
           <div className="text-center mb-14">
             <span className="inline-block text-primary font-semibold text-sm uppercase tracking-wider mb-3">Why Choose Us</span>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-              Fast, Easy & Convenient
+              Fast, Easy &amp; Convenient
             </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="feature-card text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -138,7 +142,7 @@ export default function Index() {
               <h3 className="font-bold text-xl text-foreground mb-3">Easy Ordering</h3>
               <p className="text-muted-foreground">Simple and quick menu selection with beautiful interface</p>
             </div>
-            
+
             <div className="feature-card text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-secondary/30 to-secondary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Ticket className="w-10 h-10 text-secondary" />
@@ -146,7 +150,7 @@ export default function Index() {
               <h3 className="font-bold text-xl text-foreground mb-3">Token System</h3>
               <p className="text-muted-foreground">Track your order with unique token number</p>
             </div>
-            
+
             <div className="feature-card text-center group">
               <div className="w-20 h-20 bg-gradient-to-br from-success/20 to-success/5 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Clock className="w-10 h-10 text-success" />
@@ -158,14 +162,148 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Customer Reviews Section */}
+      <ReviewsSection onViewAll={() => navigate('/reviews')} />
+
       {/* Footer */}
       <footer className="py-8 border-t border-border/50">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
-            © 2026 Campus Canteen. Made with ❤️ for students & staff.
+            © 2026 Campus Canteen. All rights reserved.
           </p>
         </div>
       </footer>
     </div>
+  );
+}
+
+// ── Inline Reviews Preview Section ───────────────────────────────────────────
+function ReviewsSection({ onViewAll }: { onViewAll: () => void }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [avg, setAvg] = useState(0);
+
+  useEffect(() => {
+    fetchAllReviews().then((data) => {
+      setReviews(data.slice(0, 3));
+      if (data.length) {
+        setAvg(data.reduce((s, r) => s + r.rating, 0) / data.length);
+      }
+    });
+  }, []);
+
+  const ratingColors: Record<number, string> = {
+    1: 'text-red-500',
+    2: 'text-orange-400',
+    3: 'text-yellow-500',
+    4: 'text-lime-500',
+    5: 'text-emerald-500',
+  };
+  const ratingLabels: Record<number, string> = {
+    1: 'Poor 😞',
+    2: 'Fair 😐',
+    3: 'Good 🙂',
+    4: 'Great 😊',
+    5: 'Excellent 🤩',
+  };
+
+  return (
+    <section className="py-20">
+      <div className="container mx-auto px-4">
+        {/* Heading */}
+        <div className="text-center mb-12">
+          <span className="inline-block text-primary font-semibold text-sm uppercase tracking-wider mb-3">
+            What Our Customers Say
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+            Customer Reviews
+          </h2>
+          {reviews.length > 0 && (
+            <div className="flex items-center justify-center gap-1 mt-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={`w-5 h-5 ${s <= Math.round(avg) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`}
+                />
+              ))}
+              <span className="text-foreground font-bold ml-2">{avg.toFixed(1)}</span>
+              <span className="text-muted-foreground text-sm">/ 5</span>
+            </div>
+          )}
+        </div>
+
+        {reviews.length === 0 ? (
+          <div className="text-center py-10 text-muted-foreground">
+            <Star className="w-12 h-12 mx-auto mb-3 opacity-20" />
+            <p className="font-semibold text-foreground">No reviews yet</p>
+            <p className="text-sm mt-1">Place an order and be the first to review!</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-8">
+              {reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow animate-fade-in"
+                >
+                  {/* Stars row */}
+                  <div className="flex items-center gap-0.5 flex-wrap">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`w-4 h-4 ${s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/25'}`}
+                      />
+                    ))}
+                    <span className={`ml-1.5 text-xs font-semibold ${ratingColors[review.rating]}`}>
+                      {ratingLabels[review.rating]}
+                    </span>
+                  </div>
+
+                  {/* Comment */}
+                  {review.comment ? (
+                    <p className="text-sm text-foreground/80 leading-relaxed flex-1 line-clamp-3">
+                      "{review.comment}"
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic flex-1">No comment provided.</p>
+                  )}
+
+                  {/* Customer row */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {review.customerName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground leading-tight">
+                        {review.customerName}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* View All CTA */}
+            <div className="text-center">
+              <button
+                id="view-all-reviews-btn"
+                onClick={onViewAll}
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-2xl hover:brightness-110 transition-all shadow-lg"
+                style={{ boxShadow: 'var(--shadow-primary)' }}
+              >
+                View All Reviews
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
