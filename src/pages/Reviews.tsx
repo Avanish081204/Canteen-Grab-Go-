@@ -172,6 +172,20 @@ export default function Reviews() {
                   </p>
                 )}
 
+                {/* Ordered Items */}
+                {review.items && review.items.length > 0 && (
+                  <div className="mb-3 px-1">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Items Ordered</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {review.items.map((item: any, idx: number) => (
+                        <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] font-medium text-primary">
+                          {item.quantity}x {item.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Date */}
                 <p className="text-xs text-muted-foreground text-right">
                   {new Date(review.createdAt).toLocaleDateString('en-IN', {

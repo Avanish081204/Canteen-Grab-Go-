@@ -258,13 +258,15 @@ function ReviewsSection({ onViewAll }: { onViewAll: () => void }) {
                     </span>
                   </div>
 
-                  {/* Comment */}
-                  {review.comment ? (
-                    <p className="text-sm text-foreground/80 leading-relaxed flex-1 line-clamp-3">
-                      "{review.comment}"
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic flex-1">No comment provided.</p>
+                  {/* Ordered Items */}
+                  {review.items && review.items.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {review.items.map((item: any, idx: number) => (
+                        <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
+                          {item.name}
+                        </span>
+                      ))}
+                    </div>
                   )}
 
                   {/* Customer row */}

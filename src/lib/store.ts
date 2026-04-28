@@ -594,6 +594,7 @@ export interface Review {
   customerName: string;
   rating: number;        // 1 – 5
   comment: string;
+  items: any[];          // List of items ordered
   createdAt: string;
 }
 
@@ -603,16 +604,18 @@ export async function submitReview(review: {
   customerName: string;
   rating: number;
   comment: string;
+  items: any[];
 }): Promise<boolean> {
   const { error } = await supabase
     .from('reviews')
-    .insert({
+    .insert([{
       order_id: review.orderId,
       order_token: review.orderToken,
       customer_name: review.customerName,
       rating: review.rating,
       comment: review.comment,
-    });
+      items: review.items
+    }]);
 
   if (error) {
     console.error('Error submitting review:', error);
@@ -633,14 +636,15 @@ export async function fetchAllReviews(): Promise<Review[]> {
   }
 
   return (data ?? []).map((r: any) => ({
-    id: r.id,
-    orderId: r.order_id,
-    orderToken: r.order_token,
-    customerName: r.customer_name,
-    rating: r.rating,
-    comment: r.comment,
-    createdAt: r.created_at,
-  }));
+      id: r.id,
+      orderId: r.order_id,
+      orderToken: r.order_token,
+      customerName: r.customer_name,
+      rating: r.rating,
+      comment: r.comment,
+      items: r.items || [],
+      createdAt: r.created_at
+    })) as Review[];
 }
 
 export async function hasReviewForOrder(orderId: string): Promise<boolean> {

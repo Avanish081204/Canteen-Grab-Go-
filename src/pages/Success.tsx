@@ -157,6 +157,7 @@ export default function Success() {
       customerName: order.customerName || 'Anonymous',
       rating,
       comment: comment.trim(),
+      items: order.items
     });
     setReviewSubmitting(false);
     if (ok) {

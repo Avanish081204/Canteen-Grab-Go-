@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
   customer_name TEXT          NOT NULL DEFAULT 'Anonymous',
   rating        SMALLINT      NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment       TEXT          NOT NULL DEFAULT '',
+  items         JSONB         NOT NULL DEFAULT '[]'::jsonb,
   created_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
