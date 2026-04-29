@@ -605,7 +605,7 @@ export async function submitReview(review: {
   rating: number;
   comment: string;
   items: any[];
-}): Promise<boolean> {
+}): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase
     .from('reviews')
     .insert([{
@@ -619,13 +619,9 @@ export async function submitReview(review: {
 
   if (error) {
     console.error('Error submitting review:', error.message, error.details, error.hint);
-    // Alert the user about potential missing table
-    if (error.code === '42P01') {
-      toast.error('Review table not found. Please run the SQL migration.');
-    }
-    return false;
+    return { success: false, error: error.message };
   }
-  return true;
+  return { success: true };
 }
 
 export async function fetchAllReviews(): Promise<Review[]> {

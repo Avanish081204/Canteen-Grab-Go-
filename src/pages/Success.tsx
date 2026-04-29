@@ -62,7 +62,7 @@ export default function Success() {
       return;
     }
     setReviewSubmitting(true);
-    const ok = await submitReview({
+    const result = await submitReview({
       orderId: order.id,
       orderToken: order.token,
       customerName: order.customerName || 'Anonymous',
@@ -71,11 +71,11 @@ export default function Success() {
       items: order.items
     });
     setReviewSubmitting(false);
-    if (ok) {
+    if (result.success) {
       setReviewDone(true);
       toast.success('Thank you for your review! 🎉');
     } else {
-      toast.error('Could not submit review. Please try again.');
+      toast.error(`Error: ${result.error || 'Could not submit review'}`);
     }
   };
 
