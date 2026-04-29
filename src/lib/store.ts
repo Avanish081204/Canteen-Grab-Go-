@@ -618,7 +618,11 @@ export async function submitReview(review: {
     }]);
 
   if (error) {
-    console.error('Error submitting review:', error);
+    console.error('Error submitting review:', error.message, error.details, error.hint);
+    // Alert the user about potential missing table
+    if (error.code === '42P01') {
+      toast.error('Review table not found. Please run the SQL migration.');
+    }
     return false;
   }
   return true;
@@ -631,7 +635,7 @@ export async function fetchAllReviews(): Promise<Review[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching reviews:', error);
+    console.error('Error fetching reviews:', error.message);
     return [];
   }
 

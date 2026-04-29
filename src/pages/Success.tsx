@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, Home, Monitor, Download, Star, Send, MessageSquare } from 'lucide-react';
 import { fetchOrderByToken, Order, clearOrderType, submitReview, hasReviewForOrder } from '@/lib/store';
 import { toast } from 'sonner';
+import { printBill } from '@/lib/bill-utils';
 
 const tokenClasses = {
   'dine-in': 'bg-sky-500',
@@ -16,96 +17,6 @@ const statusMessages = {
   'staff-delivery': 'Your order will be delivered to your location',
 };
 
-const orderTypeLabels = {
-  'dine-in': 'Dine In',
-  'take-away': 'Take Away',
-  'staff-delivery': 'Staff Delivery',
-};
-
-function generateInvoiceHTML(order: Order): string {
-  const date = new Date(order.createdAt);
-  const formattedDate = date.toLocaleDateString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  });
-  const formattedTime = date.toLocaleTimeString('en-IN', {
-    hour: '2-digit', minute: '2-digit', hour12: true,
-  });
-
-  const itemRows = order.items.map(item => `
-    <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;">${item.name}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center;">${item.quantity}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;">₹${item.price}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;">₹${item.price * item.quantity}</td>
-    </tr>
-  `).join('');
-
-  const deliveryInfo = order.type === 'staff-delivery' ? `
-    <div style="margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;">
-      <strong>Delivery Details</strong><br/>
-      Department: ${order.department || '-'}<br/>
-      Location: ${order.location || '-'}<br/>
-      Time Slot: ${order.timeSlot || '-'}
-    </div>
-  ` : '';
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head><title>Invoice - ${order.token}</title></head>
-    <body style="font-family:'Segoe UI',Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;color:#1a1a1a;">
-      <div style="text-align:center;margin-bottom:24px;">
-        <h1 style="margin:0;font-size:22px;">🍽️ Campus Canteen</h1>
-        <p style="margin:4px 0 0;color:#666;font-size:13px;">BAPH College Campus</p>
-      </div>
-      <hr style="border:none;border-top:2px dashed #ddd;margin:16px 0;"/>
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:#555;">
-        <div>
-          <strong>Invoice</strong><br/>
-          Token: <strong style="color:#000;">${order.token}</strong><br/>
-          Type: ${orderTypeLabels[order.type]}
-        </div>
-        <div style="text-align:right;">
-          ${formattedDate}<br/>
-          ${formattedTime}
-        </div>
-      </div>
-      ${order.customerName ? `<div style="margin-top:12px;font-size:13px;color:#555;">Customer: <strong>${order.customerName}</strong>${order.customerPhone ? ` | ${order.customerPhone}` : ''}</div>` : ''}
-      <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:14px;">
-        <thead>
-          <tr style="background:#f5f5f5;">
-            <th style="padding:10px 12px;text-align:left;font-weight:600;">Item</th>
-            <th style="padding:10px 12px;text-align:center;font-weight:600;">Qty</th>
-            <th style="padding:10px 12px;text-align:right;font-weight:600;">Price</th>
-            <th style="padding:10px 12px;text-align:right;font-weight:600;">Total</th>
-          </tr>
-        </thead>
-        <tbody>${itemRows}</tbody>
-      </table>
-      <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:700;">
-        Total: ₹${order.total}
-      </div>
-      ${deliveryInfo}
-      <hr style="border:none;border-top:2px dashed #ddd;margin:24px 0 12px;"/>
-      <p style="text-align:center;color:#888;font-size:12px;margin:0;">
-        Paid via UPI (Razorpay) • Thank you for your order!
-      </p>
-    </body>
-    </html>
-  `;
-}
-
-function downloadInvoice(order: Order) {
-  const html = generateInvoiceHTML(order);
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.print();
-    };
-  }
-}
 
 export default function Success() {
   const navigate = useNavigate();
@@ -230,7 +141,7 @@ export default function Success() {
 
         {/* Download Invoice */}
         <button
-          onClick={() => downloadInvoice(order)}
+          onClick={() => printBill(order)}
           className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-4 rounded-xl hover:brightness-110 transition-all mb-4"
           style={{ boxShadow: 'var(--shadow-primary)' }}
         >

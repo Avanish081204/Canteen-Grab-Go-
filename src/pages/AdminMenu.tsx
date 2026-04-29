@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, RefreshCw, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download } from 'lucide-react';
 import { 
   MenuItem, 
   Order, 
@@ -11,6 +11,7 @@ import {
   updateMenuItem,
   fetchStaffOrders
 } from '@/lib/store';
+import { downloadBill } from '@/lib/bill-utils';
 import {
   generateMenuItemId,
   getMenuCategories,
@@ -388,12 +389,13 @@ export default function AdminMenu() {
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Time</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {orders.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                         No orders yet.
                       </TableCell>
                     </TableRow>
@@ -437,6 +439,16 @@ export default function AdminMenu() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(order.createdAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => downloadBill(order)}
+                            title="Download Bill"
+                          >
+                            <Download className="w-4 h-4 text-primary" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))

@@ -1,5 +1,7 @@
-import { Clock, ChefHat, CheckCircle, Truck, Package, PackageCheck } from 'lucide-react';
+import { Clock, ChefHat, CheckCircle, Truck, Package, PackageCheck, Download } from 'lucide-react';
 import { Order, OrderStatus, updateOrderStatus } from '@/lib/store';
+import { toast } from 'sonner';
+import { downloadBill } from '@/lib/bill-utils';
 
 interface OrderCardProps {
   order: Order;
@@ -32,10 +34,14 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
       onStatusUpdate();
     } catch (err: any) {
       console.error('Failed to update status:', err);
-      // Assuming toast is available in the parent or we can import it. 
-      // It's already used in StaffDashboard.
+      toast.error('Failed to update status');
     }
   };
+
+  const handleDownloadBill = () => {
+    downloadBill(order);
+  };
+
 
   const getNextStatusButton = () => {
     if (order.type === 'staff-delivery') {
@@ -59,14 +65,25 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
   const nextStatus = getNextStatusButton();
 
   return (
-    <div className="order-card animate-fade-in">
+    <div className="order-card animate-fade-in relative group">
+      {/* Download Bill Button (Admin only view) */}
+      {isStaff && (
+        <button
+          onClick={handleDownloadBill}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white text-muted-foreground hover:text-primary transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-sm border border-border"
+          title="Download Bill"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+      )}
+
       {/* Header */}
       <div className="p-5 border-b border-border/50 bg-muted/30">
         <div className="flex items-center justify-between gap-3">
           <div className={`token-badge text-lg ${tokenClasses[order.type]}`}>
             {order.token}
           </div>
-          <div className={`status-badge ${config.class}`}>
+          <div className={`status-badge ${config.class} pr-8`}>
             <StatusIcon className="w-4 h-4" />
             {config.label}
           </div>
@@ -158,3 +175,4 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
     </div>
   );
 }
+
