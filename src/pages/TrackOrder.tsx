@@ -190,13 +190,13 @@ export default function TrackOrder() {
         {order && (
           <div className="space-y-6 animate-slide-up">
             {/* Status Card */}
-            <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-card rounded-2xl p-4 sm:p-6 border border-border shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Token</p>
-                  <p className="text-xl font-bold text-foreground">{order.token}</p>
+                  <p className="text-xs text-muted-foreground">Token Number</p>
+                  <p className="text-sm sm:text-lg font-mono font-extrabold text-foreground tracking-tight whitespace-nowrap">{order.token}</p>
                 </div>
-                <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                <span className={`text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full ${
                   order.status === 'ready' || order.status === 'collected' || order.status === 'delivered'
                     ? 'bg-emerald-500/10 text-emerald-600'
                     : 'bg-orange-500/10 text-orange-600'

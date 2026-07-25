@@ -26,8 +26,9 @@ export default function CartItemCard({ item, onUpdate }: CartItemCardProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-card rounded-xl shadow-sm border border-border animate-slide-up">
-      <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+    <div className="flex items-center gap-2.5 sm:gap-4 p-2.5 sm:p-4 bg-card rounded-2xl shadow-sm border border-border animate-slide-up">
+      {/* Item Thumbnail */}
+      <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border/50">
         <img
           src={item.image}
           alt={item.name}
@@ -35,38 +36,43 @@ export default function CartItemCard({ item, onUpdate }: CartItemCardProps) {
         />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-card-foreground truncate">{item.name}</h3>
-        <p className="text-primary font-bold">₹{item.price}</p>
+      {/* Item Title & Unit Price */}
+      <div className="flex-1 min-w-0 pr-1">
+        <h3 className="font-bold text-xs sm:text-base text-card-foreground truncate">{item.name}</h3>
+        <p className="text-xs sm:text-sm font-extrabold text-primary mt-0.5">₹{item.price}</p>
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 bg-muted rounded-full p-1">
+      {/* Item Controls & Total Price */}
+      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+        <p className="font-extrabold text-xs sm:text-base text-foreground">₹{item.price * item.quantity}</p>
+        
+        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-muted/80 rounded-lg sm:rounded-xl p-0.5 sm:p-1">
+            <button
+              onClick={handleDecrease}
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-3 h-3" />
+            </button>
+            <span className="w-5 sm:w-7 text-center font-bold text-xs sm:text-sm">{item.quantity}</span>
+            <button
+              onClick={handleIncrease}
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+          </div>
+
           <button
-            onClick={handleDecrease}
-            className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+            onClick={handleRemove}
+            className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 active:scale-95 transition-colors"
+            title="Remove item"
           >
-            <Minus className="w-3 h-3" />
-          </button>
-          <span className="w-6 text-center font-semibold text-sm">{item.quantity}</span>
-          <button
-            onClick={handleIncrease}
-            className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-3 h-3" />
+            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
           </button>
         </div>
-
-        <button
-          onClick={handleRemove}
-          className="w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="text-right min-w-[60px]">
-        <p className="font-bold text-lg">₹{item.price * item.quantity}</p>
       </div>
     </div>
   );
