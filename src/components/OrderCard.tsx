@@ -42,7 +42,6 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
     downloadBill(order);
   };
 
-
   const getNextStatusButton = () => {
     if (order.type === 'staff-delivery') {
       switch (order.status) {
@@ -57,7 +56,7 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
     switch (order.status) {
       case 'placed': return { label: '🍳 Start Cooking', status: 'cooking' as OrderStatus };
       case 'cooking': return { label: '✅ Mark Ready', status: 'ready' as OrderStatus };
-      case 'ready': return { label: '✓ Collected', status: 'collected' as OrderStatus };
+      case 'ready': return { label: '✓ Mark Collected', status: 'collected' as OrderStatus };
       default: return null;
     }
   };
@@ -65,54 +64,58 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
   const nextStatus = getNextStatusButton();
 
   return (
-    <div className="order-card animate-fade-in relative group">
-      {/* Download Bill Button (Admin only view) */}
-      {isStaff && (
-        <button
-          onClick={handleDownloadBill}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white text-muted-foreground hover:text-primary transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-sm border border-border"
-          title="Download Bill"
-        >
-          <Download className="w-4 h-4" />
-        </button>
-      )}
-
+    <div className="order-card animate-fade-in relative group rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="p-5 border-b border-border/50 bg-muted/30">
-        <div className="flex items-center justify-between gap-3">
-          <div className={`token-badge text-lg ${tokenClasses[order.type]}`}>
+      <div className="p-3.5 sm:p-4 border-b border-border/60 bg-muted/20">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {/* Token badge — prevent multi-line wrap */}
+          <div className={`token-badge !text-xs sm:!text-sm !font-mono !tracking-tight !px-3 !py-1.5 !rounded-xl ${tokenClasses[order.type]} whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] sm:max-w-none`}>
             {order.token}
           </div>
-          <div className={`status-badge ${config.class} pr-8`}>
-            <StatusIcon className="w-4 h-4" />
-            {config.label}
+
+          <div className="flex items-center gap-2">
+            <div className={`status-badge ${config.class}`}>
+              <StatusIcon className="w-3.5 h-3.5" />
+              <span>{config.label}</span>
+            </div>
+
+            {/* Download Bill Button */}
+            {isStaff && (
+              <button
+                onClick={handleDownloadBill}
+                className="p-1.5 rounded-lg bg-background hover:bg-muted text-muted-foreground hover:text-primary transition-all shadow-sm border border-border"
+                title="Download Bill"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Body */}
-      <div className="p-5">
+      <div className="p-3.5 sm:p-4">
         {/* Items */}
-        <div className="space-y-2.5 mb-5">
+        <div className="space-y-2 mb-4">
           {order.items.map((item) => (
-            <div key={item.id} className="flex justify-between items-center text-sm">
-              <span className="text-foreground font-medium">
+            <div key={item.id} className="flex justify-between items-center text-xs sm:text-sm">
+              <span className="text-foreground font-medium truncate pr-2">
                 {item.quantity}× {item.name}
               </span>
-              <span className="text-muted-foreground">₹{item.price * item.quantity}</span>
+              <span className="text-muted-foreground flex-shrink-0 font-semibold">₹{item.price * item.quantity}</span>
             </div>
           ))}
         </div>
 
         {/* Total */}
-        <div className="border-t border-border/50 pt-4 flex justify-between items-center">
-          <span className="font-semibold text-foreground">Total</span>
-          <span className="text-xl font-bold text-primary">₹{order.total}</span>
+        <div className="border-t border-border/50 pt-3 flex justify-between items-center">
+          <span className="font-semibold text-xs sm:text-sm text-foreground">Total</span>
+          <span className="text-base sm:text-lg font-extrabold text-primary">₹{order.total}</span>
         </div>
 
         {/* Staff Delivery Details */}
         {order.type === 'staff-delivery' && isStaff && (
-          <div className="mt-4 pt-4 border-t border-border/50 space-y-2 text-sm bg-muted/30 rounded-xl p-4 -mx-1">
+          <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5 text-xs bg-muted/40 rounded-xl p-3">
             {order.customerName && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Name</span>
@@ -127,7 +130,7 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
             )}
             {order.department && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Department</span>
+                <span className="text-muted-foreground">Dept</span>
                 <span className="font-medium text-foreground">{order.department}</span>
               </div>
             )}
@@ -139,7 +142,7 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
             )}
             {order.timeSlot && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Time Slot</span>
+                <span className="text-muted-foreground">Slot</span>
                 <span className="font-medium text-foreground">{order.timeSlot}</span>
               </div>
             )}
@@ -150,7 +153,7 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
         {isStaff && nextStatus && (
           <button
             onClick={() => handleStatusChange(nextStatus.status)}
-            className={`w-full mt-5 py-3.5 rounded-2xl font-semibold text-base transition-all duration-300 hover:scale-[1.02] ${
+            className={`w-full mt-4 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 active:scale-[0.98] ${
               nextStatus.status === 'collected' 
                 ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700' 
                 : nextStatus.status === 'cooking'
@@ -159,7 +162,7 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
                 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600'
                 : 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:brightness-110'
             }`}
-            style={{ boxShadow: '0 6px 16px -4px rgba(0,0,0,0.2)' }}
+            style={{ boxShadow: '0 4px 12px -2px rgba(0,0,0,0.15)' }}
           >
             {nextStatus.label}
           </button>
@@ -167,12 +170,11 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
       </div>
 
       {/* Footer */}
-      <div className="px-5 pb-4">
-        <p className="text-xs text-muted-foreground text-center">
+      <div className="px-3.5 pb-3">
+        <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
           {new Date(order.createdAt).toLocaleString()}
         </p>
       </div>
     </div>
   );
 }
-

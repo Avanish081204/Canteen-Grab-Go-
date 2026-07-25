@@ -80,15 +80,15 @@ export default function Cart() {
       </div>
 
       {/* Checkout Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border p-3 sm:p-4 z-40">
         <div className="container mx-auto max-w-lg">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span className="text-xl font-bold text-foreground">₹{total}</span>
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-xs sm:text-sm text-muted-foreground font-medium">Subtotal</span>
+            <span className="text-lg sm:text-xl font-bold text-foreground">₹{total}</span>
           </div>
           <button
             onClick={() => navigate('/checkout')}
-            className="w-full btn-hero !py-4 text-lg"
+            className="w-full btn-hero !py-3 sm:!py-4 text-sm sm:text-base rounded-xl font-bold"
           >
             Proceed to Checkout
           </button>

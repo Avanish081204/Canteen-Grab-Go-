@@ -168,7 +168,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-8 md:pb-8 pb-safe">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4">
@@ -349,11 +349,11 @@ export default function Checkout() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full btn-hero !py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full btn-hero !py-3 sm:!py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                 Processing...
               </>
             ) : (
