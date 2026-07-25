@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
@@ -494,16 +494,6 @@
     transition-duration: 400ms;
   }
 
-  /* ── Page Transition ─────────────────────────────────── */
-  .page-enter {
-    animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  @keyframes page-enter {
-    0%  { opacity: 0; transform: translateY(12px); }
-    100%{ opacity: 1; transform: translateY(0); }
-  }
-
   /* ── Shimmer Skeleton ─────────────────────────────────── */
   .skeleton {
     @apply bg-muted rounded-xl relative overflow-hidden;
@@ -524,12 +514,5 @@
   @keyframes skeleton-shimmer {
     0%   { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
-  }
-
-  /* ── PWA Install Banner ───────────────────────────────── */
-  .pwa-banner {
-    @apply fixed bottom-20 left-4 right-4 z-[100] bg-card border border-border rounded-2xl p-4 flex items-center gap-3;
-    box-shadow: var(--shadow-xl);
-    animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
