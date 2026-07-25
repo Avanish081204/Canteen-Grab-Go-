@@ -64,36 +64,36 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
         )}
       </div>
 
-      <div className="p-5">
-        <h3 className="font-bold text-lg text-card-foreground mb-1.5 line-clamp-1">{item.name}</h3>
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-2 min-h-[2.5rem]">{item.description}</p>
+      <div className="p-3 sm:p-5">
+        <h3 className="font-bold text-base sm:text-lg text-card-foreground mb-1 line-clamp-1">{item.name}</h3>
+        <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 min-h-[2.5rem]">{item.description}</p>
         
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-2xl font-bold text-primary">₹{item.price}</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xl sm:text-2xl font-bold text-primary">₹{item.price}</span>
           
           {item.isAvailable && (
             quantity === 0 ? (
               <button
                 onClick={handleAdd}
-                className="btn-gold flex items-center gap-2 text-sm !px-5 !py-2.5 !rounded-xl"
+                className="btn-gold flex items-center gap-1.5 text-sm !px-4 !py-2 !rounded-xl active:scale-95"
               >
                 <Plus className="w-4 h-4" />
                 Add
               </button>
             ) : (
-              <div className="flex items-center gap-1 bg-muted rounded-2xl p-1.5">
+              <div className="flex items-center gap-1 bg-muted rounded-2xl p-1">
                 <button
                   onClick={handleDecrease}
-                  className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 transition-all duration-200"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 active:scale-95 transition-all duration-200"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-                <span className="w-10 text-center font-bold text-lg">{quantity}</span>
+                <span className="w-8 sm:w-10 text-center font-bold text-base sm:text-lg">{quantity}</span>
                 <button
                   onClick={handleIncrease}
-                  className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 transition-all duration-200"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 active:scale-95 transition-all duration-200"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             )

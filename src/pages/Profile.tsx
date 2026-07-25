@@ -44,6 +44,7 @@ export default function Profile() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllOrders, setShowAllOrders] = useState(false);
+  const [orderTab, setOrderTab] = useState<'active' | 'past'>('active');
 
   // Edit profile state
   const [isEditing, setIsEditing] = useState(false);
@@ -167,8 +168,11 @@ export default function Profile() {
   const displayedOrders = showAllOrders ? orders : orders.slice(0, 3);
   const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
 
+  const activeOrders = orders.filter(o => ['placed', 'cooking', 'ready', 'out-for-delivery'].includes(o.status));
+  const pastOrders = orders.filter(o => ['collected', 'delivered'].includes(o.status));
+
   return (
-    <div className="min-h-screen bg-muted/30 pb-8">
+    <div className="min-h-screen bg-muted/30 pb-24 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-3">
@@ -288,53 +292,96 @@ export default function Profile() {
               <ShoppingBag className="w-5 h-5 text-muted-foreground" />
             </div>
 
-            {orders.length === 0 ? (
-              <div className="px-5 pb-5 text-center text-muted-foreground text-sm py-6">
-                <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                No orders yet. Start ordering from the menu!
-              </div>
-            ) : (
-              <>
-                <div className="divide-y divide-border">
-                  {displayedOrders.map((order) => (
-                    <button
-                      key={order.id}
-                      onClick={() => navigate(`/success/${order.token}`)}
-                      className="w-full px-5 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-sm">{order.token}</span>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColors[order.status] || ''}`}>
-                            {order.status.toUpperCase()}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
-                        </p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <span>{orderTypeLabels[order.type] || order.type}</span>
-                          <span>•</span>
-                          <span>{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                        <span className="font-bold text-primary">₹{order.total}</span>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                {orders.length > 3 && (
-                  <button
-                    onClick={() => setShowAllOrders(!showAllOrders)}
-                    className="w-full py-3 text-center text-sm font-semibold text-primary hover:bg-primary/5 transition-colors border-t border-border"
-                  >
-                    {showAllOrders ? 'Show Less' : `View All ${orders.length} Orders`}
-                  </button>
+            {/* Active / Past Tabs */}
+            <div className="px-5 pb-3 flex gap-2">
+              <button
+                onClick={() => { setOrderTab('active'); setShowAllOrders(false); }}
+                className={`tab-button text-sm ${
+                  orderTab === 'active' ? 'tab-button-active' : 'tab-button-inactive'
+                }`}
+              >
+                <Clock className="w-4 h-4" />
+                Active
+                {activeOrders.length > 0 && (
+                  <span className={`count-badge ${
+                    orderTab === 'active' ? 'count-badge-active' : 'count-badge-inactive'
+                  }`}>
+                    {activeOrders.length}
+                  </span>
                 )}
-              </>
-            )}
+              </button>
+              <button
+                onClick={() => { setOrderTab('past'); setShowAllOrders(false); }}
+                className={`tab-button text-sm ${
+                  orderTab === 'past' ? 'tab-button-active' : 'tab-button-inactive'
+                }`}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Past
+                {pastOrders.length > 0 && (
+                  <span className={`count-badge ${
+                    orderTab === 'past' ? 'count-badge-active' : 'count-badge-inactive'
+                  }`}>
+                    {pastOrders.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {(() => {
+              const tabOrders = orderTab === 'active' ? activeOrders : pastOrders;
+              const shown = showAllOrders ? tabOrders : tabOrders.slice(0, 3);
+              return tabOrders.length === 0 ? (
+                <div className="px-5 pb-5 text-center text-muted-foreground text-sm py-6">
+                  <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  {orderTab === 'active'
+                    ? 'No active orders right now.'
+                    : 'No past orders yet. Start ordering!'}
+                </div>
+              ) : (
+                <>
+                  <div className="divide-y divide-border">
+                    {shown.map((order) => (
+                      <button
+                        key={order.id}
+                        onClick={() => navigate(`/success/${order.token}`)}
+                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-sm">{order.token}</span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColors[order.status] || ''}`}>
+                              {order.status.toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                          </p>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                            <span>{orderTypeLabels[order.type] || order.type}</span>
+                            <span>•</span>
+                            <span>{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                          <span className="font-bold text-primary">₹{order.total}</span>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {tabOrders.length > 3 && (
+                    <button
+                      onClick={() => setShowAllOrders(!showAllOrders)}
+                      className="w-full py-3 text-center text-sm font-semibold text-primary hover:bg-primary/5 transition-colors border-t border-border"
+                    >
+                      {showAllOrders ? 'Show Less' : `View All ${tabOrders.length} Orders`}
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
 

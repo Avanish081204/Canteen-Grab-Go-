@@ -50,7 +50,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-44 md:pb-32">
       {/* Header */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4">

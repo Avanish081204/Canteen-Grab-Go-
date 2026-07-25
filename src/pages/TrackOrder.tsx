@@ -100,7 +100,7 @@ export default function TrackOrder() {
   const currentStep = order ? getStepIndex(order.status, isDelivery) : -1;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
       <div className="container mx-auto px-4 py-8 max-w-lg">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Track Your Order</h1>
@@ -191,7 +191,7 @@ export default function TrackOrder() {
           <div className="space-y-6 animate-slide-up">
             {/* Status Card */}
             <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Token</p>
                   <p className="text-xl font-bold text-foreground">{order.token}</p>
@@ -204,6 +204,30 @@ export default function TrackOrder() {
                   {statusConfig[order.status].label}
                 </span>
               </div>
+
+              {/* Estimated Wait Time */}
+              {(order.status === 'placed' || order.status === 'cooking') && (
+                <div className="flex items-center gap-2 mb-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl px-4 py-2.5">
+                  <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                      Estimated Wait Time
+                    </p>
+                    <p className="text-sm font-bold text-amber-800 dark:text-amber-200">
+                      {order.status === 'placed' ? '~15 min' : '~5 min'}
+                    </p>
+                  </div>
+                  <span className="text-lg">⏱️</span>
+                </div>
+              )}
+              {order.status === 'ready' && (
+                <div className="flex items-center gap-2 mb-5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 rounded-xl px-4 py-2.5">
+                  <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 animate-bounce" />
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
+                    Your order is ready! 🎉 Please collect it now.
+                  </p>
+                </div>
+              )}
 
               {/* Progress Steps */}
               <div className="relative">

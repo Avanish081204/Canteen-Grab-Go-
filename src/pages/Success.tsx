@@ -84,7 +84,7 @@ export default function Success() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 pb-24 md:pb-4">
       <div className="w-full max-w-md text-center">
         {/* Success Animation */}
         <div className="mb-8 animate-bounce-in">

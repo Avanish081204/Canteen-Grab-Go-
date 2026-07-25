@@ -59,7 +59,7 @@ export default function Reviews() {
   }));
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-10">
+    <div className="min-h-screen bg-muted/30 pb-24 md:pb-10">
       {/* Header */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-3">

@@ -26,7 +26,7 @@ export default function Help() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-8">
+    <div className="min-h-screen bg-muted/30 pb-24 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-3">

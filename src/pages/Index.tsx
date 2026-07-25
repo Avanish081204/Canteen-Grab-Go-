@@ -34,38 +34,38 @@ export default function Index() {
           <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-20 md:py-32">
+        <div className="relative container mx-auto px-4 py-14 sm:py-20 md:py-32">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="flex justify-center mb-8 animate-bounce-in">
+            <div className="flex justify-center mb-6 animate-bounce-in">
               <Logo size="lg" className="shadow-2xl" />
             </div>
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-6 animate-fade-in">
-              <Sparkles className="w-4 h-4 text-secondary" />
-              <span className="text-white/90 text-sm font-medium">Fresh &amp; Delicious</span>
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full mb-5 animate-fade-in">
+              <Sparkles className="w-3.5 h-3.5 text-secondary" />
+              <span className="text-white/90 text-xs sm:text-sm font-medium">Fresh &amp; Delicious</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 animate-slide-up leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-white mb-5 animate-slide-up leading-tight">
               Welcome to
               <span className="block text-secondary drop-shadow-lg">Campus Canteen</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-white/85 mb-10 animate-slide-up max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl md:text-2xl text-white/85 mb-8 animate-slide-up max-w-2xl mx-auto">
               Quick bites, delicious meals — order your way and skip the queue!
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-4 animate-bounce-in">
-              <div className="bg-white/15 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 hover-scale">
-                <span className="text-lg font-semibold text-white flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 animate-bounce-in">
+              <div className="bg-white/15 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white/20 hover-scale">
+                <span className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
                   🍔 Fresh Food
                 </span>
               </div>
-              <div className="bg-white/15 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 hover-scale">
-                <span className="text-lg font-semibold text-white flex items-center gap-2">
+              <div className="bg-white/15 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white/20 hover-scale">
+                <span className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
                   ⚡ Fast Service
                 </span>
               </div>
-              <div className="bg-white/15 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20 hover-scale">
-                <span className="text-lg font-semibold text-white flex items-center gap-2">
+              <div className="bg-white/15 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white/20 hover-scale">
+                <span className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
                   🎫 Token System
                 </span>
               </div>
@@ -83,19 +83,19 @@ export default function Index() {
       </section>
 
       {/* Order Type Selection */}
-      <section className="py-20 md:py-28">
+      <section className="py-12 sm:py-20 md:py-28">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10 sm:mb-14">
             <span className="inline-block text-primary font-semibold text-sm uppercase tracking-wider mb-3">Choose Your Way</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-5">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
               How would you like to order?
             </h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
               Select your preferred ordering method and enjoy your meal
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
             <OrderTypeCard
               title="Dine In"
               description="Collect from counter using your token number"
@@ -125,38 +125,38 @@ export default function Index() {
       </section>
 
       {/* Features */}
-      <section className="py-20 bg-muted/40">
+      <section className="py-12 sm:py-20 bg-muted/40">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10 sm:mb-14">
             <span className="inline-block text-primary font-semibold text-sm uppercase tracking-wider mb-3">Why Choose Us</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
               Fast, Easy &amp; Convenient
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-8 max-w-5xl mx-auto">
             <div className="feature-card text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <span className="text-4xl">📱</span>
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                <span className="text-3xl sm:text-4xl">📱</span>
               </div>
-              <h3 className="font-bold text-xl text-foreground mb-3">Easy Ordering</h3>
-              <p className="text-muted-foreground">Simple and quick menu selection with beautiful interface</p>
+              <h3 className="font-bold text-lg sm:text-xl text-foreground mb-2">Easy Ordering</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">Simple and quick menu selection with beautiful interface</p>
             </div>
 
             <div className="feature-card text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-secondary/30 to-secondary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Ticket className="w-10 h-10 text-secondary" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-secondary/30 to-secondary/10 rounded-3xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                <Ticket className="w-8 h-8 sm:w-10 sm:h-10 text-secondary" />
               </div>
-              <h3 className="font-bold text-xl text-foreground mb-3">Token System</h3>
-              <p className="text-muted-foreground">Track your order with unique token number</p>
+              <h3 className="font-bold text-lg sm:text-xl text-foreground mb-2">Token System</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">Track your order with unique token number</p>
             </div>
 
             <div className="feature-card text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-success/20 to-success/5 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Clock className="w-10 h-10 text-success" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-success/20 to-success/5 rounded-3xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                <Clock className="w-8 h-8 sm:w-10 sm:h-10 text-success" />
               </div>
-              <h3 className="font-bold text-xl text-foreground mb-3">Live Updates</h3>
-              <p className="text-muted-foreground">Real-time order status tracking on display</p>
+              <h3 className="font-bold text-lg sm:text-xl text-foreground mb-2">Live Updates</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">Real-time order status tracking on display</p>
             </div>
           </div>
         </div>

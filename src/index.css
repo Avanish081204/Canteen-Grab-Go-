@@ -117,6 +117,18 @@
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Mobile safe area insets (notches/home indicators) */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Touch-friendly tap targets */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   /* Hide scrollbar but keep functionality */
@@ -126,6 +138,11 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Mobile bottom nav spacing — pages need padding-bottom to clear mobile nav */
+  .mobile-nav-pad {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -170,12 +187,15 @@
 
   /* Order Type Card */
   .card-order-type {
-    @apply relative bg-card rounded-3xl cursor-pointer border-2 border-transparent p-8 transition-all duration-400 overflow-hidden;
+    @apply relative bg-card rounded-3xl cursor-pointer border-2 border-transparent p-5 sm:p-6 md:p-8 transition-all duration-400 overflow-hidden;
     box-shadow: var(--shadow-lg);
   }
   .card-order-type:hover {
     @apply scale-[1.03] border-primary/30;
     box-shadow: var(--shadow-xl);
+  }
+  .card-order-type:active {
+    @apply scale-[0.98];
   }
   .card-order-type::before {
     content: '';
@@ -292,7 +312,7 @@
 
   /* Page Container */
   .page-container {
-    @apply min-h-screen bg-background;
+    @apply min-h-screen bg-background pb-16 md:pb-0;
   }
 
   /* Sticky Header */
@@ -472,5 +492,44 @@
   /* Duration utilities */
   .duration-400 {
     transition-duration: 400ms;
+  }
+
+  /* ── Page Transition ─────────────────────────────────── */
+  .page-enter {
+    animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes page-enter {
+    0%  { opacity: 0; transform: translateY(12px); }
+    100%{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Shimmer Skeleton ─────────────────────────────────── */
+  .skeleton {
+    @apply bg-muted rounded-xl relative overflow-hidden;
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--background) / 0.6) 50%,
+      transparent 100%
+    );
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* ── PWA Install Banner ───────────────────────────────── */
+  .pwa-banner {
+    @apply fixed bottom-20 left-4 right-4 z-[100] bg-card border border-border rounded-2xl p-4 flex items-center gap-3;
+    box-shadow: var(--shadow-xl);
+    animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }

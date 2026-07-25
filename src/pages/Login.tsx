@@ -110,7 +110,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100-64px)] flex items-center justify-center p-4 bg-muted/30">
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 pb-24 md:pb-4 bg-muted/30">
       <div className="w-full max-w-md animate-fade-in">
         <div className="bg-card border border-border rounded-3xl p-8 shadow-xl">
           <div className="text-center mb-8">
