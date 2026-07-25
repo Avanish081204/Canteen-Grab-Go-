@@ -97,43 +97,43 @@ export default function Menu() {
   return (
     <div className="min-h-screen bg-background pb-36 md:pb-24">
       {/* Sticky Header */}
-      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
+      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between mb-2">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               Back
             </button>
-            <span className="text-sm font-medium bg-muted px-3 py-1 rounded-full">
+            <span className="text-xs sm:text-sm font-medium bg-muted px-2.5 py-0.5 sm:py-1 rounded-full">
               {orderType && orderTypeLabels[orderType]}
             </span>
           </div>
 
           {/* Search Bar */}
-          <div className="relative mb-3">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="relative mb-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search items, e.g. Samosa, Tea…"
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground/60 transition-all"
+              className="w-full pl-8 pr-8 py-1.5 sm:py-2 rounded-lg border border-input bg-background text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-muted-foreground/60 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
           {/* Categories */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
             {categoryList.map((category) => (
               <button
                 key={category}
@@ -152,34 +152,34 @@ export default function Menu() {
       </div>
 
       {/* Menu Grid */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
         {loading ? (
           // ── Shimmer Skeleton Grid ──────────────────────────────────
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-muted-foreground opacity-50" />
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
+              <Search className="w-6 h-6 text-muted-foreground opacity-50" />
             </div>
-            <p className="font-semibold text-foreground">No items found</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="font-semibold text-sm text-foreground">No items found</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               {searchQuery ? `No results for "${searchQuery}"` : 'No items in this category'}
             </p>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="mt-4 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors"
+                className="mt-3 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
               >
                 Clear search
               </button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
             {filteredItems.map((item) => (
               <MenuItemCard
                 key={item.id}
@@ -193,20 +193,20 @@ export default function Menu() {
 
       {/* Floating Cart Button */}
       {cartCount > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-50">
+        <div className="fixed bottom-16 sm:bottom-20 md:bottom-6 left-3 right-3 sm:left-4 sm:right-4 z-50">
           <button
             onClick={() => navigate('/cart')}
-            className="w-full max-w-lg mx-auto flex items-center justify-between bg-primary text-primary-foreground px-4 sm:px-6 py-3.5 sm:py-4 rounded-2xl shadow-2xl hover:bg-primary/90 active:scale-[0.98] transition-all duration-300 animate-slide-up"
+            className="w-full max-w-lg mx-auto flex items-center justify-between bg-primary text-primary-foreground px-3.5 py-2.5 sm:px-6 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-xl hover:bg-primary/90 active:scale-[0.98] transition-all duration-300 animate-slide-up"
           >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-foreground/20 rounded-full flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
-              <span className="font-semibold text-sm sm:text-base">{cartCount} items</span>
+              <span className="font-semibold text-xs sm:text-base">{cartCount} items</span>
             </div>
             <div className="text-right">
-              <p className="text-xs sm:text-sm opacity-80">Total</p>
-              <p className="text-lg sm:text-xl font-bold">₹{cartTotal}</p>
+              <p className="text-[10px] sm:text-xs opacity-80">Total</p>
+              <p className="text-sm sm:text-lg font-bold">₹{cartTotal}</p>
             </div>
           </button>
         </div>

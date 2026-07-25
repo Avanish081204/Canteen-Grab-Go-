@@ -63,56 +63,56 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[calc(100-64px)] flex items-center justify-center p-4 bg-muted/30">
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-3 sm:p-4 pb-24 md:pb-4 bg-muted/30">
       <div className="w-full max-w-md animate-fade-in">
-        <div className="bg-card border border-border rounded-3xl p-8 shadow-xl">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
-            <p className="text-muted-foreground">Join us to enjoy quick canteen service</p>
+        <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg">
+          <div className="text-center mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Create Account</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Join us to enjoy quick canteen service</p>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground ml-1">Full Name</label>
+          <form onSubmit={handleRegister} className="space-y-3.5">
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-medium text-foreground ml-0.5">Full Name</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe"
-                  className="w-full bg-muted/50 border border-border rounded-2xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                  className="w-full bg-muted/50 border border-border rounded-xl py-2.5 pl-10 pr-3.5 text-xs sm:text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground ml-1">Email Address</label>
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-medium text-foreground ml-0.5">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-muted/50 border border-border rounded-2xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                  className="w-full bg-muted/50 border border-border rounded-xl py-2.5 pl-10 pr-3.5 text-xs sm:text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground ml-1">Password</label>
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-medium text-foreground ml-0.5">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-muted/50 border border-border rounded-2xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                  className="w-full bg-muted/50 border border-border rounded-xl py-2.5 pl-10 pr-3.5 text-xs sm:text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
                 />
               </div>
             </div>
@@ -120,21 +120,21 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-2xl shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-70"
+              className="w-full bg-primary text-primary-foreground font-bold py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group disabled:opacity-70 mt-2"
             >
               {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
                   Register Now
-                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-border text-center">
-            <p className="text-muted-foreground">
+          <div className="mt-6 pt-5 border-t border-border text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link to="/login" className="text-primary font-bold hover:underline">
                 Login Here

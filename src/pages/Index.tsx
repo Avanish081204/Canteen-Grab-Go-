@@ -34,38 +34,39 @@ export default function Index() {
           <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-14 sm:py-20 md:py-32">
+        <div className="relative container mx-auto px-4 py-8 sm:py-16 md:py-24">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="flex justify-center mb-6 animate-bounce-in">
-              <Logo size="lg" className="shadow-2xl" />
+            <div className="flex justify-center mb-4 sm:mb-6 animate-bounce-in">
+              <Logo size="md" className="shadow-2xl sm:hidden" />
+              <Logo size="lg" className="shadow-2xl hidden sm:block" />
             </div>
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-full mb-5 animate-fade-in">
-              <Sparkles className="w-3.5 h-3.5 text-secondary" />
-              <span className="text-white/90 text-xs sm:text-sm font-medium">Fresh &amp; Delicious</span>
+            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-full mb-3 sm:mb-4 animate-fade-in">
+              <Sparkles className="w-3 h-3 text-secondary" />
+              <span className="text-white/90 text-xs font-medium">Fresh &amp; Delicious</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-white mb-5 animate-slide-up leading-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-extrabold text-white mb-3 sm:mb-5 animate-slide-up leading-tight">
               Welcome to
               <span className="block text-secondary drop-shadow-lg">Campus Canteen</span>
             </h1>
 
-            <p className="text-base sm:text-xl md:text-2xl text-white/85 mb-8 animate-slide-up max-w-2xl mx-auto">
+            <p className="text-xs sm:text-lg md:text-xl text-white/85 mb-6 animate-slide-up max-w-xl mx-auto">
               Quick bites, delicious meals — order your way and skip the queue!
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 animate-bounce-in">
-              <div className="bg-white/15 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white/20 hover-scale">
-                <span className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 animate-bounce-in">
+              <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/20 hover-scale">
+                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-1.5">
                   🍔 Fresh Food
                 </span>
               </div>
-              <div className="bg-white/15 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white/20 hover-scale">
-                <span className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
+              <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/20 hover-scale">
+                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-1.5">
                   ⚡ Fast Service
                 </span>
               </div>
-              <div className="bg-white/15 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white/20 hover-scale">
-                <span className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
+              <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/20 hover-scale">
+                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-1.5">
                   🎫 Token System
                 </span>
               </div>
@@ -83,14 +84,14 @@ export default function Index() {
       </section>
 
       {/* Order Type Selection */}
-      <section className="py-12 sm:py-20 md:py-28">
+      <section className="py-8 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10 sm:mb-14">
-            <span className="inline-block text-primary font-semibold text-sm uppercase tracking-wider mb-3">Choose Your Way</span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <div className="text-center mb-6 sm:mb-12">
+            <span className="inline-block text-primary font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2">Choose Your Way</span>
+            <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 sm:mb-3">
               How would you like to order?
             </h2>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
+            <p className="text-muted-foreground text-xs sm:text-base max-w-xl mx-auto">
               Select your preferred ordering method and enjoy your meal
             </p>
           </div>

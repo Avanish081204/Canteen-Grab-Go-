@@ -89,12 +89,12 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between gap-2">
             {/* Brand */}
-            <Link to="/" className="flex items-center gap-2.5 text-foreground group flex-shrink-0">
+            <Link to="/" className="flex items-center gap-2 text-foreground group flex-shrink-0">
               <Logo size="sm" />
-              <span className="text-base sm:text-lg font-bold tracking-tight">Campus Canteen</span>
+              <span className="text-sm sm:text-lg font-bold tracking-tight">Campus Canteen</span>
             </Link>
 
             {/* Center Nav — desktop only */}

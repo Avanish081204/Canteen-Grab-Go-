@@ -177,21 +177,21 @@
 
   /* Menu Card */
   .card-menu {
-    @apply bg-card rounded-3xl overflow-hidden border border-border/50 transition-all duration-400;
+    @apply bg-card rounded-2xl sm:rounded-3xl overflow-hidden border border-border/50 transition-all duration-400;
     box-shadow: var(--shadow-md);
   }
   .card-menu:hover {
-    @apply -translate-y-2 border-primary/20;
+    @apply -translate-y-1 sm:-translate-y-2 border-primary/20;
     box-shadow: var(--shadow-xl);
   }
 
   /* Order Type Card */
   .card-order-type {
-    @apply relative bg-card rounded-3xl cursor-pointer border-2 border-transparent p-5 sm:p-6 md:p-8 transition-all duration-400 overflow-hidden;
+    @apply relative bg-card rounded-2xl sm:rounded-3xl cursor-pointer border-2 border-transparent p-4 sm:p-6 md:p-8 transition-all duration-400 overflow-hidden;
     box-shadow: var(--shadow-lg);
   }
   .card-order-type:hover {
-    @apply scale-[1.03] border-primary/30;
+    @apply scale-[1.02] sm:scale-[1.03] border-primary/30;
     box-shadow: var(--shadow-xl);
   }
   .card-order-type:active {
@@ -207,7 +207,7 @@
 
   /* Token Badges */
   .token-badge {
-    @apply inline-flex items-center justify-center font-bold text-2xl px-6 py-3 rounded-2xl;
+    @apply inline-flex items-center justify-center font-bold text-xl sm:text-2xl px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl;
     box-shadow: var(--shadow-lg);
   }
 
@@ -228,7 +228,7 @@
 
   /* Status Badges */
   .status-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200;
+    @apply inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200;
   }
 
   .status-placed {
@@ -257,7 +257,7 @@
 
   /* Category Chips */
   .category-chip {
-    @apply px-5 py-2.5 rounded-full font-medium transition-all duration-300 cursor-pointer border-2 border-transparent;
+    @apply px-3.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer border-2 border-transparent;
   }
 
   .category-chip-active {

@@ -101,27 +101,27 @@ export default function TrackOrder() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
-      <div className="container mx-auto px-4 py-8 max-w-lg">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Track Your Order</h1>
-          <p className="text-muted-foreground">Enter your token number to check order status</p>
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-lg">
+        <div className="text-center mb-6">
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground mb-1">Track Your Order</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Enter your token number to check order status</p>
         </div>
 
         {/* Search Form */}
-        <form onSubmit={handleSearch} className="mb-8">
+        <form onSubmit={handleSearch} className="mb-6">
           <div className="flex gap-2">
             <input
               type="text"
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
               placeholder="e.g. BAPH26021001"
-              className="flex-1 px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base uppercase"
+              className="flex-1 px-3.5 py-2.5 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs sm:text-sm uppercase"
             />
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:brightness-110 transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs sm:text-sm font-semibold hover:brightness-110 transition-all flex items-center gap-1.5"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5" />
               Track
             </button>
           </div>

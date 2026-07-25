@@ -189,23 +189,23 @@ export default function Profile() {
       <div className="container mx-auto px-4 py-6 max-w-lg space-y-5">
 
         {/* Profile Card */}
-        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border animate-fade-in">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-3xl font-bold shadow-lg flex-shrink-0">
+        <div className="bg-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-border animate-fade-in">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-md flex-shrink-0">
               {userInitial}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-foreground truncate">{userName}</h1>
-              <p className="text-sm text-muted-foreground truncate">{userEmail}</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{userName}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{userEmail}</p>
               {userPhone && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                   <Phone className="w-3 h-3" />
                   {userPhone}
                 </p>
               )}
               <button
                 onClick={() => setIsEditing(!isEditing)}
-                className="text-primary text-sm font-semibold mt-1 flex items-center gap-1 hover:underline"
+                className="text-primary text-xs sm:text-sm font-semibold mt-1 flex items-center gap-1 hover:underline"
               >
                 <Edit3 className="w-3 h-3" />
                 {isEditing ? 'Cancel' : 'Edit profile'}

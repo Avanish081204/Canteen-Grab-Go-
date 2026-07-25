@@ -84,24 +84,24 @@ export default function Success() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 pb-24 md:pb-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4 pb-24 md:pb-4">
       <div className="w-full max-w-md text-center">
         {/* Success Animation */}
-        <div className="mb-8 animate-bounce-in">
-          <div className="w-24 h-24 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-14 h-14 text-success" />
+        <div className="mb-5 sm:mb-8 animate-bounce-in">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-success" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Order Placed!</h1>
-          <p className="text-muted-foreground">Your order has been confirmed</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground mb-1">Order Placed!</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Your order has been confirmed</p>
         </div>
 
         {/* Token Display */}
-        <div className="bg-card rounded-3xl shadow-xl p-8 border border-border mb-6 animate-slide-up">
-          <p className="text-sm text-muted-foreground mb-4">Your Token Number</p>
-          <div className={`token-badge text-4xl md:text-5xl ${tokenClasses[order.type]} mb-6`}>
+        <div className="bg-card rounded-2xl sm:rounded-3xl shadow-lg p-5 sm:p-8 border border-border mb-5 animate-slide-up">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-3">Your Token Number</p>
+          <div className={`token-badge text-2xl sm:text-4xl md:text-5xl ${tokenClasses[order.type]} mb-4 sm:mb-6`}>
             {order.token}
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {statusMessages[order.type]}
           </p>
 
