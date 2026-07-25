@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download, Edit, Search } from 'lucide-react';
 import { 
   MenuItem, 
   Order, 
@@ -32,7 +32,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -122,7 +121,6 @@ export default function AdminMenu() {
   }, [role, loading, navigate]);
 
   useEffect(() => {
-    // Keep category valid when categories change
     if (selectedCategory !== 'All' && !categories.includes(selectedCategory)) {
       setSelectedCategory('All');
     }
@@ -206,21 +204,13 @@ export default function AdminMenu() {
     }
   };
 
-  const handleResetMenu = () => {
-    toast.error('Reset is disabled when using database.');
-  };
-
-  const handleForceSaveCurrent = () => {
-    toast.info('Menu is automatically synced with database.');
-  };
-
   useEffect(() => {
     const loadOrders = async () => {
       const data = await fetchStaffOrders();
       setOrders(data);
     };
 
-    loadOrders(); // Initial load
+    loadOrders();
 
     const sync = () => {
       loadMenu();
@@ -237,186 +227,195 @@ export default function AdminMenu() {
   if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Admin Panel...</div>;
 
   return (
-    <div className="min-h-screen bg-background pb-12">
-      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </button>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">Items: {items.length}</Badge>
-              <Badge variant="secondary">Combos: {combosCount}</Badge>
-              <Button variant="outline" onClick={handleResetMenu}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Reset
-              </Button>
-              <Button variant="outline" onClick={handleForceSaveCurrent}>
-                Save
-              </Button>
-              <Button onClick={openAdd}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Item
-              </Button>
+    <div className="min-h-screen bg-background pb-24 md:pb-12">
+      {/* Sticky Header */}
+      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
+          {/* Top Row: Back button, Title, Add Item Button */}
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Back
+              </button>
+              <h1 className="text-base sm:text-xl font-bold text-foreground">Menu Admin</h1>
             </div>
+
+            <Button size="sm" onClick={openAdd} className="bg-primary text-primary-foreground font-bold text-xs px-3 py-1.5 rounded-lg sm:rounded-xl">
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Add Item
+            </Button>
+          </div>
+
+          {/* Sub Row: Quick Badges */}
+          <div className="flex items-center gap-2 text-xs">
+            <Badge variant="secondary" className="text-[11px] px-2 py-0.5">Items: {items.length}</Badge>
+            <Badge variant="secondary" className="text-[11px] px-2 py-0.5">Combos: {combosCount}</Badge>
           </div>
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-3 sm:px-4 py-4">
         <Tabs defaultValue="menu" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="menu">Menu Items</TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
-              <ClipboardList className="w-4 h-4" />
+          <TabsList className="mb-4 w-full sm:w-auto grid grid-cols-2">
+            <TabsTrigger value="menu" className="text-xs sm:text-sm py-1.5">Menu Items</TabsTrigger>
+            <TabsTrigger value="orders" className="text-xs sm:text-sm py-1.5 flex items-center justify-center gap-1.5">
+              <ClipboardList className="w-3.5 h-3.5" />
               Orders ({orders.length})
             </TabsTrigger>
           </TabsList>
 
+          {/* Menu Items Tab */}
           <TabsContent value="menu">
-            <header className="mb-6">
-              <h1 className="text-2xl font-bold text-foreground">Menu Admin</h1>
-              <p className="text-muted-foreground">
-                Add/edit items, toggle stock, and manage combos.
-              </p>
-            </header>
-
-            <section className="bg-card rounded-2xl p-4 md:p-6 shadow-sm border border-border">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                  <div className="w-full sm:w-64">
-                    <Label htmlFor="search">Search</Label>
+            <section className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm border border-border">
+              {/* Search & Category Filter */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+                <div>
+                  <Label htmlFor="search" className="text-xs font-medium mb-1 block">Search</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <Input
                       id="search"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder="Search items..."
+                      className="pl-8 text-xs sm:text-sm py-1.5 h-9 rounded-lg"
                     />
                   </div>
-                  <div className="w-full sm:w-56">
-                    <Label>Category</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium mb-1 block">Category</Label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="h-9 text-xs sm:text-sm rounded-lg">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c} value={c} className="text-xs sm:text-sm">
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Combo</TableHead>
-                    <TableHead>In Stock</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={item.image}
-                            alt={`${item.name} image`}
-                            className="h-10 w-10 rounded-lg object-cover border border-border"
-                            loading="lazy"
-                          />
-                          <div>
-                            <div className="font-semibold text-foreground">{item.name}</div>
-                            <div className="text-xs text-muted-foreground line-clamp-1">{item.description}</div>
-                            <div className="text-[11px] text-muted-foreground">ID: {item.id}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{item.category}</Badge>
-                      </TableCell>
-                      <TableCell>₹{item.price}</TableCell>
-                      <TableCell>{item.isCombo || item.category === 'Combos' ? 'Yes' : 'No'}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item)} />
-                          <span className="text-sm text-muted-foreground">{item.isAvailable ? 'Available' : 'Out'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" onClick={() => openEdit(item)}>
-                          Edit
-                        </Button>
-                      </TableCell>
+              {/* Mobile Card View (sm:hidden) */}
+              <div className="block md:hidden space-y-2.5">
+                {filtered.map((item) => (
+                  <div key={item.id} className="p-3 bg-muted/30 border border-border/70 rounded-xl flex items-center justify-between gap-3">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-12 w-12 rounded-lg object-cover border border-border flex-shrink-0"
+                      loading="lazy"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-xs sm:text-sm text-foreground truncate">{item.name}</span>
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">{item.category}</Badge>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate">{item.description || 'No description'}</p>
+                      <p className="text-xs font-bold text-primary mt-0.5">₹{item.price}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <div className="flex items-center gap-1">
+                        <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item)} />
+                        <span className="text-[10px] font-semibold text-muted-foreground">{item.isAvailable ? 'In' : 'Out'}</span>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(item)} className="h-7 text-[11px] px-2">
+                        <Edit className="w-3 h-3 mr-1" /> Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {filtered.length === 0 && (
+                  <div className="text-center py-8 text-xs text-muted-foreground">No items match your filters.</div>
+                )}
+              </div>
+
+              {/* Desktop Table View (hidden md:block) */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Combo</TableHead>
+                      <TableHead>In Stock</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filtered.length === 0 && (
-                <div className="text-center py-10 text-muted-foreground">No items match your filters.</div>
-              )}
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={item.image}
+                              alt={`${item.name} image`}
+                              className="h-10 w-10 rounded-lg object-cover border border-border"
+                              loading="lazy"
+                            />
+                            <div>
+                              <div className="font-semibold text-foreground">{item.name}</div>
+                              <div className="text-xs text-muted-foreground line-clamp-1">{item.description}</div>
+                              <div className="text-[11px] text-muted-foreground">ID: {item.id}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{item.category}</Badge>
+                        </TableCell>
+                        <TableCell>₹{item.price}</TableCell>
+                        <TableCell>{item.isCombo || item.category === 'Combos' ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Switch checked={item.isAvailable} onCheckedChange={() => handleToggleStock(item)} />
+                            <span className="text-sm text-muted-foreground">{item.isAvailable ? 'Available' : 'Out'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm" onClick={() => openEdit(item)}>
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filtered.length === 0 && (
+                  <div className="text-center py-10 text-muted-foreground">No items match your filters.</div>
+                )}
+              </div>
             </section>
           </TabsContent>
 
+          {/* Orders Tab */}
           <TabsContent value="orders">
-            <header className="mb-6">
-              <h1 className="text-2xl font-bold text-foreground">Order List</h1>
-              <p className="text-muted-foreground">
-                View all orders placed.
-              </p>
-            </header>
-
-            <section className="bg-card rounded-2xl p-4 md:p-6 shadow-sm border border-border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Token</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                        No orders yet.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell>
-                          <Badge variant="outline" className="font-mono">{order.token}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={order.type === 'dine-in' ? 'default' : order.type === 'take-away' ? 'secondary' : 'destructive'}>
-                            {order.type === 'dine-in' ? 'Dine In' : order.type === 'take-away' ? 'Take Away' : 'Delivery'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ')}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-semibold">₹{order.total}</TableCell>
-                        <TableCell>
+            <section className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm border border-border">
+              {/* Mobile Orders List */}
+              <div className="block md:hidden space-y-2.5">
+                {orders.length === 0 ? (
+                  <div className="text-center py-8 text-xs text-muted-foreground">No orders yet.</div>
+                ) : (
+                  orders.map((order) => (
+                    <div key={order.id} className="p-3 bg-muted/30 border border-border/70 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="font-mono text-xs">{order.token}</Badge>
+                        <Badge variant={order.type === 'dine-in' ? 'default' : order.type === 'take-away' ? 'secondary' : 'destructive'} className="text-[10px]">
+                          {order.type === 'dine-in' ? 'Dine In' : order.type === 'take-away' ? 'Take Away' : 'Delivery'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</p>
+                      <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                        <span className="font-bold text-xs text-primary">₹{order.total}</span>
+                        <div className="flex items-center gap-1.5">
                           <Select
                             value={order.status}
                             onValueChange={async (val) => {
@@ -424,7 +423,7 @@ export default function AdminMenu() {
                               await updateOrderStatus(order.id, val as OrderStatus);
                             }}
                           >
-                            <SelectTrigger className="w-[140px]">
+                            <SelectTrigger className="h-7 text-[11px] w-[110px] rounded-md">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -436,64 +435,136 @@ export default function AdminMenu() {
                               <SelectItem value="delivered">Delivered</SelectItem>
                             </SelectContent>
                           </Select>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(order.createdAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => downloadBill(order)}
-                            title="Download Bill"
-                          >
-                            <Download className="w-4 h-4 text-primary" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => downloadBill(order)}>
+                            <Download className="w-3.5 h-3.5 text-primary" />
                           </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Token</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                          No orders yet.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono">{order.token}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={order.type === 'dine-in' ? 'default' : order.type === 'take-away' ? 'secondary' : 'destructive'}>
+                              {order.type === 'dine-in' ? 'Dine In' : order.type === 'take-away' ? 'Take Away' : 'Delivery'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ')}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold">₹{order.total}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={order.status}
+                              onValueChange={async (val) => {
+                                setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: val as OrderStatus } : o));
+                                await updateOrderStatus(order.id, val as OrderStatus);
+                              }}
+                            >
+                              <SelectTrigger className="w-[140px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="placed">Placed</SelectItem>
+                                <SelectItem value="cooking">Cooking</SelectItem>
+                                <SelectItem value="ready">Ready</SelectItem>
+                                <SelectItem value="collected">Collected</SelectItem>
+                                <SelectItem value="out-for-delivery">Out for Delivery</SelectItem>
+                                <SelectItem value="delivered">Delivered</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(order.createdAt).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => downloadBill(order)}
+                              title="Download Bill"
+                            >
+                              <Download className="w-4 h-4 text-primary" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </section>
           </TabsContent>
         </Tabs>
 
+        {/* Add/Edit Modal */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[640px]">
+          <DialogContent className="max-h-[90vh] overflow-y-auto w-[92vw] sm:max-w-[600px] p-4 sm:p-6 rounded-2xl">
             <DialogHeader>
-              <DialogTitle>{editingItem ? 'Edit Item' : 'Add Item'}</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-base sm:text-lg">{editingItem ? 'Edit Item' : 'Add Item'}</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
                 {editingItem ? 'Update the item details and save.' : 'Create a new menu item (or combo).'}
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+              <div className="space-y-1">
+                <Label className="text-xs">Name</Label>
+                <Input className="h-9 text-xs sm:text-sm" value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
               </div>
-              <div className="space-y-2">
-                <Label>Price (₹)</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Price (₹)</Label>
                 <Input
+                  className="h-9 text-xs sm:text-sm"
                   value={draft.price}
                   inputMode="decimal"
                   onChange={(e) => setDraft((d) => ({ ...d, price: e.target.value }))}
                 />
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label>Description</Label>
+              <div className="space-y-1 md:col-span-2">
+                <Label className="text-xs">Description</Label>
                 <Input
+                  className="h-9 text-xs sm:text-sm"
                   value={draft.description}
                   onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
                   placeholder="Short description"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <div className="flex items-center gap-3 rounded-xl border border-border p-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Type</Label>
+                <div className="flex items-center gap-2 rounded-xl border border-border p-2.5">
                   <Switch
                     checked={draft.isCombo}
                     onCheckedChange={(checked) =>
@@ -505,59 +576,60 @@ export default function AdminMenu() {
                     }
                   />
                   <div>
-                    <div className="text-sm font-medium">Combo</div>
-                    <div className="text-xs text-muted-foreground">If enabled, category becomes “Combos”.</div>
+                    <div className="text-xs font-semibold">Combo</div>
+                    <div className="text-[10px] text-muted-foreground">Sets category to “Combos”.</div>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Category</Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Category</Label>
                 <Select
                   value={draft.isCombo ? 'Combos' : draft.category}
                   onValueChange={(val) => setDraft((d) => ({ ...d, category: val }))}
                   disabled={draft.isCombo}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {getMenuCategories()
                       .filter((c) => c !== 'All')
                       .map((c) => (
-                        <SelectItem key={c} value={c}>
+                        <SelectItem key={c} value={c} className="text-xs">
                           {c}
                         </SelectItem>
                       ))}
-                    <SelectItem value="Combos">Combos</SelectItem>
+                    <SelectItem value="Combos" className="text-xs">Combos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label>Image</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Choose built-in image</Label>
+              <div className="space-y-1 md:col-span-2">
+                <Label className="text-xs">Image</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Built-in image</Label>
                     <Select
                       value={builtInMenuImages.some((o) => o.src === draft.image) ? draft.image : ''}
                       onValueChange={(val) => setDraft((d) => ({ ...d, image: val }))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 text-xs">
                         <SelectValue placeholder="Select image" />
                       </SelectTrigger>
                       <SelectContent>
                         {builtInMenuImages.map((opt) => (
-                          <SelectItem key={opt.src} value={opt.src}>
+                          <SelectItem key={opt.src} value={opt.src} className="text-xs">
                             {opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Or paste image URL</Label>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Or image URL</Label>
                     <Input
+                      className="h-9 text-xs"
                       value={draft.image}
                       onChange={(e) => setDraft((d) => ({ ...d, image: e.target.value }))}
                       placeholder="https://..."
@@ -566,35 +638,35 @@ export default function AdminMenu() {
                 </div>
 
                 {draft.image ? (
-                  <div className="mt-3 flex items-center gap-3">
+                  <div className="mt-2 flex items-center gap-2">
                     <img
                       src={draft.image}
                       alt="Selected preview"
-                      className="h-16 w-16 rounded-xl object-cover border border-border"
+                      className="h-12 w-12 rounded-lg object-cover border border-border"
                       loading="lazy"
                     />
-                    <div className="text-sm text-muted-foreground">Preview</div>
+                    <div className="text-xs text-muted-foreground">Preview</div>
                   </div>
                 ) : null}
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label>Availability</Label>
-                <div className="flex items-center gap-3 rounded-xl border border-border p-3">
+              <div className="space-y-1 md:col-span-2">
+                <Label className="text-xs">Availability</Label>
+                <div className="flex items-center gap-2 rounded-xl border border-border p-2.5">
                   <Switch
                     checked={draft.isAvailable}
                     onCheckedChange={(checked) => setDraft((d) => ({ ...d, isAvailable: checked }))}
                   />
-                  <span className="text-sm text-muted-foreground">{draft.isAvailable ? 'Available' : 'Out of stock'}</span>
+                  <span className="text-xs text-muted-foreground">{draft.isAvailable ? 'In stock' : 'Out of stock'}</span>
                 </div>
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <DialogFooter className="mt-3 flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setIsDialogOpen(false)} className="text-xs">
                 Cancel
               </Button>
-              <Button onClick={saveItem}>{editingItem ? 'Save Changes' : 'Add Item'}</Button>
+              <Button size="sm" onClick={saveItem} className="text-xs font-bold">{editingItem ? 'Save Changes' : 'Add Item'}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

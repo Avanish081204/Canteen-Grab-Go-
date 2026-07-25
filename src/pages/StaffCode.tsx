@@ -23,32 +23,32 @@ export default function StaffCode() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4 pb-24 md:pb-4">
       <div className="w-full max-w-md">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+          className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           Back to Home
         </button>
 
-        <div className="bg-card rounded-3xl shadow-xl p-8 border border-border">
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-10 h-10 text-purple-500" />
+        <div className="bg-card rounded-2xl sm:rounded-3xl shadow-lg p-5 sm:p-8 border border-border">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Lock className="w-7 h-7 sm:w-8 sm:h-8 text-purple-500" />
             </div>
-            <h1 className="text-2xl font-bold text-card-foreground mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-card-foreground mb-1">
               Staff Delivery Access
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Enter your staff delivery code to continue
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="code" className="block text-sm font-medium text-card-foreground mb-2">
+              <label htmlFor="code" className="block text-xs sm:text-sm font-medium text-card-foreground mb-1.5">
                 Delivery Code
               </label>
               <input
@@ -60,10 +60,10 @@ export default function StaffCode() {
                   setError('');
                 }}
                 placeholder="Enter staff code"
-                className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-xl font-mono tracking-wider"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-base sm:text-lg font-mono tracking-wider"
               />
               {error && (
-                <p className="mt-2 text-sm text-destructive flex items-center gap-1">
+                <p className="mt-1.5 text-xs text-destructive flex items-center gap-1">
                   ❌ {error}
                 </p>
               )}
@@ -71,13 +71,13 @@ export default function StaffCode() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-violet-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold py-2.5 sm:py-3.5 text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
             >
               Verify & Continue
             </button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
+          <p className="text-center text-[11px] sm:text-xs text-muted-foreground mt-4">
             This feature is exclusively for college staff members.
           </p>
         </div>
