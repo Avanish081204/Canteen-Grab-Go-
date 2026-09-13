@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Canteen Grab &amp; Go</string>
+    <string name="title_activity_main">Canteen Grab &amp; Go</string>
+    <string name="package_name">com.canteen.grabandgo</string>
+    <string name="custom_url_scheme">com.canteen.grabandgo</string>
+</resources>
