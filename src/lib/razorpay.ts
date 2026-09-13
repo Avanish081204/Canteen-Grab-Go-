@@ -37,7 +37,10 @@ export function openRazorpayCheckout(
   onSuccess: (result: RazorpayPaymentResult) => void,
   onFailure: (error: any) => void
 ): void {
-  const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  const envKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+  const keyId = (!envKey || envKey === 'rzp_test_SKTvkqJQgPGSaJ')
+    ? 'rzp_test_TbSFVHbRvdkKZ6'
+    : envKey;
 
   if (!keyId) {
     onFailure({ description: 'Razorpay Key ID not configured. Please add VITE_RAZORPAY_KEY_ID to your .env file.' });
