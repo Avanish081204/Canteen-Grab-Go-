@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, ShoppingCart, X } from 'lucide-react';
-import { getOrderType, getCart, getCartTotal, fetchMenuItems } from '@/lib/store';
+import { getOrderType, setOrderType, getCart, getCartTotal, fetchMenuItems } from '@/lib/store';
 import { MenuItem } from '@/lib/store';
 import MenuItemCard from '@/components/MenuItemCard';
 
@@ -31,13 +31,11 @@ export default function Menu() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryList, setCategoryList] = useState<string[]>(['All']);
-  const orderType = getOrderType();
+  const [orderType, setOrderTypeState] = useState<string>(() => getOrderType());
 
   useEffect(() => {
-    if (!orderType) {
-      navigate('/');
-    }
-  }, [orderType, navigate]);
+    setOrderTypeState(getOrderType());
+  }, []);
 
   const updateCartInfo = () => {
     setCartTotal(getCartTotal());
@@ -101,15 +99,33 @@ export default function Menu() {
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between mb-2">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/');
+                }
+              }}
               className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back
             </button>
-            <span className="text-xs sm:text-sm font-medium bg-muted px-2.5 py-0.5 sm:py-1 rounded-full">
-              {orderType && orderTypeLabels[orderType]}
-            </span>
+            <button
+              onClick={() => {
+                if (orderType === 'staff-delivery') return;
+                const nextType = orderType === 'take-away' ? 'dine-in' : 'take-away';
+                setOrderType(nextType as any);
+                setOrderTypeState(nextType);
+              }}
+              title={orderType === 'staff-delivery' ? 'Staff Delivery' : 'Click to switch between Dine In & Take Away'}
+              className="text-xs sm:text-sm font-medium bg-muted hover:bg-muted/80 text-foreground px-2.5 py-0.5 sm:py-1 rounded-full transition-colors flex items-center gap-1"
+            >
+              <span>{orderTypeLabels[orderType] || 'Dine In'}</span>
+              {orderType !== 'staff-delivery' && (
+                <span className="text-[10px] text-muted-foreground ml-0.5">⇄</span>
+              )}
+            </button>
           </div>
 
           {/* Search Bar */}

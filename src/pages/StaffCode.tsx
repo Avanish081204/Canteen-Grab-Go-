@@ -26,7 +26,13 @@ export default function StaffCode() {
     <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4 pb-24 md:pb-4">
       <div className="w-full max-w-md">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate('/');
+            }
+          }}
           className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />

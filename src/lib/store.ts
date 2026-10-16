@@ -237,8 +237,13 @@ export function getCartTotal(): number {
 }
 
 // Order type functions
-export function getOrderType(): OrderType | null {
-  return localStorage.getItem(ORDER_TYPE_KEY) as OrderType | null;
+export function getOrderType(): OrderType {
+  const stored = localStorage.getItem(ORDER_TYPE_KEY) as OrderType | null;
+  if (!stored) {
+    localStorage.setItem(ORDER_TYPE_KEY, 'dine-in');
+    return 'dine-in';
+  }
+  return stored;
 }
 
 export function setOrderType(type: OrderType) {

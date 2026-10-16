@@ -23,6 +23,7 @@ import Reviews from "./pages/Reviews";
 import Help from "./pages/Help";
 import About from "./pages/About";
 import Feedback from "./pages/Feedback";
+import ScrollRestoration from "./components/ScrollRestoration";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
       <Toaster />
       <Sonner position="top-center" richColors />
       <BrowserRouter>
+        <ScrollRestoration />
         <Header />
         <Routes>
           <Route path="/" element={<Index />} />

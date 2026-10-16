@@ -5,9 +5,27 @@ import OrderTypeCard from '@/components/OrderTypeCard';
 import heroImage from '@/assets/hero-food.jpg';
 import { setOrderType, fetchAllReviews, Review } from '@/lib/store';
 import Logo from '@/components/Logo';
+import { useNotifications } from '@/hooks/use-notifications';
 
 export default function Index() {
   const navigate = useNavigate();
+  const { addPromo } = useNotifications();
+
+  // Welcome promotional notification — once per session
+  useEffect(() => {
+    const key = 'canteen_welcome_promo_shown';
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, 'true');
+      // Small delay so notification appears after page renders
+      const timer = setTimeout(() => {
+        addPromo(
+          '🎉 Welcome to Campus Canteen!',
+          'Check out today\'s special combos and grab your favourite snacks. Order now & skip the queue!'
+        );
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [addPromo]);
 
   const handleOrderType = (type: 'dine-in' | 'take-away' | 'staff-delivery') => {
     if (type === 'staff-delivery') {

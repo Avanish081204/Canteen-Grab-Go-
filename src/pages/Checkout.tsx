@@ -34,11 +34,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cash'>('upi');
 
   useEffect(() => {
-    const type = getOrderType();
-    if (!type) {
-      navigate('/');
-      return;
-    }
+    const type = getOrderType() || 'dine-in';
     setOrderTypeState(type);
     setCart(getCart());
     setTotal(getCartTotal());
@@ -174,7 +170,14 @@ export default function Checkout() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate('/cart')}
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/cart');
+                }
+              }}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />

@@ -11,12 +11,8 @@ export default function Cart() {
   const orderType = getOrderType();
 
   useEffect(() => {
-    if (!orderType) {
-      navigate('/');
-      return;
-    }
     updateCart();
-  }, [orderType, navigate]);
+  }, [orderType]);
 
   const updateCart = () => {
     setCart(getCart());
@@ -56,7 +52,13 @@ export default function Cart() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate('/menu')}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/menu');
+                }
+              }}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />

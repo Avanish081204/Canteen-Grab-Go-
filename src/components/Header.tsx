@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/use-profile';
 import Logo from './Logo';
+import NotificationBell from './NotificationBell';
 
 export default function Header() {
   const location = useLocation();
@@ -175,6 +176,7 @@ export default function Header() {
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
+              <NotificationBell />
               {user ? (
                 <button
                   onClick={() => window.location.href = '/profile'}
