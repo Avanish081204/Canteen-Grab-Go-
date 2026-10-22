@@ -55,7 +55,8 @@ export default function Profile() {
   useEffect(() => {
     const loadProfile = async () => {
       if (typeof window !== 'undefined') {
-        if (sessionStorage.getItem('local_admin') === 'true') {
+        const isLocalAdmin = localStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_admin') === 'true';
+        if (isLocalAdmin) {
           setUser({
             user_metadata: { full_name: 'Avanish', phone: '9503658089' },
             email: 'avanishshukla234@gmail.com',
@@ -68,7 +69,8 @@ export default function Profile() {
           return;
         }
 
-        if (sessionStorage.getItem('local_staff') === 'true') {
+        const isLocalStaff = localStorage.getItem('local_staff') === 'true' || sessionStorage.getItem('local_staff') === 'true';
+        if (isLocalStaff) {
           setUser({
             user_metadata: { full_name: 'Staff Avanish', phone: '9503658089' },
             email: 'avanish.v.shukla@slrtce.in',
@@ -104,6 +106,8 @@ export default function Profile() {
   }, [navigate]);
 
   const handleLogout = async () => {
+    localStorage.removeItem('local_admin');
+    localStorage.removeItem('local_staff');
     sessionStorage.removeItem('local_admin');
     sessionStorage.removeItem('local_staff');
     window.dispatchEvent(new Event('userLoggedOut'));
@@ -115,7 +119,10 @@ export default function Profile() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      if (typeof window !== 'undefined' && (sessionStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_staff') === 'true')) {
+      if (typeof window !== 'undefined' && (
+        localStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_admin') === 'true' ||
+        localStorage.getItem('local_staff') === 'true' || sessionStorage.getItem('local_staff') === 'true'
+      )) {
         // Local Bypass: Update local state only
         setUser((prev: any) => ({
           ...prev,

@@ -11,19 +11,24 @@ export default function Index() {
   const navigate = useNavigate();
   const { addPromo } = useNotifications();
 
-  // Welcome promotional notification — once per session
+  // Welcome notification — strictly once per calendar day (both for logged in and guest users)
   useEffect(() => {
-    const key = 'canteen_welcome_promo_shown';
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, 'true');
-      // Small delay so notification appears after page renders
-      const timer = setTimeout(() => {
-        addPromo(
-          '🎉 Welcome to Campus Canteen!',
-          'Check out today\'s special combos and grab your favourite snacks. Order now & skip the queue!'
-        );
-      }, 2000);
-      return () => clearTimeout(timer);
+    try {
+      const today = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
+      const lastShownDate = localStorage.getItem('canteen_welcome_last_shown_date');
+
+      if (lastShownDate !== today) {
+        localStorage.setItem('canteen_welcome_last_shown_date', today);
+        const timer = setTimeout(() => {
+          addPromo(
+            'Welcome to Canteen Grab & Go',
+            "Explore today's menu and pre-order your meals conveniently."
+          );
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    } catch (e) {
+      console.warn('Welcome notification check error:', e);
     }
   }, [addPromo]);
 

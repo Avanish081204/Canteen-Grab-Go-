@@ -14,6 +14,12 @@ import {
   Music,
   Check,
   SlidersHorizontal,
+  Package,
+  Clock,
+  CheckCircle2,
+  Truck,
+  ChefHat,
+  Info,
 } from 'lucide-react';
 import {
   useNotifications,
@@ -23,6 +29,51 @@ import {
 } from '@/hooks/use-notifications';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
+
+function renderNotificationBadge(type: string) {
+  switch (type) {
+    case 'order_placed':
+      return {
+        icon: <Package className="w-4 h-4 text-primary" />,
+        bg: 'bg-primary/10 border-primary/20',
+      };
+    case 'order_cooking':
+      return {
+        icon: <ChefHat className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
+        bg: 'bg-amber-500/10 border-amber-500/20',
+      };
+    case 'order_ready':
+      return {
+        icon: <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
+        bg: 'bg-emerald-500/10 border-emerald-500/20',
+      };
+    case 'order_collected':
+      return {
+        icon: <CheckCheck className="w-4 h-4 text-muted-foreground" />,
+        bg: 'bg-muted/70 border-border/40',
+      };
+    case 'order_delivered':
+      return {
+        icon: <Truck className="w-4 h-4 text-blue-600 dark:text-blue-400" />,
+        bg: 'bg-blue-500/10 border-blue-500/20',
+      };
+    case 'new_order':
+      return {
+        icon: <BellRing className="w-4 h-4 text-primary" />,
+        bg: 'bg-primary/10 border-primary/20',
+      };
+    case 'promo':
+      return {
+        icon: <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />,
+        bg: 'bg-violet-500/10 border-violet-500/20',
+      };
+    default:
+      return {
+        icon: <Info className="w-4 h-4 text-primary" />,
+        bg: 'bg-primary/10 border-primary/20',
+      };
+  }
+}
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -354,24 +405,22 @@ export default function NotificationBell() {
                   </button>
                 </div>
               ) : (
-                notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => handleNotifClick(n)}
-                    className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-all duration-200 hover:bg-muted/60 group relative ${
-                      !n.read ? 'bg-primary/[0.04]' : ''
-                    }`}
-                  >
-                    {/* Emoji Avatar */}
+                notifications.map((n) => {
+                  const badge = renderNotificationBadge(n.type);
+                  return (
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg shadow-sm border ${
-                        !n.read
-                          ? 'bg-primary/10 border-primary/20'
-                          : 'bg-muted/70 border-border/40'
+                      key={n.id}
+                      onClick={() => handleNotifClick(n)}
+                      className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-all duration-200 hover:bg-muted/60 group relative ${
+                        !n.read ? 'bg-primary/[0.04]' : ''
                       }`}
                     >
-                      {n.icon}
-                    </div>
+                      {/* Professional Icon Badge */}
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-xs border ${badge.bg}`}
+                      >
+                        {badge.icon}
+                      </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0 pr-6">
@@ -424,8 +473,9 @@ export default function NotificationBell() {
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
-                  </div>
-                ))
+                    </div>
+                  );
+                })
               )}
             </div>
 

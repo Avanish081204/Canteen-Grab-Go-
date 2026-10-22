@@ -90,44 +90,44 @@ const STATUS_CONFIG: Record<
 > = {
   placed: {
     type: 'order_placed',
-    title: 'Order Placed 🎉',
+    title: 'Order Confirmed',
     icon: '📦',
-    message: (token) => `Order ${token} is confirmed and received by the kitchen!`,
+    message: (token) => `Order #${token} has been received and confirmed.`,
     sound: 'status',
   },
   cooking: {
     type: 'order_cooking',
-    title: 'Order Preparing 🍳',
-    icon: '👨‍🍳',
-    message: (token) => `Chef is now preparing your order ${token}!`,
+    title: 'Preparing Order',
+    icon: '🍳',
+    message: (token) => `Order #${token} is currently being prepared.`,
     sound: 'status',
   },
   ready: {
     type: 'order_ready',
-    title: 'Order Ready for Pickup! 🎉',
+    title: 'Order Ready for Pickup',
     icon: '✅',
-    message: (token) => `Order ${token} is freshly prepared & ready! Collect it now.`,
+    message: (token) => `Order #${token} is ready for collection at the counter.`,
     sound: 'order_ready',
   },
   collected: {
     type: 'order_collected',
-    title: 'Order Collected 🎒',
-    icon: '✨',
-    message: (token) => `Order ${token} was collected. Enjoy your meal!`,
+    title: 'Order Collected',
+    icon: '✓',
+    message: (token) => `Order #${token} has been collected successfully.`,
     sound: 'status',
   },
   'out-for-delivery': {
     type: 'order_delivered',
-    title: 'Out for Delivery 🚀',
+    title: 'Out for Delivery',
     icon: '🚚',
-    message: (token) => `Order ${token} is on its way to your department/room!`,
+    message: (token) => `Order #${token} is on its way for delivery.`,
     sound: 'status',
   },
   delivered: {
     type: 'order_delivered',
-    title: 'Order Delivered 📍',
-    icon: '🍽️',
-    message: (token) => `Order ${token} has been delivered. Bon appétit!`,
+    title: 'Order Delivered',
+    icon: '✓',
+    message: (token) => `Order #${token} has been delivered successfully.`,
     sound: 'status',
   },
 };
@@ -506,9 +506,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const demoToken = 'DEMO-101';
     addNotification({
       type: 'order_ready',
-      title: 'Order Ready! 🎉',
-      message: `Your demo order #${demoToken} is hot & ready! High-quality acoustic alert tone is active.`,
-      icon: '✅',
+      title: 'Order Ready for Pickup',
+      message: `Demo order #${demoToken} is ready for collection at the counter.`,
+      icon: '✓',
       orderToken: demoToken,
     });
   }, [addNotification]);
@@ -538,7 +538,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Unread count
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Add promotional notification
+  // Add announcement / promotional notification
   const addPromo = useCallback(
     (title: string, message: string) => {
       addNotification(
@@ -546,7 +546,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           type: 'promo',
           title,
           message,
-          icon: '🎉',
+          icon: '📢',
         },
         { skipToast: false, skipSound: false, skipBrowser: false }
       );
@@ -755,9 +755,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
           addNotification({
             type: 'new_order',
-            title: 'New Order Received! 🔔',
-            message: `Order #${token} (₹${total} • ${orderType}) has arrived in the kitchen.`,
-            icon: '🆕',
+            title: 'New Order Received',
+            message: `Order #${token} (${orderType} • ₹${total}) received in kitchen.`,
+            icon: '📋',
             orderId,
             orderToken: token,
           });
