@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
+import { getFirebaseMessaging } from '@/lib/firebase';
+import { onMessage } from 'firebase/messaging';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type NotificationType =
@@ -650,6 +652,38 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       } catch {}
     };
   }, [addNotification, navigate]);
+
+  // ── Web Firebase Cloud Messaging (Desktop / Browser) ────────────────────────
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return;
+    if (browserPermission !== 'granted') return;
+
+    let unsubscribe: (() => void) | undefined;
+
+    getFirebaseMessaging()
+      .then((messaging) => {
+        if (!messaging) return;
+        unsubscribe = onMessage(messaging, (payload) => {
+          console.log('[Web FCM] Received foreground message:', payload);
+          const data = payload.data || {};
+          addNotification({
+            type: (data.type as any) || 'system',
+            title: payload.notification?.title || data.title || 'Canteen Alert 🔔',
+            message: payload.notification?.body || data.message || '',
+            icon: data.icon || '🔔',
+            orderToken: data.orderToken || data.token,
+            orderId: data.orderId,
+          });
+        });
+      })
+      .catch((err) => {
+        console.warn('[Web FCM] Listener setup error:', err);
+      });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [browserPermission, addNotification]);
 
   // Real-time Supabase Subscription
   useEffect(() => {
