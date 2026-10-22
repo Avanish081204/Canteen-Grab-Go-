@@ -12,9 +12,13 @@ export default function Login() {
 
   useEffect(() => {
     const checkUser = async () => {
-      if (typeof window !== 'undefined' && sessionStorage.getItem('local_admin') === 'true') {
-        navigate('/staff/dashboard');
-        return;
+      if (typeof window !== 'undefined') {
+        const isLocalAdmin = localStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_admin') === 'true';
+        const isLocalStaff = localStorage.getItem('local_staff') === 'true' || sessionStorage.getItem('local_staff') === 'true';
+        if (isLocalAdmin || isLocalStaff) {
+          navigate('/staff/dashboard');
+          return;
+        }
       }
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -55,6 +59,7 @@ export default function Login() {
       const lowerEmail = email.toLowerCase().trim();
       
       if (lowerEmail === 'avanishshukla234@gmail.com' && password === '123456') {
+        localStorage.setItem('local_admin', 'true');
         sessionStorage.setItem('local_admin', 'true');
         toast.success('Admin Login Successful!');
         navigate('/staff/dashboard');
@@ -63,6 +68,7 @@ export default function Login() {
       }
       
       if (lowerEmail === 'avanish.v.shukla@slrtce.in' && password === '123456') {
+        localStorage.setItem('local_staff', 'true');
         sessionStorage.setItem('local_staff', 'true');
         toast.success('Staff Login Successful!');
         navigate('/staff/dashboard');

@@ -18,7 +18,8 @@ export function useProfile() {
     let mounted = true;
     async function fetchProfile() {
       if (typeof window !== 'undefined') {
-        if (sessionStorage.getItem('local_admin') === 'true') {
+        const isAdmin = localStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_admin') === 'true';
+        if (isAdmin) {
           if (mounted) {
             setProfile({
               id: 'local-admin',
@@ -31,7 +32,8 @@ export function useProfile() {
           return;
         }
 
-        if (sessionStorage.getItem('local_staff') === 'true') {
+        const isStaff = localStorage.getItem('local_staff') === 'true' || sessionStorage.getItem('local_staff') === 'true';
+        if (isStaff) {
           if (mounted) {
             setProfile({
               id: 'local-staff',
@@ -98,7 +100,13 @@ export function useProfile() {
     fetchProfile();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (typeof window !== 'undefined' && (sessionStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_staff') === 'true')) {
+      const isLocalUser = typeof window !== 'undefined' && (
+        localStorage.getItem('local_admin') === 'true' ||
+        localStorage.getItem('local_staff') === 'true' ||
+        sessionStorage.getItem('local_admin') === 'true' ||
+        sessionStorage.getItem('local_staff') === 'true'
+      );
+      if (isLocalUser) {
         fetchProfile();
         return;
       }
