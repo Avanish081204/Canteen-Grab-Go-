@@ -337,6 +337,23 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
   saveOrders(orders);
   
   clearCart();
+
+  // Register push token with this order for background push notifications
+  try {
+    const fcmToken = localStorage.getItem('canteen_fcm_token');
+    if (fcmToken) {
+      fetch('/api/register-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: fcmToken,
+          orderId,
+          orderToken: token,
+          userId,
+        }),
+      }).catch((e) => console.warn('Order push token register notice:', e));
+    }
+  } catch {}
   
   return order;
 }
@@ -494,6 +511,43 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   if (index >= 0) {
     orders[index].status = status;
     saveOrders(orders);
+  }
+
+  // 3. Trigger Server-side FCM Push Notification (works even when customer's app is closed/off)
+  try {
+    const targetOrder = orders.find(o => o.id === orderId);
+    const orderToken = targetOrder?.token;
+    
+    let pushTitle = 'Order Update';
+    let pushBody = `Order #${orderToken || ''} status has changed to ${status}.`;
+    
+    if (status === 'cooking') {
+      pushTitle = 'Preparing Order';
+      pushBody = `Order #${orderToken || ''} is currently being prepared in the kitchen.`;
+    } else if (status === 'ready') {
+      pushTitle = 'Order Ready for Pickup';
+      pushBody = `Order #${orderToken || ''} is ready for collection at the counter!`;
+    } else if (status === 'out-for-delivery') {
+      pushTitle = 'Out for Delivery';
+      pushBody = `Order #${orderToken || ''} is on its way for delivery.`;
+    } else if (status === 'delivered') {
+      pushTitle = 'Order Delivered';
+      pushBody = `Order #${orderToken || ''} has been delivered successfully.`;
+    }
+
+    fetch('/api/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId,
+        orderToken,
+        title: pushTitle,
+        body: pushBody,
+        type: status,
+      }),
+    }).catch((err) => console.warn('FCM push notification trigger notice:', err));
+  } catch (err) {
+    console.warn('FCM push trigger notice:', err);
   }
   
   return orders;

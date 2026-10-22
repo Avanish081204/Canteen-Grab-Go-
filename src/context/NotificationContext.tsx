@@ -511,6 +511,24 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       icon: '✓',
       orderToken: demoToken,
     });
+
+    // Also trigger native background FCM test push if device token exists
+    try {
+      const fcmToken = localStorage.getItem('canteen_fcm_token');
+      if (fcmToken) {
+        fetch('/api/send-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: fcmToken,
+            orderToken: demoToken,
+            title: 'Order Ready for Pickup',
+            body: `Demo order #${demoToken} is ready for collection at the counter.`,
+            type: 'order_ready',
+          }),
+        }).catch((err) => console.warn('Test FCM push trigger notice:', err));
+      }
+    } catch {}
   }, [addNotification]);
 
   // Mark single as read
@@ -593,10 +611,36 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           if (isSubscribed) setBrowserPermission('denied');
         }
 
+        // Create Android High-Priority Notification Channel (required for Android 8+)
+        try {
+          await PushNotifications.createChannel({
+            id: 'canteen_orders',
+            name: 'Canteen Order Updates',
+            description: 'Notifications for order status changes and kitchen updates',
+            importance: 5, // High: Heads-up banner & sound
+            visibility: 1, // Public on lockscreen
+            sound: 'default',
+            vibration: true,
+          });
+        } catch (e) {
+          console.warn('Channel creation error:', e);
+        }
+
         // 1. Device Token received from FCM
-        await PushNotifications.addListener('registration', (token: Token) => {
+        await PushNotifications.addListener('registration', async (token: Token) => {
           console.log('[FCM Push] Device Token registered:', token.value);
           localStorage.setItem('canteen_fcm_token', token.value);
+
+          // Register device token with backend
+          try {
+            await fetch('/api/register-token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: token.value, platform: 'android' }),
+            });
+          } catch (e) {
+            console.warn('Backend token registration notice:', e);
+          }
         });
 
         // 2. Registration Error
