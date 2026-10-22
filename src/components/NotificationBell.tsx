@@ -20,7 +20,11 @@ import {
   Truck,
   ChefHat,
   Info,
+  Copy,
+  Send,
+  Smartphone,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   useNotifications,
   AppNotification,
@@ -106,6 +110,8 @@ export default function NotificationBell() {
     deleteNotification,
     clearAll,
     sendTestNotification,
+    fcmToken,
+    sendBackgroundTestPush,
   } = useNotifications();
 
   const [open, setOpen] = useState(false);
@@ -342,6 +348,40 @@ export default function NotificationBell() {
                     );
                   })}
                 </div>
+
+                {/* Android Native Push Status & Copy Token */}
+                {Capacitor.isNativePlatform() && (
+                  <div className="p-2.5 rounded-xl bg-background/80 border border-border/60 text-xs space-y-1.5 mt-2.5">
+                    <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+                      <span className="font-medium text-foreground flex items-center gap-1">
+                        <Smartphone className="w-3.5 h-3.5 text-primary" />
+                        Android Push Engine
+                      </span>
+                      <span className={fcmToken ? 'text-emerald-600 font-semibold' : 'text-amber-500'}>
+                        {fcmToken ? '● Connected' : '○ Initializing'}
+                      </span>
+                    </div>
+                    {fcmToken ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(fcmToken);
+                          toast.success('FCM Device Token copied to clipboard!');
+                        }}
+                        className="w-full text-left font-mono text-[10px] text-muted-foreground truncate hover:text-primary transition-colors flex items-center justify-between bg-muted/40 p-1.5 rounded-lg border border-border/40"
+                      >
+                        <span className="truncate">{fcmToken.slice(0, 26)}...</span>
+                        <span className="inline-flex items-center gap-0.5 text-primary text-[10px] font-semibold flex-shrink-0 ml-1">
+                          <Copy className="w-3 h-3" /> Copy
+                        </span>
+                      </button>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground">
+                        Allow notification permission in Android Settings if not connected.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -396,13 +436,38 @@ export default function NotificationBell() {
                   <p className="text-xs text-muted-foreground max-w-[240px]">
                     No notifications right now. When you order food, real-time alerts will show up here.
                   </p>
-                  <button
-                    onClick={sendTestNotification}
-                    className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground transition-all"
-                  >
-                    <Play className="w-3.5 h-3.5 text-primary" />
-                    Try Test Notification
-                  </button>
+                  
+                  <div className="mt-4 flex flex-col gap-2 w-full max-w-xs">
+                    <button
+                      onClick={() => sendBackgroundTestPush(5)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Test Background Push (5s Delay)
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={sendTestNotification}
+                        className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-muted hover:bg-muted/80 text-foreground transition-all"
+                      >
+                        <Play className="w-3 h-3 text-primary" />
+                        In-App Test
+                      </button>
+                      {fcmToken && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(fcmToken);
+                            toast.success('FCM Device Token copied!');
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-muted hover:bg-muted/80 text-foreground transition-all"
+                          title="Copy Device Push Token"
+                        >
+                          <Copy className="w-3 h-3 text-primary" />
+                          Copy Token
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 notifications.map((n) => {

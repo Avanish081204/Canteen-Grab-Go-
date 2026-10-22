@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getApiUrl } from '@/lib/api-config';
 
 // Types
 export type OrderType = 'dine-in' | 'take-away' | 'staff-delivery';
@@ -342,7 +343,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
   try {
     const fcmToken = localStorage.getItem('canteen_fcm_token');
     if (fcmToken) {
-      fetch('/api/register-token', {
+      fetch(getApiUrl('/api/register-token'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -535,7 +536,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
       pushBody = `Order #${orderToken || ''} has been delivered successfully.`;
     }
 
-    fetch('/api/send-push', {
+    fetch(getApiUrl('/api/send-push'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -8,6 +8,7 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { getFirebaseMessaging } from '@/lib/firebase';
 import { onMessage } from 'firebase/messaging';
+import { getApiUrl } from '@/lib/api-config';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type NotificationType =
@@ -69,6 +70,8 @@ export interface NotificationContextType {
   deleteNotification: (id: string) => void;
   clearAll: () => void;
   sendTestNotification: () => void;
+  fcmToken: string | null;
+  sendBackgroundTestPush: (delaySeconds?: number) => Promise<boolean>;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -340,6 +343,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<AppNotification[]>(loadStoredNotifications);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(loadSoundSetting);
   const [selectedTone, setSelectedToneState] = useState<SoundTone>(loadToneSetting);
+  const [fcmToken, setFcmToken] = useState<string | null>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('canteen_fcm_token') : null;
+  });
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>(() => {
     if (Capacitor.isNativePlatform()) {
       return 'default';
@@ -514,13 +520,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     // Also trigger native background FCM test push if device token exists
     try {
-      const fcmToken = localStorage.getItem('canteen_fcm_token');
-      if (fcmToken) {
-        fetch('/api/send-push', {
+      const token = fcmToken || localStorage.getItem('canteen_fcm_token');
+      if (token) {
+        fetch(getApiUrl('/api/send-push'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            token: fcmToken,
+            token,
             orderToken: demoToken,
             title: 'Order Ready for Pickup',
             body: `Demo order #${demoToken} is ready for collection at the counter.`,
@@ -529,7 +535,43 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         }).catch((err) => console.warn('Test FCM push trigger notice:', err));
       }
     } catch {}
-  }, [addNotification]);
+  }, [addNotification, fcmToken]);
+
+  // Delayed test push for background testing (allows user to close/minimize app first)
+  const sendBackgroundTestPush = useCallback(
+    async (delaySeconds = 5): Promise<boolean> => {
+      const token = fcmToken || (typeof window !== 'undefined' ? localStorage.getItem('canteen_fcm_token') : null);
+      if (!token) {
+        toast.error('Device Push Token not generated yet. Allow notification permission in Android Settings.');
+        return false;
+      }
+
+      toast.info(`Test push scheduled in ${delaySeconds}s! Close or minimize app now.`);
+
+      setTimeout(async () => {
+        try {
+          const res = await fetch(getApiUrl('/api/send-push'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token,
+              orderToken: 'DEMO-77',
+              title: 'Order Ready for Pickup',
+              body: 'Demo order #DEMO-77 is ready for collection at the counter!',
+              type: 'order_ready',
+            }),
+          });
+          const data = await res.json();
+          console.log('[Background Push Test Result]:', data);
+        } catch (e) {
+          console.warn('[Background Push Test Error]:', e);
+        }
+      }, delaySeconds * 1000);
+
+      return true;
+    },
+    [fcmToken]
+  );
 
   // Mark single as read
   const markAsRead = useCallback((notifId: string) => {
@@ -630,10 +672,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         await PushNotifications.addListener('registration', async (token: Token) => {
           console.log('[FCM Push] Device Token registered:', token.value);
           localStorage.setItem('canteen_fcm_token', token.value);
+          setFcmToken(token.value);
 
           // Register device token with backend
           try {
-            await fetch('/api/register-token', {
+            await fetch(getApiUrl('/api/register-token'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ token: token.value, platform: 'android' }),
@@ -833,6 +876,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         deleteNotification,
         clearAll,
         sendTestNotification,
+        fcmToken,
+        sendBackgroundTestPush,
       }}
     >
       {children}
