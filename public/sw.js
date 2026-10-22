@@ -45,3 +45,56 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
+// Background Web Push Notification
+self.addEventListener('push', (event) => {
+  let data = { title: 'Campus Canteen', body: 'New notification from Campus Canteen' };
+  try {
+    if (event.data) {
+      data = event.data.json();
+    }
+  } catch (e) {
+    data.body = event.data ? event.data.text() : data.body;
+  }
+
+  const options = {
+    body: data.body || data.message || '',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
+    vibrate: [100, 50, 100],
+    data: data,
+    tag: data.orderToken || 'canteen-update',
+    renotify: true,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Campus Canteen', options)
+  );
+});
+
+// When user clicks the desktop/mobile notification banner
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const data = event.notification.data || {};
+  let targetUrl = '/';
+  if (data.orderToken) {
+    targetUrl = `/track?token=${encodeURIComponent(data.orderToken)}`;
+  } else if (data.type === 'new_order') {
+    targetUrl = '/staff/dashboard';
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+

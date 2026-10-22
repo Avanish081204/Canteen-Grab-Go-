@@ -4,6 +4,8 @@ import { useProfile } from '@/hooks/use-profile';
 import { getOrders } from '@/lib/store';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type NotificationType =
@@ -337,6 +339,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [soundEnabled, setSoundEnabled] = useState<boolean>(loadSoundSetting);
   const [selectedTone, setSelectedToneState] = useState<SoundTone>(loadToneSetting);
   const [browserPermission, setBrowserPermission] = useState<NotificationPermission | 'unsupported'>(() => {
+    if (Capacitor.isNativePlatform()) {
+      return 'default';
+    }
     if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission;
     }
@@ -390,8 +395,32 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     playSoundAsset(tone);
   }, []);
 
-  // Request browser desktop notification permission
+  // Request browser desktop / Mobile App notification permission
   const requestBrowserPermission = useCallback(async (): Promise<boolean> => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        let perm = await PushNotifications.checkPermissions();
+        if (perm.receive === 'prompt') {
+          perm = await PushNotifications.requestPermissions();
+        }
+        if (perm.receive === 'granted') {
+          await PushNotifications.register();
+          setBrowserPermission('granted');
+          toast.success('Push notifications enabled!', {
+            description: "You'll receive order alerts even when the app is in the background.",
+          });
+          return true;
+        } else {
+          setBrowserPermission('denied');
+          toast.error('Notification permission was denied in phone settings.');
+          return false;
+        }
+      } catch (e) {
+        console.warn('Native push permission error:', e);
+        return false;
+      }
+    }
+
     if (typeof window === 'undefined' || !('Notification' in window)) {
       setBrowserPermission('unsupported');
       toast.error('Browser desktop notifications are not supported on this device.');
@@ -541,6 +570,86 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     },
     []
   );
+
+  // ── Capacitor Native Push Notification Integration ─────────────────────────
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let isSubscribed = true;
+
+    const setupNativePush = async () => {
+      try {
+        let perm = await PushNotifications.checkPermissions();
+        if (perm.receive === 'prompt') {
+          perm = await PushNotifications.requestPermissions();
+        }
+
+        if (perm.receive === 'granted') {
+          if (isSubscribed) setBrowserPermission('granted');
+          await PushNotifications.register();
+        } else if (perm.receive === 'denied') {
+          if (isSubscribed) setBrowserPermission('denied');
+        }
+
+        // 1. Device Token received from FCM
+        await PushNotifications.addListener('registration', (token: Token) => {
+          console.log('[FCM Push] Device Token registered:', token.value);
+          localStorage.setItem('canteen_fcm_token', token.value);
+        });
+
+        // 2. Registration Error
+        await PushNotifications.addListener('registrationError', (error: any) => {
+          console.warn('[FCM Push] Registration error:', error);
+        });
+
+        // 3. Notification received while app is foregrounded / open
+        await PushNotifications.addListener(
+          'pushNotificationReceived',
+          (notification: PushNotificationSchema) => {
+            console.log('[FCM Push] Received in app:', notification);
+            const data = (notification.data || {}) as Record<string, any>;
+            const token = data.orderToken || data.token;
+            const orderId = data.orderId;
+
+            addNotification({
+              type: (data.type as any) || 'system',
+              title: notification.title || 'Canteen Update 🔔',
+              message: notification.body || '',
+              icon: data.icon || '🔔',
+              orderToken: token,
+              orderId: orderId,
+            });
+          }
+        );
+
+        // 4. Notification clicked in notification tray (e.g. when app was in background or closed)
+        await PushNotifications.addListener(
+          'pushNotificationActionPerformed',
+          (action: ActionPerformed) => {
+            console.log('[FCM Push] Tapped by user:', action);
+            const data = (action.notification.data || {}) as Record<string, any>;
+            const token = data.orderToken || data.token;
+            if (token) {
+              navigate(`/track?token=${encodeURIComponent(token)}`);
+            } else if (data.orderId) {
+              navigate(`/track?orderId=${encodeURIComponent(data.orderId)}`);
+            }
+          }
+        );
+      } catch (err) {
+        console.warn('[FCM Push] Setup error:', err);
+      }
+    };
+
+    setupNativePush();
+
+    return () => {
+      isSubscribed = false;
+      try {
+        PushNotifications.removeAllListeners();
+      } catch {}
+    };
+  }, [addNotification, navigate]);
 
   // Real-time Supabase Subscription
   useEffect(() => {

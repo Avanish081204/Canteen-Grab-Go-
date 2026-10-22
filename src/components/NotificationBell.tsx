@@ -22,6 +22,7 @@ import {
   SoundTone,
 } from '@/hooks/use-notifications';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -301,9 +302,13 @@ export default function NotificationBell() {
                     <BellRing className="w-4 h-4 animate-bounce" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground leading-tight">Enable Desktop Alerts</p>
+                    <p className="text-xs font-semibold text-foreground leading-tight">
+                      {Capacitor.isNativePlatform() ? 'Enable Push Alerts' : 'Enable Desktop Alerts'}
+                    </p>
                     <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 truncate">
-                      Get notified when food is ready, even in background
+                      {Capacitor.isNativePlatform()
+                        ? 'Get alerts even when app is closed or in background'
+                        : 'Get notified when food is ready, even in background'}
                     </p>
                   </div>
                 </div>
