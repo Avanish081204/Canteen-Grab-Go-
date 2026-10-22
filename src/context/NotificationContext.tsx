@@ -523,15 +523,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     [addNotification]
   );
 
-  // Helper to check if an order belongs to this device
+  // Helper to check if an order strictly belongs to this customer/device
   const isTargetOrder = useCallback(
     (orderId: string, orderToken: string, userId: string | null, currentUserId: string | null): boolean => {
-      if (currentUserId && userId && currentUserId === userId) {
-        return true;
+      // 1. If order has an authenticated user_id, it must match current logged-in user
+      if (userId && currentUserId) {
+        return currentUserId === userId;
       }
+
+      // 2. If guest order or user is not logged in: check if order was placed on this device
       try {
         const localOrders = getOrders();
-        return localOrders.some((o) => o.id === orderId || o.token === orderToken);
+        return localOrders.some((o) => (o.id && o.id === orderId) || (o.token && o.token === orderToken));
       } catch {
         return false;
       }
@@ -547,6 +550,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders' },
         async (payload) => {
+          // Rule 1: Staff & Admin do NOT receive status updates (cooking, ready, collected).
+          // Staff only receives alerts on NEW incoming orders (INSERT event).
+          if (role === 'staff' || role === 'admin') {
+            return;
+          }
+
           const nextStatus = payload.new.status as string;
           const orderId = payload.new.id as string;
           const token = payload.new.token as string;
@@ -564,18 +573,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           const config = STATUS_CONFIG[nextStatus];
           if (!config) return;
 
-          if (role === 'staff' || role === 'admin') {
-            addNotification({
-              type: config.type,
-              title: config.title,
-              message: config.message(token),
-              icon: config.icon,
-              orderId,
-              orderToken: token,
-            });
-            return;
-          }
-
+          // Rule 2: ONLY the specific customer who placed this order receives the update!
           let currentUserId: string | null = null;
           try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -598,6 +596,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders' },
         (payload) => {
+          // Rule 3: ONLY Staff and Admin receive alerts when a new order arrives in the kitchen
+          if (role !== 'staff' && role !== 'admin') {
+            return;
+          }
+
           const token = payload.new.token as string;
           const orderId = payload.new.id as string;
           const total = payload.new.total as number;
@@ -607,16 +610,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           if (processedIdsRef.current.has(eventKey)) return;
           processedIdsRef.current.add(eventKey);
 
-          if (role === 'staff' || role === 'admin') {
-            addNotification({
-              type: 'new_order',
-              title: 'New Order Received! 🔔',
-              message: `Order #${token} (₹${total} • ${orderType}) has arrived in the kitchen.`,
-              icon: '🆕',
-              orderId,
-              orderToken: token,
-            });
-          }
+          addNotification({
+            type: 'new_order',
+            title: 'New Order Received! 🔔',
+            message: `Order #${token} (₹${total} • ${orderType}) has arrived in the kitchen.`,
+            icon: '🆕',
+            orderId,
+            orderToken: token,
+          });
         }
       )
       .subscribe();
