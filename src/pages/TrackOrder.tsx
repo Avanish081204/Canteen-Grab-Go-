@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin, Star, Clock, ArrowRight } from 'lucide-react';
 import { getOrderByToken, fetchOrderByToken, Order, OrderStatus, fetchUserOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
@@ -22,12 +23,29 @@ function getStepIndex(status: OrderStatus, isDelivery: boolean) {
 }
 
 export default function TrackOrder() {
+  const [searchParams] = useSearchParams();
+  const tokenParam = searchParams.get('token');
+
   const [tokenInput, setTokenInput] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
   const [searched, setSearched] = useState(false);
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const { profile, loading: profileLoading } = useProfile();
+
+  // Automatically load token from URL if opened from a notification
+  useEffect(() => {
+    if (tokenParam) {
+      const trimmed = tokenParam.trim().toUpperCase();
+      setTokenInput(trimmed);
+      fetchOrderByToken(trimmed).then(found => {
+        if (found) {
+          setOrder(found);
+          setSearched(true);
+        }
+      });
+    }
+  }, [tokenParam]);
 
   useEffect(() => {
     if (profile) {

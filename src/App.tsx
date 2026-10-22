@@ -24,6 +24,7 @@ import Help from "./pages/Help";
 import About from "./pages/About";
 import Feedback from "./pages/Feedback";
 import ScrollRestoration from "./components/ScrollRestoration";
+import { NotificationProvider } from "./context/NotificationContext";
 
 const queryClient = new QueryClient();
 
@@ -33,29 +34,31 @@ const App = () => (
       <Toaster />
       <Sonner position="top-center" richColors />
       <BrowserRouter>
-        <ScrollRestoration />
-        <Header />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/success/:token" element={<Success />} />
-          <Route path="/track" element={<TrackOrder />} />
-          <Route path="/display" element={<Display />} />
-          <Route path="/staff-code" element={<StaffCode />} />
-          <Route path="/staff/login" element={<StaffLogin />} />
-          <Route path="/staff/dashboard" element={<StaffDashboard />} />
-          <Route path="/admin/menu" element={<AdminMenu />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/reviews" element={<Reviews />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <NotificationProvider>
+          <ScrollRestoration />
+          <Header />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/menu" element={<Menu />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/success/:token" element={<Success />} />
+            <Route path="/track" element={<TrackOrder />} />
+            <Route path="/display" element={<Display />} />
+            <Route path="/staff-code" element={<StaffCode />} />
+            <Route path="/staff/login" element={<StaffLogin />} />
+            <Route path="/staff/dashboard" element={<StaffDashboard />} />
+            <Route path="/admin/menu" element={<AdminMenu />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </NotificationProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

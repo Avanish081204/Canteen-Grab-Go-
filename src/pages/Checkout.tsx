@@ -16,9 +16,11 @@ import {
   openRazorpayCheckout,
 } from '@/lib/razorpay';
 import { toast } from 'sonner';
+import { useNotifications } from '@/hooks/use-notifications';
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [orderType, setOrderTypeState] = useState<OrderType | null>(null);
@@ -79,6 +81,14 @@ export default function Checkout() {
             }, 'upi', 'paid');
 
             toast.success('Payment successful! Order placed.');
+            addNotification({
+              type: 'order_placed',
+              title: 'Order Placed 🎉',
+              message: `Your order #${order.token} has been placed successfully!`,
+              icon: '📦',
+              orderId: order.id,
+              orderToken: order.token,
+            }, { skipToast: true });
             navigate(`/success/${order.token}`);
           } catch (error) {
             console.error('Order creation error after payment:', error);
@@ -149,6 +159,14 @@ export default function Checkout() {
       }, 'cash', 'pending');
 
       toast.success('Order placed successfully! Please pay at counter.');
+      addNotification({
+        type: 'order_placed',
+        title: 'Order Placed (Pay at Counter) 💵',
+        message: `Your order #${order.token} has been placed! Pay at counter when you collect.`,
+        icon: '💵',
+        orderId: order.id,
+        orderToken: order.token,
+      }, { skipToast: true });
       navigate(`/success/${order.token}`);
     } catch (error) {
       console.error('Order creation error:', error);

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Clock, ChefHat, CheckCircle, Truck, RefreshCw, PackageCheck } from 'lucide-react';
+import { LogOut, Clock, ChefHat, CheckCircle, Truck, RefreshCw, PackageCheck, Volume2, VolumeX, BellRing } from 'lucide-react';
 import { Order, fetchStaffOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
+import { useNotifications } from '@/hooks/use-notifications';
 import OrderCard from '@/components/OrderCard';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ type TabType = 'new' | 'cooking' | 'ready' | 'collected' | 'delivery';
 export default function StaffDashboard() {
   const navigate = useNavigate();
   const { role, loading } = useProfile();
+  const { soundEnabled, toggleSound, browserPermission, requestBrowserPermission } = useNotifications();
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -94,14 +96,40 @@ export default function StaffDashboard() {
               <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">Staff Dashboard</h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Manage live orders in real-time</p>
             </div>
-            <button
-              onClick={loadOrders}
-              disabled={isRefreshing}
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary text-xs sm:text-sm font-semibold transition-all duration-200 ${isRefreshing ? 'opacity-50' : ''}`}
-            >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isRefreshing ? 'Refreshing…' : 'Refresh'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {browserPermission === 'default' && (
+                <button
+                  onClick={requestBrowserPermission}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 text-xs sm:text-sm font-semibold transition-all duration-200"
+                  title="Enable kitchen desktop alerts"
+                >
+                  <BellRing className="w-3.5 h-3.5 animate-bounce" />
+                  <span>Desktop Alerts</span>
+                </button>
+              )}
+
+              <button
+                onClick={toggleSound}
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                  soundEnabled
+                    ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+                title={soundEnabled ? 'Kitchen chime ON (Click to mute)' : 'Kitchen chime MUTED (Click to enable)'}
+              >
+                {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">{soundEnabled ? 'Chime ON' : 'Chime MUTED'}</span>
+              </button>
+
+              <button
+                onClick={loadOrders}
+                disabled={isRefreshing}
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary text-xs sm:text-sm font-semibold transition-all duration-200 ${isRefreshing ? 'opacity-50' : ''}`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>{isRefreshing ? 'Refreshing…' : 'Refresh'}</span>
+              </button>
+            </div>
           </div>
 
           {/* Stats Bar */}
