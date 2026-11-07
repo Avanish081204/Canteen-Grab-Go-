@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/use-profile';
 import Logo from './Logo';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -236,6 +237,7 @@ export default function Header() {
                 </DropdownMenu>
               )}
 
+              <ThemeToggle />
               <NotificationBell />
 
               {/* Profile button */}

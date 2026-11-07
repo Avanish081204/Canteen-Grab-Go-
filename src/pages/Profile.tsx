@@ -16,10 +16,15 @@ import {
   Phone,
   Edit3,
   Loader2,
+  Coins,
+  Award,
+  Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserOrders, Order } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
+import { fetchLoyaltyAccount, fetchLoyaltyTransactions, LoyaltyAccount, LoyaltyTransaction } from '@/lib/loyalty';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 const statusColors: Record<string, string> = {
@@ -45,6 +50,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [showAllOrders, setShowAllOrders] = useState(false);
   const [orderTab, setOrderTab] = useState<'active' | 'past'>('active');
+  const [loyaltyAccount, setLoyaltyAccount] = useState<LoyaltyAccount | null>(null);
+  const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
 
   // Edit profile state
   const [isEditing, setIsEditing] = useState(false);
@@ -65,6 +72,8 @@ export default function Profile() {
           setEditName('Avanish');
           setEditPhone('9503658089');
           setOrders([]);
+          fetchLoyaltyAccount('local-admin').then(setLoyaltyAccount);
+          fetchLoyaltyTransactions('local-admin').then(setLoyaltyHistory);
           setLoading(false);
           return;
         }
@@ -79,6 +88,8 @@ export default function Profile() {
           setEditName('Staff Avanish');
           setEditPhone('9503658089');
           setOrders([]);
+          fetchLoyaltyAccount('local-admin').then(setLoyaltyAccount);
+          fetchLoyaltyTransactions('local-admin').then(setLoyaltyHistory);
           setLoading(false);
           return;
         }
@@ -92,6 +103,9 @@ export default function Profile() {
       setUser(session.user);
       setEditName(session.user.user_metadata?.full_name || '');
       setEditPhone(session.user.user_metadata?.phone || '');
+
+      fetchLoyaltyAccount(session.user.id).then(setLoyaltyAccount);
+      fetchLoyaltyTransactions(session.user.id).then(setLoyaltyHistory);
 
       try {
         const fetchedOrders = await fetchUserOrders();
@@ -286,6 +300,50 @@ export default function Profile() {
               </div>
             </>
           )}
+        </div>
+
+        {/* Campus Loyalty Rewards Card */}
+        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xs animate-fade-in">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                <Coins className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-1.5">
+                  Campus Coins & Rewards
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                </h3>
+                <p className="text-[11px] text-muted-foreground">Earn 1 pt per ₹10 spent • Redeem at checkout</p>
+              </div>
+            </div>
+            <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5">
+              {loyaltyAccount?.tier || 'Bronze'} Tier
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-amber-500/20">
+            <div className="bg-card/90 p-3 rounded-xl border border-border">
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Available Coins</span>
+              <p className="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5">
+                {loyaltyAccount?.points_balance ?? 50} pts
+              </p>
+              <p className="text-[11px] text-muted-foreground font-medium">Worth ₹{loyaltyAccount?.points_balance ?? 50} discount</p>
+            </div>
+            <div className="bg-card/90 p-3 rounded-xl border border-border">
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Lifetime Earned</span>
+              <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5">
+                {loyaltyAccount?.lifetime_earned ?? 50} pts
+              </p>
+              <p className="text-[11px] text-muted-foreground font-medium">
+                {loyaltyAccount?.tier === 'Gold'
+                  ? 'Max Gold Perks (1.5x)'
+                  : loyaltyAccount?.tier === 'Silver'
+                  ? 'Silver Perk (1.25x)'
+                  : 'Reach 200 pts for Silver'}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Order History - Only show if not admin, or if admin but has orders */}

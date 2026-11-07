@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Loader2, Tag, CheckCircle2, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  CreditCard,
+  Loader2,
+  Tag,
+  CheckCircle2,
+  X,
+  Clock,
+  Zap,
+  CalendarClock,
+  Coins,
+  Sparkles,
+} from 'lucide-react';
 import {
   getCart,
   getCartTotal,
@@ -16,6 +28,13 @@ import {
   openRazorpayCheckout,
 } from '@/lib/razorpay';
 import { validateCoupon, applyCouponToOrder, Coupon } from '@/lib/coupons';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  fetchLoyaltyAccount,
+  earnPointsForOrder,
+  redeemPointsForOrder,
+  LoyaltyAccount,
+} from '@/lib/loyalty';
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/use-notifications';
 
@@ -27,6 +46,15 @@ export default function Checkout() {
   const [orderType, setOrderTypeState] = useState<OrderType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+
+  // User & Loyalty states
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loyaltyAccount, setLoyaltyAccount] = useState<LoyaltyAccount | null>(null);
+  const [useLoyaltyPoints, setUseLoyaltyPoints] = useState(false);
+
+  // Pre-Order Scheduling states
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledSlot, setScheduledSlot] = useState('12:30 PM - 1:00 PM (Lunch Slot 1)');
 
   // Coupon states
   const [couponInput, setCouponInput] = useState('');
@@ -42,7 +70,34 @@ export default function Checkout() {
   const [timeSlot, setTimeSlot] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cash'>('upi');
 
-  const finalTotal = Math.max(0, total - discountAmount);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setCurrentUser(session.user);
+        fetchLoyaltyAccount(session.user.id).then(setLoyaltyAccount);
+        if (session.user.user_metadata?.full_name) {
+          setName(session.user.user_metadata.full_name);
+        }
+      }
+    });
+  }, []);
+
+  // Compute loyalty points redemption (1 point = 1 INR discount, max 50% of subtotal)
+  const maxRedeemable = Math.floor(total * 0.5);
+  const pointsToRedeem = loyaltyAccount
+    ? Math.min(loyaltyAccount.points_balance, maxRedeemable)
+    : 0;
+  const loyaltyDiscount = useLoyaltyPoints ? pointsToRedeem : 0;
+
+  const totalDiscount = discountAmount + loyaltyDiscount;
+  const finalTotal = Math.max(0, total - totalDiscount);
+
+  const finalTimeSlot =
+    orderType === 'staff-delivery'
+      ? timeSlot
+      : isScheduled
+      ? scheduledSlot
+      : 'ASAP (Immediate 10-15m)';
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) {
@@ -113,12 +168,20 @@ export default function Checkout() {
               customerPhone: phone || undefined,
               department: orderType === 'staff-delivery' ? department : undefined,
               location: orderType === 'staff-delivery' ? location : undefined,
-              timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
+              timeSlot: finalTimeSlot,
             }, 'upi', 'paid');
 
             // Record coupon usage
             if (appliedCoupon) {
               applyCouponToOrder(appliedCoupon.id, order.id, order.token, discountAmount);
+            }
+
+            // Award & Redeem Loyalty Points
+            if (currentUser?.id) {
+              earnPointsForOrder(currentUser.id, order.token, finalTotal);
+              if (useLoyaltyPoints && pointsToRedeem > 0) {
+                redeemPointsForOrder(currentUser.id, order.token, pointsToRedeem);
+              }
             }
 
             toast.success('Payment successful! Order placed.');
@@ -196,12 +259,20 @@ export default function Checkout() {
         customerPhone: phone || undefined,
         department: orderType === 'staff-delivery' ? department : undefined,
         location: orderType === 'staff-delivery' ? location : undefined,
-        timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
+        timeSlot: finalTimeSlot,
       }, 'cash', 'pending');
 
       // Record coupon usage
       if (appliedCoupon) {
         applyCouponToOrder(appliedCoupon.id, order.id, order.token, discountAmount);
+      }
+
+      // Award & Redeem Loyalty Points
+      if (currentUser?.id) {
+        earnPointsForOrder(currentUser.id, order.token, finalTotal);
+        if (useLoyaltyPoints && pointsToRedeem > 0) {
+          redeemPointsForOrder(currentUser.id, order.token, pointsToRedeem);
+        }
       }
 
       toast.success('Order placed successfully! Please pay at counter.');
@@ -321,6 +392,44 @@ export default function Checkout() {
               )}
             </div>
 
+            {/* Loyalty Points Redemption Box */}
+            {currentUser && loyaltyAccount && loyaltyAccount.points_balance > 0 && (
+              <div className="pt-3 border-t border-border">
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-amber-600" />
+                      <div>
+                        <span className="text-xs font-bold text-foreground">
+                          Redeem Points ({loyaltyAccount.points_balance} pts)
+                        </span>
+                        <p className="text-[10px] text-muted-foreground">
+                          1 Point = ₹1 Discount (Max 50% order value)
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setUseLoyaltyPoints(!useLoyaltyPoints)}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        useLoyaltyPoints
+                          ? 'bg-amber-500 text-white shadow-xs'
+                          : 'bg-background border border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10'
+                      }`}
+                    >
+                      {useLoyaltyPoints ? 'Applied' : 'Use Points'}
+                    </button>
+                  </div>
+                  {useLoyaltyPoints && (
+                    <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Redeeming {pointsToRedeem} points: -₹{pointsToRedeem} discount applied!
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Price Calculations */}
             <div className="border-t border-border pt-3 space-y-1.5">
               <div className="flex justify-between text-xs text-muted-foreground">
@@ -333,12 +442,89 @@ export default function Checkout() {
                   <span>-₹{discountAmount}</span>
                 </div>
               )}
+              {useLoyaltyPoints && pointsToRedeem > 0 && (
+                <div className="flex justify-between text-xs font-semibold text-amber-600">
+                  <span>Loyalty Points Discount</span>
+                  <span>-₹{pointsToRedeem}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-1 border-t border-border/50">
                 <span className="font-semibold text-base">Payable Amount</span>
                 <span className="text-xl font-bold text-primary">₹{finalTotal}</span>
               </div>
+              {currentUser && (
+                <p className="text-[10px] text-emerald-600 font-medium text-right flex items-center justify-end gap-1 pt-0.5">
+                  <Coins className="w-3 h-3" />
+                  You will earn ~{Math.max(1, Math.round(finalTotal / 10))} points on this order!
+                </p>
+              )}
             </div>
           </div>
+
+          {/* Order Timing Card for Dine-in & Takeaway */}
+          {orderType !== 'staff-delivery' && (
+            <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
+              <h2 className="font-semibold text-lg mb-1 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                Pickup Timing
+              </h2>
+              <p className="text-xs text-muted-foreground mb-4">
+                Want it prepared right now or scheduled for your lunch / lecture break?
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsScheduled(false)}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    !isScheduled
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                      : 'border-border bg-card hover:bg-muted/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-foreground">
+                    <Zap className="w-4 h-4 text-amber-500" />
+                    Order ASAP
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Ready in 10–15 mins</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsScheduled(true)}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    isScheduled
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                      : 'border-border bg-card hover:bg-muted/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-foreground">
+                    <CalendarClock className="w-4 h-4 text-primary" />
+                    Schedule Slot
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Pick lunch / break slot</p>
+                </button>
+              </div>
+
+              {isScheduled && (
+                <div className="mt-3.5 space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Select Break / Pickup Slot</label>
+                  <select
+                    value={scheduledSlot}
+                    onChange={(e) => setScheduledSlot(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="11:15 AM - 11:45 AM (Short Break)">11:15 AM - 11:45 AM (Short Break)</option>
+                    <option value="12:30 PM - 1:00 PM (Lunch Slot 1)">12:30 PM - 1:00 PM (Lunch Slot 1)</option>
+                    <option value="1:00 PM - 1:30 PM (Peak Lunch Break)">1:00 PM - 1:30 PM (Peak Lunch Break)</option>
+                    <option value="1:30 PM - 2:00 PM (Lunch Slot 2)">1:30 PM - 2:00 PM (Lunch Slot 2)</option>
+                    <option value="2:30 PM - 3:00 PM (Afternoon Tea)">2:30 PM - 3:00 PM (Afternoon Tea)</option>
+                    <option value="3:30 PM - 4:00 PM (Evening Snacks)">3:30 PM - 4:00 PM (Evening Snacks)</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Customer Details */}
           <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">

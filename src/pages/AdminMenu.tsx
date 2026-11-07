@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download, Edit, Search, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download, Edit, Search, UtensilsCrossed, Upload, Image as ImageIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import AdminSubNav from '@/components/AdminSubNav';
 import { 
   MenuItem, 
@@ -107,6 +108,62 @@ export default function AdminMenu() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [draft, setDraft] = useState<ItemDraft>(() => toDraft());
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file (PNG, JPG, WebP)');
+      return;
+    }
+
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error('Image must be under 4MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `item_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+      // Try uploading to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('menu-images')
+        .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+      if (!error && data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('menu-images')
+          .getPublicUrl(fileName);
+
+        setDraft((d) => ({ ...d, image: publicUrl }));
+        toast.success('Image uploaded to cloud!');
+        setIsUploadingImage(false);
+        return;
+      }
+    } catch {
+      // Storage bucket not configured or permissions issue: fallback to Base64
+    }
+
+    // High quality Base64 fallback
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setDraft((d) => ({ ...d, image: reader.result }));
+        toast.success('Image attached successfully!');
+      }
+      setIsUploadingImage(false);
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read image file');
+      setIsUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const categories = useMemo(() => {
     const derived = Array.from(new Set(items.map((i) => i.category))).sort((a, b) => a.localeCompare(b));
@@ -599,16 +656,35 @@ export default function AdminMenu() {
               </div>
 
               <div className="space-y-1 md:col-span-2">
-                <Label className="text-xs">Image</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Item Image</Label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Upload className="w-3 h-3" />
+                    <span>{isUploadingImage ? 'Uploading...' : 'Upload from Device'}</span>
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageFileUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Built-in image</Label>
+                    <Label className="text-[10px] text-muted-foreground">Select Preset</Label>
                     <Select
                       value={builtInMenuImages.some((o) => o.src === draft.image) ? draft.image : ''}
                       onValueChange={(val) => setDraft((d) => ({ ...d, image: val }))}
                     >
                       <SelectTrigger className="h-9 text-xs">
-                        <SelectValue placeholder="Select image" />
+                        <SelectValue placeholder="Preset image" />
                       </SelectTrigger>
                       <SelectContent>
                         {builtInMenuImages.map((opt) => (
@@ -620,25 +696,40 @@ export default function AdminMenu() {
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Or image URL</Label>
+                    <Label className="text-[10px] text-muted-foreground">Or Paste URL</Label>
                     <Input
                       className="h-9 text-xs"
                       value={draft.image}
                       onChange={(e) => setDraft((d) => ({ ...d, image: e.target.value }))}
-                      placeholder="https://..."
+                      placeholder="https://images.unsplash..."
                     />
                   </div>
                 </div>
 
                 {draft.image ? (
-                  <div className="mt-2 flex items-center gap-2">
-                    <img
-                      src={draft.image}
-                      alt="Selected preview"
-                      className="h-12 w-12 rounded-lg object-cover border border-border"
-                      loading="lazy"
-                    />
-                    <div className="text-xs text-muted-foreground">Preview</div>
+                  <div className="mt-2.5 p-2 bg-muted/40 rounded-xl border border-border/60 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={draft.image}
+                        alt="Selected preview"
+                        className="h-11 w-11 rounded-lg object-cover border border-border flex-shrink-0"
+                      />
+                      <div className="text-xs">
+                        <p className="font-semibold text-foreground">Selected Image</p>
+                        <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                          {draft.image.startsWith('data:') ? 'Uploaded local image' : draft.image}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDraft((d) => ({ ...d, image: '' }))}
+                      className="text-xs text-red-500 hover:text-red-600 h-7 px-2"
+                    >
+                      Remove
+                    </Button>
                   </div>
                 ) : null}
               </div>

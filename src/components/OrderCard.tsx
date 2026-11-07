@@ -95,6 +95,17 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
 
       {/* Body */}
       <div className="p-3.5 sm:p-4">
+        {/* Scheduled Slot Notice */}
+        {order.timeSlot && (
+          <div className="mb-3 px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-medium flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <div className="truncate">
+              <span className="text-muted-foreground mr-1">Scheduled for:</span>
+              <span className="font-bold">{order.timeSlot}</span>
+            </div>
+          </div>
+        )}
+
         {/* Items */}
         <div className="space-y-2 mb-4">
           {order.items.map((item) => (

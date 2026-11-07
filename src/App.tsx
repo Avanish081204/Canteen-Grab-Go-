@@ -30,19 +30,21 @@ import Feedback from "./pages/Feedback";
 import ScrollRestoration from "./components/ScrollRestoration";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" richColors />
-      <BrowserRouter>
-        <NotificationProvider>
-          <ScrollRestoration />
-          <Header />
-          <Routes>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner position="top-center" richColors />
+        <BrowserRouter>
+          <NotificationProvider>
+            <ScrollRestoration />
+            <Header />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/cart" element={<Cart />} />
@@ -105,6 +107,7 @@ const App = () => (
         </NotificationProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
