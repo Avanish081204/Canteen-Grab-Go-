@@ -227,3 +227,4 @@ export async function redeemPointsForOrder(
   window.dispatchEvent(new Event('loyaltyUpdated'));
   return actualRedeem; // ₹ discount amount
 }
+

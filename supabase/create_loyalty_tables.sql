@@ -29,3 +29,4 @@ CREATE POLICY "Allow all on loyalty_accounts" ON loyalty_accounts FOR ALL USING 
 
 DROP POLICY IF EXISTS "Allow all on loyalty_history" ON loyalty_history;
 CREATE POLICY "Allow all on loyalty_history" ON loyalty_history FOR ALL USING (true) WITH CHECK (true);
+
