@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download, Edit, Search } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download, Edit, Search, UtensilsCrossed } from 'lucide-react';
+import AdminSubNav from '@/components/AdminSubNav';
 import { 
   MenuItem, 
   Order, 
@@ -228,41 +229,27 @@ export default function AdminMenu() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-12">
-      {/* Sticky Header */}
-      <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
-          {/* Top Row: Back button, Title, Add Item Button */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (window.history.length > 1) {
-                    navigate(-1);
-                  } else {
-                    navigate('/');
-                  }
-                }}
-                className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Back
-              </button>
-              <h1 className="text-base sm:text-xl font-bold text-foreground">Menu Admin</h1>
-            </div>
-
-            <Button size="sm" onClick={openAdd} className="bg-primary text-primary-foreground font-bold text-xs px-3 py-1.5 rounded-lg sm:rounded-xl">
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Add Item
-            </Button>
-          </div>
-
-          {/* Sub Row: Quick Badges */}
-          <div className="flex items-center gap-2 text-xs">
-            <Badge variant="secondary" className="text-[11px] px-2 py-0.5">Items: {items.length}</Badge>
-            <Badge variant="secondary" className="text-[11px] px-2 py-0.5">Combos: {combosCount}</Badge>
-          </div>
+      <AdminSubNav
+        title="Menu & Orders Admin"
+        icon={<UtensilsCrossed className="w-4 h-4" />}
+      >
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-[11px] px-2 py-0.5 hidden sm:inline-flex">
+            Items: {items.length}
+          </Badge>
+          <Badge variant="secondary" className="text-[11px] px-2 py-0.5 hidden sm:inline-flex">
+            Combos: {combosCount}
+          </Badge>
+          <Button
+            size="sm"
+            onClick={openAdd}
+            className="bg-primary text-primary-foreground font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-xs hover:brightness-110"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Item</span>
+          </Button>
         </div>
-      </div>
+      </AdminSubNav>
 
       <main className="container mx-auto px-3 sm:px-4 py-4">
         <Tabs defaultValue="menu" className="w-full">

@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getApiUrl } from '@/lib/api-config';
+import { decrementStockForOrder } from '@/lib/inventory';
 
 // Types
 export type OrderType = 'dine-in' | 'take-away' | 'staff-delivery';
@@ -339,7 +340,14 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
   
   clearCart();
 
-  // Register push token with this order for background push notifications
+  // Decrement inventory stock for ordered items
+  try {
+    decrementStockForOrder(orderData.items);
+  } catch (err) {
+    console.warn('Stock decrement notice:', err);
+  }
+
+  // 1. Register push token with this order for background push notifications
   try {
     const fcmToken = localStorage.getItem('canteen_fcm_token');
     if (fcmToken) {
@@ -355,6 +363,45 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
       }).catch((e) => console.warn('Order push token register notice:', e));
     }
   } catch {}
+
+  // 2. Trigger FCM Push Notification for NEW ORDER (even when app is OFF / closed)
+  try {
+    const itemsList = orderData.items.map((i) => `${i.quantity}x ${i.name}`).join(', ');
+    const itemsSummary = itemsList.length > 55 ? itemsList.slice(0, 52) + '...' : itemsList;
+
+    // A. Notify Staff & Admin devices
+    fetch(getApiUrl('/api/send-push'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        targetRole: 'staff',
+        type: 'new_order',
+        orderId,
+        orderToken: token,
+        title: `🔔 New Order #${token} Received!`,
+        body: `₹${orderData.total} • ${(orderData.type || 'order').toUpperCase()} • ${itemsSummary}`,
+      }),
+    }).catch((err) => console.warn('New order staff push notification notice:', err));
+
+    // B. Send confirmation push to Customer device if FCM token available
+    const customerFcmToken = localStorage.getItem('canteen_fcm_token');
+    if (customerFcmToken) {
+      fetch(getApiUrl('/api/send-push'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: customerFcmToken,
+          orderId,
+          orderToken: token,
+          type: 'order_placed',
+          title: `Order #${token} Confirmed! 📦`,
+          body: `Total ₹${orderData.total}. Kitchen is preparing your order.`,
+        }),
+      }).catch((err) => console.warn('Customer order confirmation push notice:', err));
+    }
+  } catch (err) {
+    console.warn('FCM new order trigger notice:', err);
+  }
   
   return order;
 }

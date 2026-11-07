@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { token, orderId, orderToken, userId, platform = 'android' } = req.body || {};
+    const { token, orderId, orderToken, userId, platform = 'android', role } = req.body || {};
 
     if (!token) {
       return res.status(400).json({ error: 'Missing device token' });
@@ -23,11 +23,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://idosnceaxvgnfqbwsjml.supabase.co';
     const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb3NuY2VheHZnbmZxYndzam1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTE5ODYsImV4cCI6MjA5MDA2Nzk4Nn0.4hc7mK22kgiTETJlbR6ET7BlwJNF8-TYMrEsYF8_Qss';
 
+    const isStaffOrAdmin = role === 'staff' || role === 'admin';
+
     const insertPayload = {
       token,
-      order_id: orderId || null,
-      order_token: orderToken || null,
-      user_id: userId || null,
+      order_id: orderId || (isStaffOrAdmin ? 'staff_device' : null),
+      order_token: orderToken || (isStaffOrAdmin ? 'staff_broadcast' : null),
+      user_id: userId || (isStaffOrAdmin ? 'staff' : null),
       platform,
       updated_at: new Date().toISOString(),
     };

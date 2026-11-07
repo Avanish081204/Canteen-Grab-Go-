@@ -539,14 +539,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Delayed test push for background testing (allows user to close/minimize app first)
   const sendBackgroundTestPush = useCallback(
-    async (delaySeconds = 5): Promise<boolean> => {
+    async (delaySeconds = 5, testType: 'new_order' | 'order_ready' = 'new_order'): Promise<boolean> => {
       const token = fcmToken || (typeof window !== 'undefined' ? localStorage.getItem('canteen_fcm_token') : null);
       if (!token) {
         toast.error('Device Push Token not generated yet. Allow notification permission in Android Settings.');
         return false;
       }
 
-      toast.info(`Test push scheduled in ${delaySeconds}s! Close or minimize app now.`);
+      const notifTitle = testType === 'new_order' ? '🔔 New Order #TK-88 Received!' : 'Order Ready for Pickup! ✅';
+      const notifBody =
+        testType === 'new_order'
+          ? '₹240 • DINE-IN • 2x Veg Burger, 1x Cold Coffee'
+          : 'Demo order #DEMO-77 is ready for collection at counter!';
+
+      toast.info(`Test ${testType === 'new_order' ? 'New Order' : 'Order Ready'} push in ${delaySeconds}s! Close app now to test.`);
 
       setTimeout(async () => {
         try {
@@ -555,10 +561,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               token,
-              orderToken: 'DEMO-77',
-              title: 'Order Ready for Pickup',
-              body: 'Demo order #DEMO-77 is ready for collection at the counter!',
-              type: 'order_ready',
+              orderToken: testType === 'new_order' ? 'TK-88' : 'DEMO-77',
+              title: notifTitle,
+              body: notifBody,
+              type: testType,
             }),
           });
           const data = await res.json();
@@ -674,12 +680,26 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           localStorage.setItem('canteen_fcm_token', token.value);
           setFcmToken(token.value);
 
+          const isStaffOrAdmin =
+            role === 'staff' ||
+            role === 'admin' ||
+            (typeof window !== 'undefined' &&
+              (localStorage.getItem('local_admin') === 'true' ||
+                localStorage.getItem('local_staff') === 'true'));
+
           // Register device token with backend
           try {
             await fetch(getApiUrl('/api/register-token'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token: token.value, platform: 'android' }),
+              body: JSON.stringify({
+                token: token.value,
+                platform: 'android',
+                role: isStaffOrAdmin ? 'staff' : 'user',
+                orderToken: isStaffOrAdmin ? 'staff_broadcast' : undefined,
+                orderId: isStaffOrAdmin ? 'staff_device' : undefined,
+                userId: profile?.id || null,
+              }),
             });
           } catch (e) {
             console.warn('Backend token registration notice:', e);
@@ -718,7 +738,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             console.log('[FCM Push] Tapped by user:', action);
             const data = (action.notification.data || {}) as Record<string, any>;
             const token = data.orderToken || data.token;
-            if (token) {
+            const type = data.type;
+            if (type === 'new_order') {
+              navigate('/staff/dashboard');
+            } else if (token) {
               navigate(`/track?token=${encodeURIComponent(token)}`);
             } else if (data.orderId) {
               navigate(`/track?orderId=${encodeURIComponent(data.orderId)}`);
@@ -738,7 +761,33 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         PushNotifications.removeAllListeners();
       } catch {}
     };
-  }, [addNotification, navigate]);
+  }, [addNotification, navigate, role, profile?.id]);
+
+  // Keep device push token tagged with staff role whenever profile or token changes
+  useEffect(() => {
+    const activeToken = fcmToken || (typeof window !== 'undefined' ? localStorage.getItem('canteen_fcm_token') : null);
+    if (!activeToken) return;
+
+    const isStaffOrAdmin =
+      role === 'staff' ||
+      role === 'admin' ||
+      (typeof window !== 'undefined' &&
+        (localStorage.getItem('local_admin') === 'true' ||
+          localStorage.getItem('local_staff') === 'true'));
+
+    fetch(getApiUrl('/api/register-token'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: activeToken,
+        platform: Capacitor.isNativePlatform() ? 'android' : 'web',
+        role: isStaffOrAdmin ? 'staff' : 'user',
+        orderToken: isStaffOrAdmin ? 'staff_broadcast' : undefined,
+        orderId: isStaffOrAdmin ? 'staff_device' : undefined,
+        userId: profile?.id || null,
+      }),
+    }).catch((e) => console.warn('Background role push token sync notice:', e));
+  }, [fcmToken, role, profile?.id]);
 
   // ── Web Firebase Cloud Messaging (Desktop / Browser) ────────────────────────
   useEffect(() => {

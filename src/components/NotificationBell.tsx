@@ -439,11 +439,12 @@ export default function NotificationBell() {
                   
                   <div className="mt-4 flex flex-col gap-2 w-full max-w-xs">
                     <button
-                      onClick={() => sendBackgroundTestPush(5)}
+                      onClick={() => sendBackgroundTestPush(5, 'new_order')}
                       className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:brightness-110 shadow-sm transition-all"
+                      title="Triggers a New Order push in 5 seconds so you can close/kill the app to test"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      Test Background Push (5s Delay)
+                      Test New Order Push (5s Delay - Close App)
                     </button>
                     <div className="flex items-center gap-2">
                       <button

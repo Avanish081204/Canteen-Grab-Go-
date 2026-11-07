@@ -92,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { token, tokens, title, body, orderToken, orderId, type } = req.body || {};
+    const { token, tokens, title, body, orderToken, orderId, type, targetRole } = req.body || {};
 
     const targetTokens: string[] = [];
     if (token && typeof token === 'string') targetTokens.push(token);
@@ -102,11 +102,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // If orderToken or orderId is provided but no direct token, query Supabase device_push_tokens
-    if (targetTokens.length === 0 && (orderToken || orderId)) {
-      const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://idosnceaxvgnfqbwsjml.supabase.co';
-      const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb3NuY2VheHZnbmZxYndzam1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTE5ODYsImV4cCI6MjA5MDA2Nzk4Nn0.4hc7mK22kgiTETJlbR6ET7BlwJNF8-TYMrEsYF8_Qss';
+    const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://idosnceaxvgnfqbwsjml.supabase.co';
+    const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlkb3NuY2VheHZnbmZxYndzam1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTE5ODYsImV4cCI6MjA5MDA2Nzk4Nn0.4hc7mK22kgiTETJlbR6ET7BlwJNF8-TYMrEsYF8_Qss';
 
+    // 1. If targeting staff or new order alert: query all staff/admin devices
+    if (targetRole === 'staff' || targetRole === 'admin' || type === 'new_order') {
+      try {
+        const staffRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/device_push_tokens?select=token&or=(order_token.eq.staff_broadcast,order_token.eq.staff,order_id.eq.staff_device,user_id.eq.staff,user_id.eq.admin)`,
+          {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+          }
+        );
+        if (staffRes.ok) {
+          const records = (await staffRes.json()) as Array<{ token: string }>;
+          records.forEach((r) => {
+            if (r.token && !targetTokens.includes(r.token)) targetTokens.push(r.token);
+          });
+        }
+
+        // If no specifically-tagged staff tokens yet, fallback to all active registered tokens
+        // so single-store canteen admin never misses incoming orders
+        if (targetTokens.length === 0) {
+          const fallbackRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/device_push_tokens?select=token&order=updated_at.desc&limit=10`,
+            {
+              headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+            }
+          );
+          if (fallbackRes.ok) {
+            const fallbackRecords = (await fallbackRes.json()) as Array<{ token: string }>;
+            fallbackRecords.forEach((r) => {
+              if (r.token && !targetTokens.includes(r.token)) targetTokens.push(r.token);
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Could not query staff device_push_tokens:', err);
+      }
+    }
+
+    // 2. If orderToken or orderId is provided (e.g. customer tracking or status updates)
+    if (targetTokens.length === 0 && (orderToken || orderId)) {
       try {
         const queryParam = orderToken
           ? `order_token=eq.${encodeURIComponent(orderToken)}`
@@ -128,7 +165,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (targetTokens.length === 0) {
       return res.status(400).json({
         error: 'No target device tokens found to send push notification.',
-        details: { orderToken, orderId },
+        details: { orderToken, orderId, type, targetRole },
       });
     }
 
@@ -159,7 +196,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 sound: 'default',
                 default_sound: true,
                 default_vibrate_timings: true,
-                notification_priority: 'PRIORITY_HIGH',
+                notification_priority: 'PRIORITY_MAX',
                 visibility: 'PUBLIC',
               },
             },
@@ -183,11 +220,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
     );
 
-    const sent = results.filter((r) => r.status === 'fulfilled');
-    const failed = results.filter((r) => r.status === 'rejected');
+    const sent = results
+      .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+      .map((r) => r.value);
+    const failed = results
+      .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+      .map((r) => ({
+        error: r.reason instanceof Error ? r.reason.message : String(r.reason),
+      }));
 
     return res.status(200).json({
-      success: true,
+      success: sent.length > 0,
       sentCount: sent.length,
       failedCount: failed.length,
       details: { sent, failed },

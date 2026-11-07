@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Loader2, Tag, CheckCircle2, X } from 'lucide-react';
 import {
   getCart,
   getCartTotal,
@@ -15,6 +15,7 @@ import {
   loadRazorpayScript,
   openRazorpayCheckout,
 } from '@/lib/razorpay';
+import { validateCoupon, applyCouponToOrder, Coupon } from '@/lib/coupons';
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/use-notifications';
 
@@ -27,6 +28,12 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
+  // Coupon states
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
   // Form fields
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -34,6 +41,35 @@ export default function Checkout() {
   const [location, setLocation] = useState('');
   const [timeSlot, setTimeSlot] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cash'>('upi');
+
+  const finalTotal = Math.max(0, total - discountAmount);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+    setIsValidatingCoupon(true);
+    try {
+      const res = await validateCoupon(couponInput, total);
+      if (res.valid && res.coupon) {
+        setAppliedCoupon(res.coupon);
+        setDiscountAmount(res.discount);
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponInput('');
+    toast.info('Coupon removed');
+  };
 
   useEffect(() => {
     const type = getOrderType() || 'dine-in';
@@ -57,7 +93,7 @@ export default function Checkout() {
       // Open Razorpay checkout directly (client-side only, no server order needed)
       openRazorpayCheckout(
         {
-          amount: total,
+          amount: finalTotal,
           currency: 'INR',
           name: 'Campus Canteen',
           description: 'Food Order Payment',
@@ -72,13 +108,18 @@ export default function Checkout() {
             const order = await createOrder({
               type: orderType!,
               items: cart,
-              total,
+              total: finalTotal,
               customerName: name || undefined,
               customerPhone: phone || undefined,
               department: orderType === 'staff-delivery' ? department : undefined,
               location: orderType === 'staff-delivery' ? location : undefined,
               timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
             }, 'upi', 'paid');
+
+            // Record coupon usage
+            if (appliedCoupon) {
+              applyCouponToOrder(appliedCoupon.id, order.id, order.token, discountAmount);
+            }
 
             toast.success('Payment successful! Order placed.');
             addNotification({
@@ -150,13 +191,18 @@ export default function Checkout() {
       const order = await createOrder({
         type: orderType!,
         items: cart,
-        total,
+        total: finalTotal,
         customerName: name || undefined,
         customerPhone: phone || undefined,
         department: orderType === 'staff-delivery' ? department : undefined,
         location: orderType === 'staff-delivery' ? location : undefined,
         timeSlot: orderType === 'staff-delivery' ? timeSlot : undefined,
       }, 'cash', 'pending');
+
+      // Record coupon usage
+      if (appliedCoupon) {
+        applyCouponToOrder(appliedCoupon.id, order.id, order.token, discountAmount);
+      }
 
       toast.success('Order placed successfully! Please pay at counter.');
       addNotification({
@@ -225,9 +271,72 @@ export default function Checkout() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-border pt-3 flex justify-between">
-              <span className="font-semibold">Total</span>
-              <span className="text-xl font-bold text-primary">₹{total}</span>
+            {/* Promo Code Input */}
+            <div className="pt-3 border-t border-border space-y-2">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-primary" />
+                Have a Promo Code?
+              </label>
+
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between p-2.5 bg-green-500/10 border border-green-500/30 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <div>
+                      <span className="font-mono font-bold text-xs text-green-700 dark:text-green-400">
+                        {appliedCoupon.code}
+                      </span>
+                      <p className="text-[10px] text-green-600">
+                        Saved ₹{discountAmount} on this order!
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-xs text-muted-foreground hover:text-red-500 p-1"
+                    title="Remove coupon"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Enter code (e.g. GRAB10, WELCOME50)"
+                    className="flex-1 px-3 py-1.5 text-xs font-mono uppercase rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    disabled={isValidatingCoupon || !couponInput.trim()}
+                    onClick={handleApplyCoupon}
+                    className="px-3 py-1.5 bg-primary text-primary-foreground font-bold text-xs rounded-lg disabled:opacity-50 hover:brightness-110 transition-all flex items-center gap-1"
+                  >
+                    {isValidatingCoupon ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Apply'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Price Calculations */}
+            <div className="border-t border-border pt-3 space-y-1.5">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Subtotal</span>
+                <span>₹{total}</span>
+              </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-xs font-semibold text-green-600">
+                  <span>Coupon Discount ({appliedCoupon.code})</span>
+                  <span>-₹{discountAmount}</span>
+                </div>
+              )}
+              <div className="flex justify-between pt-1 border-t border-border/50">
+                <span className="font-semibold text-base">Payable Amount</span>
+                <span className="text-xl font-bold text-primary">₹{finalTotal}</span>
+              </div>
             </div>
           </div>
 
@@ -378,7 +487,7 @@ export default function Checkout() {
                 Processing...
               </>
             ) : (
-              `Place Order • ₹${total}`
+              `Place Order • ₹${finalTotal}`
             )}
           </button>
         </form>
