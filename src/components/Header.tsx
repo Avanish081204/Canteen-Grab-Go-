@@ -15,6 +15,7 @@ import {
   Users,
   Coins,
   Sparkles,
+  Percent,
 } from 'lucide-react';
 import { getCart } from '@/lib/store';
 import { useEffect, useState } from 'react';
@@ -177,15 +178,15 @@ export default function Header() {
                 Home
               </Link>
               <Link
-                to="/menu"
+                to="/offers"
                 className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
-                  isActive('/menu')
+                  isActive('/offers')
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >
-                <UtensilsCrossed className="h-3.5 w-3.5" />
-                Menu
+                <Percent className="h-3.5 w-3.5 text-amber-500" />
+                Offers &amp; Deals
               </Link>
               <Link
                 to="/track"
@@ -355,13 +356,13 @@ export default function Header() {
             </Link>
 
             <Link
-              to="/menu"
+              to="/offers"
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
-                isActive('/menu') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
+                isActive('/offers') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <UtensilsCrossed className={`h-4 w-4 ${isActive('/menu') ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[10px]">Menu</span>
+              <Percent className={`h-4 w-4 ${isActive('/offers') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px]">Offers</span>
             </Link>
 
             <Link
