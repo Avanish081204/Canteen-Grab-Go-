@@ -127,6 +127,18 @@ export default function Checkout() {
   };
 
   useEffect(() => {
+    // Auto-apply saved coupon from Offers page if available
+    const savedCoupon = sessionStorage.getItem('active_coupon');
+    if (savedCoupon && total > 0 && !appliedCoupon) {
+      setCouponInput(savedCoupon);
+      validateCoupon(savedCoupon, total).then((res) => {
+        if (res.valid && res.coupon) {
+          setAppliedCoupon(res.coupon);
+          setDiscountAmount(res.discount);
+        }
+      });
+    }
+
     const type = getOrderType() || 'dine-in';
     setOrderTypeState(type);
     setCart(getCart());
