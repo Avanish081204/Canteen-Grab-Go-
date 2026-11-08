@@ -338,66 +338,65 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Modern Floating Island Mobile Bottom Navigation */}
       {!isStaffPage && (
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/80 safe-area-inset-bottom"
-          style={{ boxShadow: '0 -4px 20px -4px hsl(20 20% 12% / 0.1)' }}
+          className="md:hidden fixed bottom-2 left-3 right-3 z-50 bg-background/90 backdrop-blur-xl border border-border/80 rounded-2xl safe-area-inset-bottom shadow-2xl shadow-black/10"
         >
-          <div className="flex items-center justify-around px-2 py-2">
+          <div className="flex items-center justify-around px-1 py-1.5">
             <Link
               to="/"
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-                isActive('/') ? 'text-primary' : 'text-muted-foreground'
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+                isActive('/') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Home className={`h-5 w-5 ${isActive('/') ? 'fill-primary/20' : ''}`} />
-              <span className="text-[10px] font-medium">Home</span>
+              <Home className={`h-4 w-4 ${isActive('/') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px]">Home</span>
             </Link>
 
             <Link
               to="/menu"
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-                isActive('/menu') ? 'text-primary' : 'text-muted-foreground'
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+                isActive('/menu') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <UtensilsCrossed className={`h-5 w-5 ${isActive('/menu') ? 'fill-primary/20' : ''}`} />
-              <span className="text-[10px] font-medium">Menu</span>
+              <UtensilsCrossed className={`h-4 w-4 ${isActive('/menu') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px]">Menu</span>
             </Link>
 
             <Link
               to="/track"
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-                isActive('/track') ? 'text-primary' : 'text-muted-foreground'
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+                isActive('/track') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Search className={`h-5 w-5 ${isActive('/track') ? 'fill-primary/20' : ''}`} />
-              <span className="text-[10px] font-medium">Track</span>
+              <Search className={`h-4 w-4 ${isActive('/track') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px]">Track</span>
             </Link>
 
             <Link
               to="/cart"
-              className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-                isActive('/cart') ? 'text-primary' : 'text-muted-foreground'
+              className={`relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+                isActive('/cart') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <ShoppingCart className={`h-5 w-5 ${isActive('/cart') ? 'fill-primary/20' : ''}`} />
+              <ShoppingCart className={`h-4 w-4 ${isActive('/cart') ? 'stroke-[2.5]' : ''}`} />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 right-1.5 bg-primary text-primary-foreground text-[9px] font-bold min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-0.5 bg-primary text-primary-foreground text-[9px] font-black min-w-[16px] h-[16px] rounded-full flex items-center justify-center border-2 border-background animate-pulse">
                   {cartCount}
                 </span>
               )}
-              <span className="text-[10px] font-medium">Cart</span>
+              <span className="text-[10px]">Cart</span>
             </Link>
 
             <Link
               to={user ? '/profile' : '/login'}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-                isActive('/profile') || isActive('/login') ? 'text-primary' : 'text-muted-foreground'
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
+                isActive('/profile') || isActive('/login') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <User className={`h-5 w-5 ${isActive('/profile') || isActive('/login') ? 'fill-primary/20' : ''}`} />
-              <span className="text-[10px] font-medium">{user ? 'Profile' : 'Login'}</span>
+              <User className={`h-4 w-4 ${isActive('/profile') || isActive('/login') ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px]">{user ? 'Profile' : 'Login'}</span>
             </Link>
           </div>
         </nav>

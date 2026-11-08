@@ -99,3 +99,4 @@ export function useKitchenStatus(): KitchenStatus {
 
   return computeKitchenStatus(activeCount);
 }
+
