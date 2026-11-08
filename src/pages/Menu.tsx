@@ -82,7 +82,10 @@ export default function Menu() {
 
   // Filter by category, dietary tag, AND search query
   const filteredItems = items.filter(item => {
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    const matchesCategory =
+      selectedCategory === 'All' ||
+      item.category === selectedCategory ||
+      (selectedCategory === 'Combos' && Boolean(item.isCombo));
     
     let matchesDietary = true;
     if (dietaryFilter === 'veg') matchesDietary = item.dietary === 'veg';

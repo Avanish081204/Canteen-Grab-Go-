@@ -1,13 +1,21 @@
 <svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="256" height="256" rx="64" fill="#E11D48" />
-  <!-- Fork -->
-  <path
-    d="M78 52c-3.3 0-6 2.7-6 6v40c0 4.4 3.6 8 8 8h2v72c0 4.4 3.6 8 8 8s8-3.6 8-8V106h2c4.4 0 8-3.6 8-8V58c0-3.3-2.7-6-6-6s-6 2.7-6 6v26h-4V58c0-3.3-2.7-6-6-6s-6 2.7-6 6v26h-4V58c0-3.3-2.7-6-6-6z"
-    fill="#F9FAFB"
-  />
-  <!-- Knife -->
-  <path
-    d="M156 44c-4.4 0-8 3.6-8 8v60l-20 40c-2 4-0.4 8.8 3.6 10.8 4 2 8.8 0.4 10.8-3.6l12.6-25.2V212c0 4.4 3.6 8 8 8s8-3.6 8-8V52c0-4.4-3.6-8-8-8h-6z"
-    fill="#F9FAFB"
-  />
+  <defs>
+    <linearGradient id="canteenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E11D48" />
+      <stop offset="50%" stop-color="#F97316" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="64" fill="url(#canteenGrad)" />
+  <!-- Aroma steam -->
+  <path d="M128 32v24" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" />
+  <path d="M88 44c-12 12 0 24 0 24" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" fill="none" />
+  <path d="M168 44c12 12 0 24 0 24" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" fill="none" />
+  <!-- Cloche Dome -->
+  <path d="M48 180a80 80 0 0 1 160 0H48z" fill="#FFFFFF" fill-opacity="0.3" stroke="#FFFFFF" stroke-width="16" stroke-linejoin="round" />
+  <!-- Cloche Knob -->
+  <circle cx="128" cy="80" r="14" fill="#FFFFFF" />
+  <!-- Base Serving Platter -->
+  <path d="M32 180h192" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" />
+  <path d="M68 208h120" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" />
 </svg>

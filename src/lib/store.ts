@@ -97,6 +97,12 @@ export const menuItems: MenuItem[] = [
   { id: '20', name: 'Burger Combo', price: 99, category: 'Combos', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80', description: 'A satisfying meal of Burger, Fries, and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'non-veg', isSpecial: true, prepTimeMinutes: 10, calories: 680, customizable: true },
   { id: '21', name: 'Vada Pav Combo', price: 40, category: 'Combos', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Classic Bombay Vada Pav served with hot Masala Chai', isCombo: true, isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 6, calories: 340 },
   { id: '22', name: 'Chinese Combo', price: 120, category: 'Combos', image: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80', description: 'Delicious Noodles with Manchurian and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true, prepTimeMinutes: 12, calories: 620 },
+  { id: '23', name: 'Pav Bhaji & Shake Combo', price: 85, category: 'Combos', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Butter Pav Bhaji with 2 extra butter pav and a chilled Cold Coffee Shake', isCombo: true, isAvailable: true, dietary: 'veg', isSpecial: true, prepTimeMinutes: 8, calories: 590, customizable: true },
+  { id: '24', name: 'South Indian Feast Combo', price: 75, category: 'Combos', image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80', description: 'Crispy Masala Dosa, golden Medu Vada, coconut chutney, sambar and hot Filter Coffee', isCombo: true, isAvailable: true, dietary: 'veg', isSpecial: true, prepTimeMinutes: 7, calories: 460 },
+  { id: '25', name: 'Deluxe Thali Meal Combo', price: 130, category: 'Combos', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80', description: 'Royal Shahi Paneer, Dal Tadka, 3 Butter Rotis, fragrant Jeera Rice, salad and Gulab Jamun', isCombo: true, isAvailable: true, dietary: 'veg', isSpecial: true, prepTimeMinutes: 9, calories: 720 },
+  { id: '26', name: 'Snack Attack Trio Combo', price: 50, category: 'Combos', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80', description: '2 Crispy Golden Samosas, authentic Bombay Vada Pav and a hot Cutting Masala Chai', isCombo: true, isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 5, calories: 510 },
+  { id: '27', name: 'Grilled Club & Fries Combo', price: 95, category: 'Combos', image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80', description: 'Triple-layered toasted Cheese Club Sandwich with salted French Fries and Lemonade', isCombo: true, isAvailable: true, dietary: 'jain', isSpecial: true, prepTimeMinutes: 9, calories: 640, customizable: true },
+  { id: '28', name: 'Mini Chinese Box Combo', price: 110, category: 'Combos', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80', description: 'Wok tossed Veg Fried Rice served with 2 crispy Spring Rolls and a chilled beverage', isCombo: true, isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 10, calories: 580, customizable: true },
 ];
 
 export const categories = ['All', 'Snacks', 'Sandwich/Burger', 'Chinese', 'Meals', 'Cold Drinks', 'Combos'];
@@ -657,27 +663,41 @@ export function getOrderByToken(token: string): Order | undefined {
 
 // Menu Supabase API functions
 export async function fetchMenuItems(): Promise<MenuItem[]> {
-  const { data, error } = await supabase
-    .from('menu_items')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching menu items:', error);
-    return [];
+    if (!error && data && data.length > 0) {
+      const dbItems: MenuItem[] = data.map((dbItem: any) => ({
+        id: dbItem.id,
+        name: dbItem.name,
+        price: Number(dbItem.price),
+        category: dbItem.category,
+        image: dbItem.image,
+        description: dbItem.description,
+        isCombo: dbItem.is_combo,
+        isAvailable: dbItem.is_available,
+        dietary: dbItem.dietary,
+        isSpecial: dbItem.is_special,
+        isSpicy: dbItem.is_spicy,
+        prepTimeMinutes: dbItem.prep_time_minutes,
+        calories: dbItem.calories,
+        customizable: dbItem.customizable,
+      }));
+
+      // Merge built-in combos & local menu items that aren't yet in the database
+      const dbNames = new Set(dbItems.map((i) => i.name.toLowerCase()));
+      const missingLocalItems = menuItems.filter((i) => !dbNames.has(i.name.toLowerCase()));
+      return [...dbItems, ...missingLocalItems];
+    }
+  } catch (err) {
+    console.error('Error fetching menu items:', err);
   }
 
-  return data.map((dbItem: any) => ({
-    id: dbItem.id,
-    name: dbItem.name,
-    price: Number(dbItem.price),
-    category: dbItem.category,
-    image: dbItem.image,
-    description: dbItem.description,
-    isCombo: dbItem.is_combo,
-    isAvailable: dbItem.is_available,
-    dietary: dbItem.dietary
-  }));
+  // Fallback to local full menuItems
+  return menuItems;
 }
 
 export async function addMenuItem(item: Omit<MenuItem, "id">): Promise<MenuItem | null> {

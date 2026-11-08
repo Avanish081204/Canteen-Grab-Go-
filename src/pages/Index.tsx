@@ -125,8 +125,12 @@ export default function Index() {
     if (!item.isAvailable) return false;
 
     // Category filter
-    if (selectedCategory !== 'All' && item.category !== selectedCategory) {
-      return false;
+    if (selectedCategory !== 'All') {
+      if (selectedCategory === 'Combos') {
+        if (!item.isCombo && item.category !== 'Combos') return false;
+      } else if (item.category !== selectedCategory) {
+        return false;
+      }
     }
 
     // Tab filter
