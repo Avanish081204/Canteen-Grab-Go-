@@ -15,21 +15,21 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
 
   useEffect(() => {
     const cart = getCart();
-    // Sum all quantities of this item in the cart (including any customized versions)
     const totalQty = cart
       .filter(i => i.id === item.id)
       .reduce((sum, i) => sum + i.quantity, 0);
     setQuantity(totalQty);
   }, [item.id]);
 
-  const handleAddClick = () => {
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (item.customizable) {
       setIsModalOpen(true);
     } else {
       addToCart(item);
       setQuantity(prev => prev + 1);
       onCartUpdate();
-      toast.success(`${item.name} added to cart!`);
+      toast.success(`${item.name} added!`, { duration: 1800 });
       window.dispatchEvent(new Event('cartUpdated'));
     }
   };
@@ -38,11 +38,12 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
     addToCart(item, customizations, customizedPrice);
     setQuantity(prev => prev + 1);
     onCartUpdate();
-    toast.success(`${item.name} (Customized) added!`);
+    toast.success(`${item.name} (Customized) added!`, { duration: 1800 });
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
-  const handleIncrease = () => {
+  const handleIncrease = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (item.customizable) {
       setIsModalOpen(true);
     } else {
@@ -54,7 +55,8 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
     }
   };
 
-  const handleDecrease = () => {
+  const handleDecrease = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const newQty = quantity - 1;
     updateCartQuantity(item.id, newQty);
     setQuantity(Math.max(0, newQty));
@@ -64,121 +66,112 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
 
   return (
     <>
-      <div className={`card-menu group animate-fade-in relative transition-all duration-300 hover:shadow-lg ${!item.isAvailable ? 'opacity-60 grayscale' : ''}`}>
-        {/* Image container */}
-        <div className="relative h-28 sm:h-36 md:h-44 w-full bg-muted overflow-hidden">
+      <div
+        className={`group relative rounded-3xl bg-card border border-border/70 overflow-hidden shadow-xs hover:shadow-xl hover:border-amber-500/40 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between ${
+          !item.isAvailable ? 'opacity-60 grayscale pointer-events-none' : ''
+        }`}
+      >
+        {/* Top Image Section */}
+        <div className="relative h-32 sm:h-40 md:h-48 w-full bg-muted overflow-hidden">
           <img
             src={item.image}
             alt={item.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
+            loading="lazy"
           />
 
-          {/* Badges Overlay (Top-Left) */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            {item.isSpecial && (
-              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black flex items-center gap-1 shadow-md uppercase tracking-wider">
-                <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white" />
-                Chef's Special
-              </div>
-            )}
-            {item.isCombo && (
-              <div className="bg-gradient-to-r from-amber-400 to-amber-600 text-slate-900 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-extrabold flex items-center gap-1 shadow-md uppercase tracking-wider">
-                Combo Deal
-              </div>
-            )}
-          </div>
+          {/* Gradient Overlay for Readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
-          {/* Dietary & Spicy Badges (Top-Right) */}
-          {item.isAvailable && (
-            <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
-              {item.isSpicy && (
-                <span className="bg-background/90 backdrop-blur-xs px-1.5 py-0.5 rounded-md text-[10px] shadow-sm flex items-center justify-center border border-border/50" title="Spicy Option">
-                  <Flame className="w-3 h-3 text-orange-500 fill-orange-500" />
-                </span>
-              )}
+          {/* Top-Left: Dietary Icon & Special Ribbon */}
+          <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 items-start">
+            <div className="flex items-center gap-1.5">
+              {/* Veg / Non-Veg / Jain Square Dot Indicator */}
               {item.dietary && (
                 <div
-                  className={`w-4 h-4 sm:w-5 sm:h-5 bg-white rounded border-2 ${
+                  className={`w-4 h-4 bg-white/95 backdrop-blur-md rounded-md border-2 ${
                     item.dietary === 'veg'
-                      ? 'border-green-600'
+                      ? 'border-emerald-600'
                       : item.dietary === 'jain'
-                      ? 'border-emerald-500'
-                      : 'border-red-600'
-                  } flex items-center justify-center shadow-sm`}
+                      ? 'border-teal-500'
+                      : 'border-rose-600'
+                  } flex items-center justify-center shadow-md`}
                   title={item.dietary === 'jain' ? 'Jain Friendly' : item.dietary === 'veg' ? 'Pure Veg' : 'Non-Veg'}
                 >
                   {item.dietary === 'jain' ? (
-                    <span className="text-[8px] font-black text-emerald-600 leading-none">J</span>
+                    <span className="text-[8px] font-black text-teal-600 leading-none">J</span>
                   ) : (
                     <div
-                      className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
-                        item.dietary === 'veg' ? 'bg-green-600' : 'bg-red-600'
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        item.dietary === 'veg' ? 'bg-emerald-600' : 'bg-rose-600'
                       }`}
                     />
                   )}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Prep Time & Calories Pill (Bottom-Left of Image) */}
-          <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1">
-            <span className="bg-black/60 backdrop-blur-md text-white px-2 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5 text-amber-400" />
-              {item.prepTimeMinutes ? `${item.prepTimeMinutes}m` : '6m'}
-            </span>
-            {item.customizable && (
-              <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-tight">
-                Custom
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-2.5 sm:p-4">
-          <div className="flex items-start justify-between gap-1 mb-0.5">
-            <h3 className="font-bold text-xs sm:text-base text-card-foreground line-clamp-1 capitalize">
-              {item.name}
-            </h3>
-          </div>
-          <p className="text-muted-foreground text-[11px] sm:text-xs mb-2 line-clamp-1 h-4">
-            {item.description}
-          </p>
-
-          <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-border/40">
-            <div>
-              <span className="text-sm sm:text-lg font-black text-primary">₹{item.price}</span>
-              {item.customizable && (
-                <span className="block text-[9px] text-muted-foreground font-medium leading-none">
-                  Customizable
+              {item.isSpecial && (
+                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider shadow-md flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5 fill-white" />
+                  Bestseller
                 </span>
               )}
             </div>
 
+            {item.isCombo && (
+              <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-full text-[9px] tracking-wider uppercase shadow-md">
+                Combo
+              </span>
+            )}
+          </div>
+
+          {/* Top-Right: Prep Time & Spicy Tag */}
+          <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1">
+            {item.isSpicy && (
+              <span className="bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-md text-[10px] text-white shadow-sm flex items-center justify-center border border-white/20" title="Spicy Recipe">
+                <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
+              </span>
+            )}
+            <span className="bg-black/60 backdrop-blur-md text-white/90 px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 border border-white/10 shadow-sm">
+              <Clock className="w-2.5 h-2.5 text-amber-400" />
+              {item.prepTimeMinutes ? `${item.prepTimeMinutes}m` : '6m'}
+            </span>
+          </div>
+
+          {/* Swiggy/Zomato Signature Bottom Floating "ADD" Pill Button */}
+          <div className="absolute bottom-2 right-2.5 z-20">
             {item.isAvailable && (
               quantity === 0 ? (
                 <button
+                  type="button"
                   onClick={handleAddClick}
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs sm:text-sm px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl shadow-xs active:scale-95 transition-all flex items-center gap-1"
+                  className="bg-card/95 hover:bg-card text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 hover:border-emerald-500 font-extrabold text-xs px-4 py-1.5 rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all flex flex-col items-center justify-center min-w-[76px]"
                 >
-                  <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
-                  Add
+                  <span className="flex items-center gap-1 tracking-wider uppercase text-[11px] leading-tight">
+                    Add <Plus className="w-3 h-3 stroke-[3]" />
+                  </span>
+                  {item.customizable && (
+                    <span className="text-[8px] text-muted-foreground font-semibold lowercase tracking-tight leading-none mt-0.5">
+                      customise
+                    </span>
+                  )}
                 </button>
               ) : (
-                <div className="flex items-center gap-1 bg-muted rounded-xl p-0.5 sm:p-1 border border-border/60">
+                <div className="flex items-center gap-1 bg-card/95 text-foreground border border-emerald-500/50 rounded-xl px-1 py-0.5 shadow-lg">
                   <button
+                    type="button"
                     onClick={handleDecrease}
-                    className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 active:scale-95 transition-all"
+                    className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-90 transition-all"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="w-5 sm:w-7 text-center font-extrabold text-xs sm:text-sm">
+                  <span className="w-5 text-center font-black text-xs text-foreground">
                     {quantity}
                   </span>
                   <button
+                    type="button"
                     onClick={handleIncrease}
-                    className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 active:scale-95 transition-all"
+                    className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-90 transition-all"
                     title={item.customizable ? 'Customize another item' : 'Add one more'}
                   >
                     <Plus className="w-3 h-3" />
@@ -186,6 +179,37 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
                 </div>
               )
             )}
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 className="font-extrabold text-xs sm:text-base text-foreground line-clamp-1 capitalize tracking-tight group-hover:text-primary transition-colors">
+              {item.name}
+            </h3>
+            <p className="text-muted-foreground text-[11px] sm:text-xs mt-0.5 line-clamp-2 leading-relaxed">
+              {item.description}
+            </p>
+          </div>
+
+          {/* Price & Rating */}
+          <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-border/40">
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm sm:text-lg font-black text-foreground">
+                ₹{item.price}
+              </span>
+              {item.calories && (
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  • {item.calories} cal
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-0.5 text-amber-500 text-[11px] font-bold">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span>4.8</span>
+            </div>
           </div>
         </div>
       </div>
