@@ -45,18 +45,18 @@ export default function OrderCard({ order, onStatusUpdate, isStaff = false }: Or
   const getNextStatusButton = () => {
     if (order.type === 'staff-delivery') {
       switch (order.status) {
-        case 'placed': return { label: '🍳 Start Cooking', status: 'cooking' as OrderStatus };
-        case 'cooking': return { label: '✅ Mark Ready', status: 'ready' as OrderStatus };
-        case 'ready': return { label: '🚚 Out for Delivery', status: 'out-for-delivery' as OrderStatus };
-        case 'out-for-delivery': return { label: '📦 Delivered', status: 'delivered' as OrderStatus };
+        case 'placed': return { label: 'Start Cooking', status: 'cooking' as OrderStatus };
+        case 'cooking': return { label: 'Mark Ready', status: 'ready' as OrderStatus };
+        case 'ready': return { label: 'Dispatch Order', status: 'out-for-delivery' as OrderStatus };
+        case 'out-for-delivery': return { label: 'Mark Delivered', status: 'delivered' as OrderStatus };
         default: return null;
       }
     }
 
     switch (order.status) {
-      case 'placed': return { label: '🍳 Start Cooking', status: 'cooking' as OrderStatus };
-      case 'cooking': return { label: '✅ Mark Ready', status: 'ready' as OrderStatus };
-      case 'ready': return { label: '✓ Mark Collected', status: 'collected' as OrderStatus };
+      case 'placed': return { label: 'Start Cooking', status: 'cooking' as OrderStatus };
+      case 'cooking': return { label: 'Mark Ready', status: 'ready' as OrderStatus };
+      case 'ready': return { label: 'Mark Collected', status: 'collected' as OrderStatus };
       default: return null;
     }
   };

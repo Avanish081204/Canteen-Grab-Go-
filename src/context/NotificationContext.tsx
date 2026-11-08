@@ -31,10 +31,10 @@ export interface SoundToneOption {
 }
 
 export const SOUND_TONE_OPTIONS: SoundToneOption[] = [
-  { id: 'chime', label: 'Glass Chime', description: 'Apple-style soft elegant chime', icon: '🎵' },
-  { id: 'food-ready', label: 'Order Ready Melody', description: 'Warm marimba food alert', icon: '🍕' },
-  { id: 'service-bell', label: 'Service Desk Bell', description: 'Crisp canteen counter ding', icon: '🛎️' },
-  { id: 'pop', label: 'Subtle Pop', description: 'Minimalist bubble sound', icon: '🫧' },
+  { id: 'chime', label: 'Glass Chime', description: 'Apple-style soft elegant chime', icon: '' },
+  { id: 'food-ready', label: 'Order Ready Melody', description: 'Warm marimba food alert', icon: '' },
+  { id: 'service-bell', label: 'Service Desk Bell', description: 'Crisp canteen counter ding', icon: '' },
+  { id: 'pop', label: 'Subtle Pop', description: 'Minimalist bubble sound', icon: '' },
 ];
 
 export interface AppNotification {
@@ -94,42 +94,42 @@ const STATUS_CONFIG: Record<
   placed: {
     type: 'order_placed',
     title: 'Order Confirmed',
-    icon: '📦',
+    icon: '',
     message: (token) => `Order #${token} has been received and confirmed.`,
     sound: 'status',
   },
   cooking: {
     type: 'order_cooking',
     title: 'Preparing Order',
-    icon: '🍳',
+    icon: '',
     message: (token) => `Order #${token} is currently being prepared.`,
     sound: 'status',
   },
   ready: {
     type: 'order_ready',
     title: 'Order Ready for Pickup',
-    icon: '✅',
+    icon: '',
     message: (token) => `Order #${token} is ready for collection at the counter.`,
     sound: 'order_ready',
   },
   collected: {
     type: 'order_collected',
     title: 'Order Collected',
-    icon: '✓',
+    icon: '',
     message: (token) => `Order #${token} has been collected successfully.`,
     sound: 'status',
   },
   'out-for-delivery': {
     type: 'order_delivered',
     title: 'Out for Delivery',
-    icon: '🚚',
+    icon: '',
     message: (token) => `Order #${token} is on its way for delivery.`,
     sound: 'status',
   },
   delivered: {
     type: 'order_delivered',
     title: 'Order Delivered',
-    icon: '✓',
+    icon: '',
     message: (token) => `Order #${token} has been delivered successfully.`,
     sound: 'status',
   },
@@ -266,8 +266,9 @@ function triggerToast(
   isStaffAlert?: boolean,
   navigate?: (path: string) => void
 ) {
+  const displayTitle = icon ? `${icon} ${title}` : title;
   if (isStaffAlert) {
-    toast.info(`${icon} ${title}`, {
+    toast.info(displayTitle, {
       description: message,
       duration: 6500,
       action: {
@@ -276,7 +277,7 @@ function triggerToast(
       },
     });
   } else if (orderToken) {
-    toast.success(`${icon} ${title}`, {
+    toast.success(displayTitle, {
       description: message,
       duration: 6500,
       action: {
@@ -285,7 +286,7 @@ function triggerToast(
       },
     });
   } else {
-    toast(`${icon} ${title}`, {
+    toast(displayTitle, {
       description: message,
       duration: 4500,
     });
@@ -395,7 +396,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setSelectedToneState(tone);
     playSoundAsset(tone);
     const option = SOUND_TONE_OPTIONS.find((o) => o.id === tone);
-    toast(`🎵 Notification tone set to: ${option?.label || tone}`);
+    toast(`Notification tone set to: ${option?.label || tone}`);
   }, []);
 
   // Preview sound tone without setting
@@ -458,7 +459,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const toggleSound = useCallback(() => {
     setSoundEnabled((prev) => {
       const next = !prev;
-      toast(next ? '🔔 Notification sounds enabled' : '🔕 Notification sounds muted');
+      toast(next ? 'Notification sounds enabled' : 'Notification sounds muted');
       if (next) {
         playSoundAsset(selectedTone);
       }
@@ -546,7 +547,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         return false;
       }
 
-      const notifTitle = testType === 'new_order' ? '🔔 New Order #TK-88 Received!' : 'Order Ready for Pickup! ✅';
+      const notifTitle = testType === 'new_order' ? 'New Order #TK-88 Received' : 'Order Ready for Pickup';
       const notifBody =
         testType === 'new_order'
           ? '₹240 • DINE-IN • 2x Veg Burger, 1x Cold Coffee'
@@ -612,7 +613,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           type: 'promo',
           title,
           message,
-          icon: '📢',
+          icon: '',
         },
         { skipToast: false, skipSound: false, skipBrowser: false }
       );
@@ -722,9 +723,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
             addNotification({
               type: (data.type as any) || 'system',
-              title: notification.title || 'Canteen Update 🔔',
+              title: notification.title || 'Canteen Update',
               message: notification.body || '',
-              icon: data.icon || '🔔',
+              icon: data.icon || 'bell',
               orderToken: token,
               orderId: orderId,
             });
@@ -804,9 +805,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           const data = payload.data || {};
           addNotification({
             type: (data.type as any) || 'system',
-            title: payload.notification?.title || data.title || 'Canteen Alert 🔔',
+            title: payload.notification?.title || data.title || 'Canteen Alert',
             message: payload.notification?.body || data.message || '',
-            icon: data.icon || '🔔',
+            icon: data.icon || 'bell',
             orderToken: data.orderToken || data.token,
             orderId: data.orderId,
           });
@@ -893,7 +894,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             type: 'new_order',
             title: 'New Order Received',
             message: `Order #${token} (${orderType} • ₹${total}) received in kitchen.`,
-            icon: '📋',
+            icon: '',
             orderId,
             orderToken: token,
           });

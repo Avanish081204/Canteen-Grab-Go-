@@ -1,4 +1,4 @@
-import { Plus, Minus, Star } from 'lucide-react';
+import { Plus, Minus, Star, Flame } from 'lucide-react';
 import { MenuItem, addToCart, getCart, updateCartQuantity } from '@/lib/store';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -67,8 +67,8 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
         {item.isAvailable && (
           <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
             {item.isSpicy && (
-              <span className="bg-background/90 backdrop-blur-xs px-1.5 py-0.5 rounded-md text-[10px] shadow-sm font-bold" title="Spicy">
-                🌶️
+              <span className="bg-background/90 backdrop-blur-xs px-1 py-0.5 rounded-md text-[10px] shadow-sm flex items-center justify-center border border-border/50" title="Spicy Option">
+                <Flame className="w-2.5 h-2.5 text-orange-500 fill-orange-500" />
               </span>
             )}
             {item.dietary && (

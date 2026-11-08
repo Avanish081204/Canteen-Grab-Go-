@@ -242,7 +242,7 @@ export default function Menu() {
                   : 'bg-orange-500/10 text-orange-700 dark:text-orange-400 hover:bg-orange-500/20'
               }`}
             >
-              <span>🌶️</span>
+              <Flame className="w-3 h-3 fill-current" />
               Spicy
             </button>
           </div>
@@ -262,8 +262,8 @@ export default function Menu() {
                 <div>
                   <h2 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-1.5">
                     Today&apos;s Specials &amp; Chef&apos;s Picks
-                    <span className="text-[10px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                      Hot
+                    <span className="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Featured
                     </span>
                   </h2>
                   <p className="text-[11px] text-muted-foreground">Handpicked canteen favorites for today</p>

@@ -69,8 +69,8 @@ export default function StaffCode() {
                 className="w-full px-3.5 py-2.5 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-base sm:text-lg font-mono tracking-wider"
               />
               {error && (
-                <p className="mt-1.5 text-xs text-destructive flex items-center gap-1">
-                  ❌ {error}
+                <p className="mt-1.5 text-xs text-destructive font-medium">
+                  {error}
                 </p>
               )}
             </div>

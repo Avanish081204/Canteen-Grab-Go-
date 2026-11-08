@@ -37,9 +37,9 @@ const statusColors: Record<string, string> = {
 };
 
 const orderTypeLabels: Record<string, string> = {
-  'dine-in': '🍽️ Dine In',
-  'take-away': '📦 Take Away',
-  'staff-delivery': '🚀 Staff Delivery',
+  'dine-in': 'Dine In',
+  'take-away': 'Take Away',
+  'staff-delivery': 'Staff Delivery',
 };
 
 export default function Profile() {

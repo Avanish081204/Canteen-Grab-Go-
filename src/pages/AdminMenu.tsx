@@ -756,9 +756,9 @@ export default function AdminMenu() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="veg" className="text-xs">🟢 Pure Veg</SelectItem>
-                    <SelectItem value="non-veg" className="text-xs">🔴 Non-Veg</SelectItem>
-                    <SelectItem value="jain" className="text-xs">🌱 Jain Friendly</SelectItem>
+                    <SelectItem value="veg" className="text-xs">Pure Vegetarian</SelectItem>
+                    <SelectItem value="non-veg" className="text-xs">Non-Vegetarian</SelectItem>
+                    <SelectItem value="jain" className="text-xs">Jain Friendly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -771,14 +771,14 @@ export default function AdminMenu() {
                       checked={draft.isSpecial}
                       onCheckedChange={(checked) => setDraft((d) => ({ ...d, isSpecial: checked }))}
                     />
-                    <span className="text-[11px] font-medium">⭐ Special</span>
+                    <span className="text-[11px] font-medium">Chef&apos;s Special</span>
                   </div>
                   <div className="flex items-center gap-1.5 rounded-xl border border-border p-2">
                     <Switch
                       checked={draft.isSpicy}
                       onCheckedChange={(checked) => setDraft((d) => ({ ...d, isSpicy: checked }))}
                     />
-                    <span className="text-[11px] font-medium">🌶️ Spicy</span>
+                    <span className="text-[11px] font-medium">Spicy Option</span>
                   </div>
                 </div>
               </div>

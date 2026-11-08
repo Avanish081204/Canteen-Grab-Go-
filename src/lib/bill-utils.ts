@@ -74,7 +74,7 @@ export function generateBillHTML(order: Order): string {
       ">PAID</div>
 
       <div style="text-align: center; margin-bottom: 32px;">
-        <div style="font-size: 24px; font-weight: 800; color: #f97316; letter-spacing: -0.02em; margin-bottom: 4px;">🍽️ Campus Canteen</div>
+        <div style="font-size: 24px; font-weight: 800; color: #f97316; letter-spacing: -0.02em; margin-bottom: 4px;">Campus Canteen</div>
         <div style="font-size: 12px; color: #6b7280; font-weight: 500;">BAPH College Campus, Main Canteen</div>
       </div>
       

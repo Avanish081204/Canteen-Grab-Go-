@@ -237,14 +237,13 @@ export default function TrackOrder() {
                       {order.status === 'placed' ? '~15 min' : '~5 min'}
                     </p>
                   </div>
-                  <span className="text-lg">⏱️</span>
                 </div>
               )}
               {order.status === 'ready' && (
                 <div className="flex items-center gap-2 mb-5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 rounded-xl px-4 py-2.5">
                   <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 animate-bounce" />
                   <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                    Your order is ready! 🎉 Please collect it now.
+                    Your order is ready. Please collect it from the counter.
                   </p>
                 </div>
               )}
@@ -325,7 +324,7 @@ export default function TrackOrder() {
                   type="button"
                   onClick={() => {
                     const itemsList = order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ');
-                    const text = `🍔 *Campus Canteen Order Update*\n🎫 *Token:* ${order.token}\n💰 *Amount:* ₹${order.total}\n📦 *Status:* ${order.status.toUpperCase()}\n🍽️ *Items:* ${itemsList}\n\n🔗 *Track Live:* ${window.location.origin}/track?token=${order.token}`;
+                    const text = `*Campus Canteen — Order Update*\nToken: ${order.token}\nAmount: ₹${order.total}\nStatus: ${order.status.toUpperCase()}\nItems: ${itemsList}\n\nTrack Live: ${window.location.origin}/track?token=${order.token}`;
                     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className="py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"

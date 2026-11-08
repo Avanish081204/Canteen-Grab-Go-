@@ -74,7 +74,7 @@ export default function Success() {
     setReviewSubmitting(false);
     if (result.success) {
       setReviewDone(true);
-      toast.success('Thank you for your review! 🎉');
+      toast.success('Thank you for your review.');
     } else {
       toast.error(`Error: ${result.error || 'Could not submit review'}`);
     }
@@ -143,8 +143,8 @@ export default function Success() {
             </div>
             <div className="mt-3 flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Payment</span>
-              <span className="font-semibold px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                ✅ Paid Online (UPI)
+              <span className="font-semibold px-3 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                Paid Online (UPI)
               </span>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function Success() {
           <button
             onClick={() => {
               const itemsList = order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ');
-              const text = `🍔 *Campus Canteen Order Update*\n🎫 *Token:* ${order.token}\n💰 *Amount:* ₹${order.total}\n🍽️ *Items:* ${itemsList}\n📍 *Type:* ${order.type.toUpperCase()}\n\n🔗 *Track your order:* ${window.location.origin}/track`;
+              const text = `*Campus Canteen — Order Confirmation*\nToken: ${order.token}\nAmount: ₹${order.total}\nItems: ${itemsList}\nType: ${order.type.toUpperCase()}\n\nTrack your order: ${window.location.origin}/track?token=${order.token}`;
               window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
             }}
             className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3.5 rounded-xl shadow-md transition-all active:scale-[0.98]"
@@ -190,7 +190,7 @@ export default function Success() {
 
           {reviewDone ? (
             <div className="p-4 text-center">
-              <div className="text-3xl mb-1">🎉</div>
+              <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
               <p className="font-semibold text-xs sm:text-sm text-foreground">Thanks for your review!</p>
               <div className="flex justify-center gap-1 mt-1.5">
                 {[1,2,3,4,5].map((s) => (
@@ -200,7 +200,7 @@ export default function Success() {
                   />
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Your feedback helps us improve 🙏</p>
+              <p className="text-xs text-muted-foreground mt-1">Your feedback helps us improve.</p>
             </div>
           ) : (
             <div className="p-3.5 sm:p-5 space-y-3">
@@ -228,7 +228,7 @@ export default function Success() {
               </div>
               {rating > 0 && (
                 <p className="text-center text-xs font-semibold text-amber-500">
-                  {['', 'Poor 😞', 'Fair 😐', 'Good 🙂', 'Great 😊', 'Excellent 🤩'][rating]}
+                  {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
                 </p>
               )}
 

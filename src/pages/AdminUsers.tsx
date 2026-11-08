@@ -14,7 +14,8 @@ import {
   ExternalLink,
   Trash2,
   UserX,
-  X
+  X,
+  Coins
 } from 'lucide-react';
 import AdminSubNav from '@/components/AdminSubNav';
 import { useProfile, UserRole } from '@/hooks/use-profile';
@@ -516,7 +517,16 @@ export default function AdminUsers() {
                                 : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
                             }`}
                           >
-                            {user.role === 'admin' ? '🛡️ Admin' : user.role === 'staff' ? '👨‍🍳 Staff' : '👤 Customer'}
+                            <span className="inline-flex items-center gap-1">
+                              {user.role === 'admin' ? (
+                                <ShieldCheck className="w-3 h-3 text-rose-500" />
+                              ) : user.role === 'staff' ? (
+                                <ChefHat className="w-3 h-3 text-amber-500" />
+                              ) : (
+                                <User className="w-3 h-3 text-emerald-500" />
+                              )}
+                              <span>{user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'Customer'}</span>
+                            </span>
                           </Badge>
                         </td>
 
@@ -531,8 +541,11 @@ export default function AdminUsers() {
                         </td>
 
                         {/* Loyalty Coins */}
-                        <td className="py-3 px-4 text-center font-bold text-amber-600 dark:text-amber-400">
-                          🪙 {user.loyalty_points ?? 50}
+                        <td className="py-3 px-4 text-center">
+                          <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
+                            <Coins className="w-3.5 h-3.5" />
+                            <span>{user.loyalty_points ?? 50}</span>
+                          </span>
                         </td>
 
                         {/* Actions: Role Changer & Delete Button */}
@@ -547,13 +560,13 @@ export default function AdminUsers() {
                               </SelectTrigger>
                               <SelectContent className="rounded-xl text-xs">
                                 <SelectItem value="user" className="text-xs">
-                                  👤 Customer
+                                  Customer
                                 </SelectItem>
                                 <SelectItem value="staff" className="text-xs">
-                                  👨‍🍳 Staff
+                                  Staff
                                 </SelectItem>
                                 <SelectItem value="admin" className="text-xs text-rose-600 font-bold">
-                                  🛡️ Admin
+                                  Admin
                                 </SelectItem>
                               </SelectContent>
                             </Select>

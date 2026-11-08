@@ -4,7 +4,7 @@ interface OrderTypeCardProps {
   title: string;
   description: string;
   icon: LucideIcon;
-  emoji: string;
+  emoji?: string;
   onClick: () => void;
   color: 'blue' | 'green' | 'purple';
 }
@@ -21,7 +21,7 @@ const glowClasses = {
   purple: 'group-hover:shadow-[0_20px_40px_-12px_rgba(139,92,246,0.4)]',
 };
 
-export default function OrderTypeCard({ title, description, icon: Icon, emoji, onClick, color }: OrderTypeCardProps) {
+export default function OrderTypeCard({ title, description, icon: Icon, onClick, color }: OrderTypeCardProps) {
   return (
     <button
       onClick={onClick}
@@ -37,7 +37,6 @@ export default function OrderTypeCard({ title, description, icon: Icon, emoji, o
       {/* Content */}
       <h3 className="text-base sm:text-2xl font-bold text-foreground mb-1 flex items-center gap-2 group-hover:text-primary transition-colors duration-300">
         {title}
-        <span className="text-lg sm:text-2xl group-hover:scale-125 transition-transform duration-300">{emoji}</span>
       </h3>
       
       <p className="text-muted-foreground text-xs sm:text-base group-hover:text-foreground/70 transition-colors duration-300">{description}</p>

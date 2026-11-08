@@ -187,9 +187,9 @@ export default function Checkout() {
             toast.success('Payment successful! Order placed.');
             addNotification({
               type: 'order_placed',
-              title: 'Order Placed 🎉',
+              title: 'Order Placed',
               message: `Your order #${order.token} has been placed successfully!`,
-              icon: '📦',
+              icon: 'package',
               orderId: order.id,
               orderToken: order.token,
             }, { skipToast: true });
@@ -278,9 +278,9 @@ export default function Checkout() {
       toast.success('Order placed successfully! Please pay at counter.');
       addNotification({
         type: 'order_placed',
-        title: 'Order Placed (Pay at Counter) 💵',
+        title: 'Order Placed (Pay at Counter)',
         message: `Your order #${order.token} has been placed! Pay at counter when you collect.`,
-        icon: '💵',
+        icon: 'cash',
         orderId: order.id,
         orderToken: order.token,
       }, { skipToast: true });

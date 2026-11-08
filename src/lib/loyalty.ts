@@ -63,7 +63,7 @@ function getLocalHistory(userId: string): LoyaltyTransaction[] {
     points_change: 50,
     balance_after: 50,
     type: 'welcome',
-    description: 'Welcome Bonus Points! 🎉',
+    description: 'Welcome Bonus Points',
     created_at: new Date().toISOString(),
   };
   return [welcomeTx];

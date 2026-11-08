@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { UtensilsCrossed, Package, Truck, Sparkles, Clock, Ticket, Star, ChevronRight } from 'lucide-react';
+import { UtensilsCrossed, Package, Truck, Sparkles, Clock, Ticket, Star, ChevronRight, Zap, Smartphone } from 'lucide-react';
 import OrderTypeCard from '@/components/OrderTypeCard';
 import heroImage from '@/assets/hero-food.jpg';
 import { setOrderType, fetchAllReviews, Review } from '@/lib/store';
@@ -79,18 +79,18 @@ export default function Index() {
 
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 animate-bounce-in">
               <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/20 hover-scale">
-                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-1.5">
-                  🍔 Fresh Food
+                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-2">
+                  <UtensilsCrossed className="w-4 h-4 text-white" /> Fresh Food
                 </span>
               </div>
               <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/20 hover-scale">
-                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-1.5">
-                  ⚡ Fast Service
+                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-white" /> Fast Service
                 </span>
               </div>
               <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-white/20 hover-scale">
-                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-1.5">
-                  🎫 Token System
+                <span className="text-xs sm:text-base font-semibold text-white flex items-center gap-2">
+                  <Ticket className="w-4 h-4 text-white" /> Token System
                 </span>
               </div>
             </div>
@@ -124,7 +124,6 @@ export default function Index() {
               title="Dine In"
               description="Collect from counter using your token number"
               icon={UtensilsCrossed}
-              emoji="🍽️"
               color="blue"
               onClick={() => handleOrderType('dine-in')}
             />
@@ -132,7 +131,6 @@ export default function Index() {
               title="Take Away"
               description="Get your food packed for takeaway"
               icon={Package}
-              emoji="🥡"
               color="green"
               onClick={() => handleOrderType('take-away')}
             />
@@ -140,7 +138,6 @@ export default function Index() {
               title="Staff Delivery"
               description="Delivery to your department (Staff only)"
               icon={Truck}
-              emoji="🏫"
               color="purple"
               onClick={() => handleOrderType('staff-delivery')}
             />
@@ -161,7 +158,7 @@ export default function Index() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-8 max-w-5xl mx-auto">
             <div className="feature-card text-center group">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
-                <span className="text-3xl sm:text-4xl">📱</span>
+                <Smartphone className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               </div>
               <h3 className="font-bold text-lg sm:text-xl text-foreground mb-2">Easy Ordering</h3>
               <p className="text-muted-foreground text-sm sm:text-base">Simple and quick menu selection with beautiful interface</p>
@@ -223,11 +220,11 @@ function ReviewsSection({ onViewAll }: { onViewAll: () => void }) {
     5: 'text-emerald-500',
   };
   const ratingLabels: Record<number, string> = {
-    1: 'Poor 😞',
-    2: 'Fair 😐',
-    3: 'Good 🙂',
-    4: 'Great 😊',
-    5: 'Excellent 🤩',
+    1: 'Poor',
+    2: 'Fair',
+    3: 'Good',
+    4: 'Great',
+    5: 'Excellent',
   };
 
   return (

@@ -380,7 +380,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
         type: 'new_order',
         orderId,
         orderToken: token,
-        title: `🔔 New Order #${token} Received!`,
+        title: `New Order #${token} Received`,
         body: `₹${orderData.total} • ${(orderData.type || 'order').toUpperCase()} • ${itemsSummary}`,
       }),
     }).catch((err) => console.warn('New order staff push notification notice:', err));
@@ -396,7 +396,7 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
           orderId,
           orderToken: token,
           type: 'order_placed',
-          title: `Order #${token} Confirmed! 📦`,
+          title: `Order #${token} Confirmed`,
           body: `Total ₹${orderData.total}. Kitchen is preparing your order.`,
         }),
       }).catch((err) => console.warn('Customer order confirmation push notice:', err));
