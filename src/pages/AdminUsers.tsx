@@ -7,11 +7,11 @@ import {
   User, 
   Search, 
   RefreshCw, 
-  UserCheck, 
-  SlidersHorizontal,
+  Phone,
   Mail,
-  Calendar,
-  Sparkles
+  AlertCircle,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import AdminSubNav from '@/components/AdminSubNav';
 import { useProfile, UserRole } from '@/hooks/use-profile';
@@ -32,60 +32,14 @@ export interface UserAccount {
   id: string;
   full_name: string;
   email: string;
+  phone?: string;
   role: UserRole;
   created_at: string;
-  total_orders?: number;
+  total_orders: number;
+  total_spent?: number;
   loyalty_points?: number;
+  source?: 'supabase_profile' | 'order_history' | 'system_admin';
 }
-
-// Fallback initial campus accounts
-const DEFAULT_ACCOUNTS: UserAccount[] = [
-  {
-    id: 'admin-01',
-    full_name: 'Avanish Shukla',
-    email: 'avanishshukla234@gmail.com',
-    role: 'admin',
-    created_at: '2025-01-10T08:00:00Z',
-    total_orders: 42,
-    loyalty_points: 350,
-  },
-  {
-    id: 'staff-01',
-    full_name: 'Avanish Staff (Kitchen)',
-    email: 'avanish.v.shukla@slrtce.in',
-    role: 'staff',
-    created_at: '2025-01-15T09:30:00Z',
-    total_orders: 12,
-    loyalty_points: 90,
-  },
-  {
-    id: 'user-02',
-    full_name: 'Rahul Sharma',
-    email: 'rahul.sharma@slrtce.in',
-    role: 'user',
-    created_at: '2025-02-01T11:20:00Z',
-    total_orders: 18,
-    loyalty_points: 125,
-  },
-  {
-    id: 'user-03',
-    full_name: 'Priya Patel',
-    email: 'priya.p@slrtce.in',
-    role: 'user',
-    created_at: '2025-02-10T14:10:00Z',
-    total_orders: 24,
-    loyalty_points: 210,
-  },
-  {
-    id: 'user-04',
-    full_name: 'Amit Verma',
-    email: 'amit.verma@slrtce.in',
-    role: 'user',
-    created_at: '2025-02-18T16:45:00Z',
-    total_orders: 7,
-    loyalty_points: 45,
-  },
-];
 
 const LOCAL_STORAGE_USERS_KEY = 'canteen_managed_users';
 
@@ -97,44 +51,151 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | UserRole>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [showSqlNotice, setShowSqlNotice] = useState(false);
 
-  // Load users from Supabase or localStorage
+  // Load real users directly from Supabase profiles + orders + loyalty tables
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      // 1. Try fetching from Supabase profiles table
-      const { data, error } = await (supabase
+      // 1. Fetch real profiles from Supabase
+      const { data: profilesData, error: profileErr } = await (supabase
         .from('profiles' as any)
         .select('*')
         .order('updated_at', { ascending: false }) as any);
 
-      if (!error && data && data.length > 0) {
-        const mappedUsers: UserAccount[] = data.map((p: any) => ({
-          id: p.id,
-          full_name: p.full_name || 'Campus Student',
-          email: p.email || `${(p.full_name || 'student').toLowerCase().replace(/\s+/g, '.')}@slrtce.in`,
-          role: (p.role as UserRole) || 'user',
-          created_at: p.updated_at || new Date().toISOString(),
-          total_orders: Math.floor(Math.random() * 15) + 3,
-          loyalty_points: Math.floor(Math.random() * 200) + 20,
-        }));
-
-        setUsers(mappedUsers);
-        localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(mappedUsers));
-      } else {
-        // Fallback to local stored users or default
-        const saved = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-        if (saved) {
-          setUsers(JSON.parse(saved));
-        } else {
-          setUsers(DEFAULT_ACCOUNTS);
-          localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
-        }
+      if (profileErr) {
+        console.warn('Profiles query returned error (likely needs SQL script):', profileErr);
+        setShowSqlNotice(true);
       }
+
+      // 2. Fetch real orders to get actual user order statistics & guest customers
+      const { data: ordersData, error: orderErr } = await supabase
+        .from('orders')
+        .select('id, user_id, customer_name, customer_phone, total, created_at')
+        .order('created_at', { ascending: false });
+
+      // 3. Fetch real loyalty accounts
+      const { data: loyaltyData } = await (supabase
+        .from('loyalty_accounts' as any)
+        .select('*') as any);
+
+      // Build real users map keyed by id or email
+      const userMap = new Map<string, UserAccount>();
+
+      // A. Seed default root system accounts
+      userMap.set('admin-root', {
+        id: 'admin-root',
+        full_name: 'Avanish Shukla (Admin)',
+        email: 'avanishshukla234@gmail.com',
+        role: 'admin',
+        created_at: new Date().toISOString(),
+        total_orders: 0,
+        total_spent: 0,
+        loyalty_points: 100,
+        source: 'system_admin',
+      });
+
+      userMap.set('staff-root', {
+        id: 'staff-root',
+        full_name: 'Avanish Staff (Kitchen)',
+        email: 'avanish.v.shukla@slrtce.in',
+        role: 'staff',
+        created_at: new Date().toISOString(),
+        total_orders: 0,
+        total_spent: 0,
+        loyalty_points: 50,
+        source: 'system_admin',
+      });
+
+      // B. Process real registered Supabase profiles
+      if (profilesData && Array.isArray(profilesData)) {
+        profilesData.forEach((p: any) => {
+          const userEmail = p.email || (p.full_name ? `${p.full_name.toLowerCase().replace(/\s+/g, '.')}@slrtce.in` : `user_${p.id.slice(0, 5)}@campus.in`);
+          const existing = Array.from(userMap.values()).find(u => u.email.toLowerCase() === userEmail.toLowerCase());
+          
+          const targetKey = existing ? existing.id : p.id;
+          userMap.set(targetKey, {
+            id: p.id,
+            full_name: p.full_name || existing?.full_name || 'Campus Student',
+            email: userEmail,
+            phone: p.phone || existing?.phone,
+            role: (p.role as UserRole) || (userEmail.includes('admin') ? 'admin' : 'user'),
+            created_at: p.updated_at || p.created_at || new Date().toISOString(),
+            total_orders: 0,
+            total_spent: 0,
+            loyalty_points: 50,
+            source: 'supabase_profile',
+          });
+        });
+      }
+
+      // C. Cross-reference real orders to calculate order counts, spent, and discover customers
+      if (ordersData && Array.isArray(ordersData)) {
+        ordersData.forEach((ord: any) => {
+          // If order is linked to a registered user_id in userMap
+          if (ord.user_id && userMap.has(ord.user_id)) {
+            const u = userMap.get(ord.user_id)!;
+            u.total_orders += 1;
+            u.total_spent = (u.total_spent || 0) + (Number(ord.total) || 0);
+            if (ord.customer_name && (!u.full_name || u.full_name === 'Campus Student')) {
+              u.full_name = ord.customer_name;
+            }
+            if (ord.customer_phone && !u.phone) {
+              u.phone = ord.customer_phone;
+            }
+          } else if (ord.customer_name && ord.customer_name.trim().length > 1) {
+            // Find existing customer by name or phone
+            const existingCust = Array.from(userMap.values()).find(
+              u => (ord.customer_phone && u.phone === ord.customer_phone) || 
+                   (u.full_name.toLowerCase() === ord.customer_name.toLowerCase())
+            );
+
+            if (existingCust) {
+              existingCust.total_orders += 1;
+              existingCust.total_spent = (existingCust.total_spent || 0) + (Number(ord.total) || 0);
+            } else {
+              // Add real customer from order record
+              const generatedId = ord.user_id || `cust_${ord.id.slice(0, 8)}`;
+              userMap.set(generatedId, {
+                id: generatedId,
+                full_name: ord.customer_name,
+                email: `${ord.customer_name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@slrtce.in`,
+                phone: ord.customer_phone || undefined,
+                role: 'user',
+                created_at: ord.created_at,
+                total_orders: 1,
+                total_spent: Number(ord.total) || 0,
+                loyalty_points: 30,
+                source: 'order_history',
+              });
+            }
+          }
+        });
+      }
+
+      // D. Attach real loyalty points if available
+      if (loyaltyData && Array.isArray(loyaltyData)) {
+        loyaltyData.forEach((l: any) => {
+          if (l.user_id && userMap.has(l.user_id)) {
+            userMap.get(l.user_id)!.loyalty_points = l.points_balance;
+          }
+        });
+      }
+
+      // Convert map to sorted array
+      const finalUsers = Array.from(userMap.values()).sort((a, b) => {
+        if (a.role === 'admin' && b.role !== 'admin') return -1;
+        if (b.role === 'admin' && a.role !== 'admin') return 1;
+        return (b.total_orders || 0) - (a.total_orders || 0);
+      });
+
+      setUsers(finalUsers);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(finalUsers));
     } catch (err) {
-      console.warn('Using local users fallback:', err);
+      console.error('Error fetching real users:', err);
+      toast.error('Could not load all users from database');
       const saved = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-      setUsers(saved ? JSON.parse(saved) : DEFAULT_ACCOUNTS);
+      if (saved) setUsers(JSON.parse(saved));
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +210,7 @@ export default function AdminUsers() {
     if (!targetUser) return;
 
     try {
-      // 1. Update in Supabase
+      // 1. Update in Supabase profiles
       await (supabase
         .from('profiles' as any)
         .update({ role: newRole, updated_at: new Date().toISOString() })
@@ -162,8 +223,7 @@ export default function AdminUsers() {
 
       toast.success(`Role updated: ${targetUser.full_name} is now ${newRole.toUpperCase()}`);
     } catch (err) {
-      console.error('Failed to update role:', err);
-      // Still update UI & localStorage
+      console.error('Failed to update role in Supabase:', err);
       const updated = users.map(u => u.id === userId ? { ...u, role: newRole } : u);
       setUsers(updated);
       localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updated));
@@ -176,7 +236,8 @@ export default function AdminUsers() {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch = !q || 
       user.full_name.toLowerCase().includes(q) || 
-      user.email.toLowerCase().includes(q);
+      user.email.toLowerCase().includes(q) ||
+      (user.phone && user.phone.includes(q));
     return matchesRole && matchesSearch;
   });
 
@@ -203,6 +264,29 @@ export default function AdminUsers() {
       </AdminSubNav>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl space-y-6">
+        {/* Supabase Sync Notice Banner */}
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5 sm:mt-0" />
+            <p className="text-amber-800 dark:text-amber-300">
+              Showing real canteen users &amp; customers from <strong>Supabase Auth &amp; Order records</strong>.
+              To auto-sync all registered emails from Supabase Auth, run <code className="font-mono bg-amber-500/20 px-1 py-0.5 rounded">sync_all_users_to_profiles.sql</code> in your Supabase SQL editor.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-[11px] h-7 rounded-lg border-amber-500/40 text-amber-900 dark:text-amber-200 hover:bg-amber-500/20 flex-shrink-0"
+            onClick={() => {
+              navigator.clipboard.writeText(`-- Run in Supabase SQL Editor\nALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;\nINSERT INTO public.profiles (id, full_name, email, role) SELECT id, COALESCE(raw_user_meta_data->>'full_name', email), email, 'user' FROM auth.users ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;\nCREATE POLICY "Allow all read" ON public.profiles FOR SELECT USING (true);`);
+              toast.success('SQL Script copied to clipboard!');
+            }}
+          >
+            <Copy className="w-3 h-3 mr-1" />
+            Copy Sync SQL
+          </Button>
+        </div>
+
         {/* Stats Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border shadow-xs">
@@ -231,7 +315,7 @@ export default function AdminUsers() {
 
           <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border shadow-xs">
             <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
-              <span>Customers</span>
+              <span>Active Customers</span>
               <User className="w-4 h-4 text-emerald-500" />
             </div>
             <p className="text-xl sm:text-2xl font-extrabold text-emerald-600">{customerCount}</p>
@@ -244,7 +328,7 @@ export default function AdminUsers() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by name or college email..."
+              placeholder="Search by name, email, or mobile..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-9 text-xs sm:text-sm rounded-xl"
@@ -276,9 +360,10 @@ export default function AdminUsers() {
               <thead className="bg-muted/40 border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-4">User</th>
-                  <th className="py-3 px-4">Email</th>
+                  <th className="py-3 px-4">Email / Phone</th>
                   <th className="py-3 px-4">Current Role</th>
                   <th className="py-3 px-4 text-center">Orders</th>
+                  <th className="py-3 px-4 text-center">Spent</th>
                   <th className="py-3 px-4 text-center">Coins</th>
                   <th className="py-3 px-4 text-right">Assign Role</th>
                 </tr>
@@ -286,13 +371,13 @@ export default function AdminUsers() {
               <tbody className="divide-y divide-border/60">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                    <td colSpan={7} className="py-12 text-center text-muted-foreground">
                       No users match the search criteria.
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user) => {
-                    const initials = user.full_name
+                    const initials = (user.full_name || 'U')
                       .split(' ')
                       .map((n) => n[0])
                       .slice(0, 2)
@@ -314,9 +399,15 @@ export default function AdminUsers() {
                           </div>
                         </td>
 
-                        {/* Email */}
-                        <td className="py-3 px-4 font-mono text-muted-foreground text-xs">
-                          {user.email}
+                        {/* Email & Phone */}
+                        <td className="py-3 px-4">
+                          <p className="font-mono text-muted-foreground text-xs">{user.email}</p>
+                          {user.phone && (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Phone className="w-2.5 h-2.5" />
+                              {user.phone}
+                            </p>
+                          )}
                         </td>
 
                         {/* Role Badge */}
@@ -337,7 +428,12 @@ export default function AdminUsers() {
 
                         {/* Total Orders */}
                         <td className="py-3 px-4 text-center font-bold text-foreground">
-                          {user.total_orders ?? 0}
+                          {user.total_orders}
+                        </td>
+
+                        {/* Total Spent */}
+                        <td className="py-3 px-4 text-center font-bold text-primary">
+                          ₹{user.total_spent || 0}
                         </td>
 
                         {/* Loyalty Coins */}
