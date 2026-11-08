@@ -9,6 +9,7 @@ import {
   Package,
   TrendingUp,
   Tag,
+  Ticket,
   ShieldCheck,
   ChevronDown,
   ChefHat,
@@ -187,7 +188,7 @@ export default function Header() {
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
-                <Percent className="h-3.5 w-3.5 text-amber-500" />
+                <Tag className="h-3.5 w-3.5" />
                 Offers &amp; Deals
               </Link>
               <Link
@@ -198,7 +199,7 @@ export default function Header() {
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
-                <Search className="h-3.5 w-3.5" />
+                <Ticket className="h-3.5 w-3.5" />
                 Track Order
               </Link>
               <Link
@@ -423,7 +424,7 @@ export default function Header() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Percent className={`h-4 w-4 ${isActive('/offers') ? 'stroke-[2.5]' : ''}`} />
+              <Tag className={`h-4 w-4 ${isActive('/offers') ? 'stroke-[2.5]' : ''}`} />
               <span className="text-[10px]">Offers</span>
             </Link>
 
@@ -435,7 +436,7 @@ export default function Header() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Search className={`h-4 w-4 ${isActive('/track') ? 'stroke-[2.5]' : ''}`} />
+              <Ticket className={`h-4 w-4 ${isActive('/track') ? 'stroke-[2.5]' : ''}`} />
               <span className="text-[10px]">Track</span>
             </Link>
 
