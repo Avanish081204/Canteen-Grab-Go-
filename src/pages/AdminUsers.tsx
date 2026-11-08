@@ -13,7 +13,8 @@ import {
   Copy,
   ExternalLink,
   Trash2,
-  UserX
+  UserX,
+  X
 } from 'lucide-react';
 import AdminSubNav from '@/components/AdminSubNav';
 import { useProfile, UserRole } from '@/hooks/use-profile';
@@ -54,6 +55,9 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<'all' | UserRole>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [showSqlNotice, setShowSqlNotice] = useState(false);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
+    return localStorage.getItem('hide_sync_banner') === 'true';
+  });
 
   // Load real users directly from Supabase profiles + orders + loyalty tables
   const loadUsers = async () => {
@@ -341,27 +345,41 @@ export default function AdminUsers() {
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl space-y-6">
         {/* Supabase Sync Notice Banner */}
-        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-start sm:items-center gap-2.5">
-            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5 sm:mt-0" />
-            <p className="text-amber-800 dark:text-amber-300">
-              Showing real canteen users &amp; customers from <strong>Supabase Auth &amp; Order records</strong>.
-              To auto-sync all registered emails from Supabase Auth, run <code className="font-mono bg-amber-500/20 px-1 py-0.5 rounded">sync_all_users_to_profiles.sql</code> in your Supabase SQL editor.
-            </p>
+        {!isBannerDismissed && (
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative">
+            <div className="flex items-start sm:items-center gap-2.5 pr-6 sm:pr-0">
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5 sm:mt-0" />
+              <p className="text-amber-800 dark:text-amber-300">
+                To sync all registered users from Supabase Auth, run <code className="font-mono bg-amber-500/20 px-1 py-0.5 rounded">sync_all_users_to_profiles.sql</code> in your Supabase SQL editor.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-[11px] h-7 rounded-lg border-amber-500/40 text-amber-900 dark:text-amber-200 hover:bg-amber-500/20 flex-shrink-0"
+                onClick={() => {
+                  navigator.clipboard.writeText(`-- Run in Supabase SQL Editor\nALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;\nINSERT INTO public.profiles (id, full_name, email, role) SELECT id, COALESCE(raw_user_meta_data->>'full_name', email), email, 'user' FROM auth.users ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;\nCREATE POLICY "Allow all read" ON public.profiles FOR SELECT USING (true);`);
+                  toast.success('SQL Script copied to clipboard!');
+                }}
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copy Sync SQL
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsBannerDismissed(true);
+                  localStorage.setItem('hide_sync_banner', 'true');
+                }}
+                className="p-1 rounded-md text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-[11px] h-7 rounded-lg border-amber-500/40 text-amber-900 dark:text-amber-200 hover:bg-amber-500/20 flex-shrink-0"
-            onClick={() => {
-              navigator.clipboard.writeText(`-- Run in Supabase SQL Editor\nALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;\nINSERT INTO public.profiles (id, full_name, email, role) SELECT id, COALESCE(raw_user_meta_data->>'full_name', email), email, 'user' FROM auth.users ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;\nCREATE POLICY "Allow all read" ON public.profiles FOR SELECT USING (true);`);
-              toast.success('SQL Script copied to clipboard!');
-            }}
-          >
-            <Copy className="w-3 h-3 mr-1" />
-            Copy Sync SQL
-          </Button>
-        </div>
+        )}
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
