@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   Monitor,
@@ -14,14 +14,14 @@ import {
   ChefHat,
   Users,
   Coins,
-  Sparkles,
   Percent,
+  LogOut,
+  Clock,
 } from 'lucide-react';
 import { getCart } from '@/lib/store';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/use-profile';
-import { useKitchenStatus } from '@/lib/kitchen-status';
 import Logo from './Logo';
 import NotificationBell from './NotificationBell';
 import ThemeToggle from './ThemeToggle';
@@ -36,19 +36,23 @@ import {
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(0);
   const [user, setUser] = useState<any>(null);
-  const kitchenStatus = useKitchenStatus();
 
   useEffect(() => {
     // Check initial session
     if (typeof window !== 'undefined') {
-      const isLocalAdmin = localStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_admin') === 'true';
-      const isLocalStaff = localStorage.getItem('local_staff') === 'true' || sessionStorage.getItem('local_staff') === 'true';
+      const isLocalAdmin =
+        localStorage.getItem('local_admin') === 'true' ||
+        sessionStorage.getItem('local_admin') === 'true';
+      const isLocalStaff =
+        localStorage.getItem('local_staff') === 'true' ||
+        sessionStorage.getItem('local_staff') === 'true';
 
       if (isLocalAdmin) {
         setUser({
-          user_metadata: { full_name: 'Avanish' },
+          user_metadata: { full_name: 'Avanish Shukla' },
           email: 'avanishshukla234@gmail.com',
         });
       } else if (isLocalStaff) {
@@ -64,14 +68,20 @@ export default function Header() {
     }
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (typeof window !== 'undefined') {
-        const isLocalAdmin = localStorage.getItem('local_admin') === 'true' || sessionStorage.getItem('local_admin') === 'true';
-        const isLocalStaff = localStorage.getItem('local_staff') === 'true' || sessionStorage.getItem('local_staff') === 'true';
+        const isLocalAdmin =
+          localStorage.getItem('local_admin') === 'true' ||
+          sessionStorage.getItem('local_admin') === 'true';
+        const isLocalStaff =
+          localStorage.getItem('local_staff') === 'true' ||
+          sessionStorage.getItem('local_staff') === 'true';
 
         if (isLocalAdmin) {
           setUser({
-            user_metadata: { full_name: 'Avanish' },
+            user_metadata: { full_name: 'Avanish Shukla' },
             email: 'avanishshukla234@gmail.com',
           });
         } else if (isLocalStaff) {
@@ -118,60 +128,52 @@ export default function Header() {
     return location.pathname.startsWith(path);
   };
 
+  const handleSignOut = async () => {
+    localStorage.removeItem('local_admin');
+    sessionStorage.removeItem('local_admin');
+    localStorage.removeItem('local_staff');
+    sessionStorage.removeItem('local_staff');
+    await supabase.auth.signOut().catch(() => {});
+    setUser(null);
+    window.dispatchEvent(new Event('userLoggedOut'));
+    navigate('/');
+  };
+
   if (isDisplayPage) return null;
+
+  const initials = (user?.user_metadata?.full_name || user?.email || 'U')
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
-        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-2.5">
-          <div className="flex items-center justify-between gap-3">
-            {/* Brand Logo & Name */}
-            <Link to="/" className="flex items-center gap-2.5 text-foreground group flex-shrink-0">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-md">
+        <div className="container mx-auto max-w-7xl px-3 sm:px-6 py-2.5">
+          <div className="flex items-center justify-between gap-4">
+            {/* ── Brand Logo ────────────────────────────────────────── */}
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 text-foreground group flex-shrink-0"
+            >
               <Logo size="sm" />
               <div className="flex flex-col">
-                <span className="text-sm sm:text-base font-bold tracking-tight leading-none">
+                <span className="text-sm sm:text-base font-black tracking-tight leading-none text-foreground">
                   Campus Canteen
                 </span>
-                <span className="text-[10px] text-muted-foreground hidden sm:block">
-                  Grab & Go Fast Order
+                <span className="text-[10px] text-muted-foreground font-medium hidden sm:block">
+                  SLRTCE Smart Food Court
                 </span>
               </div>
             </Link>
 
-            {/* Live Kitchen Rush Indicator */}
-            <div
-              className={`hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
-                kitchenStatus.rushLevel === 'low'
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                  : kitchenStatus.rushLevel === 'moderate'
-                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full animate-pulse ${
-                  kitchenStatus.rushLevel === 'low'
-                    ? 'bg-emerald-500'
-                    : kitchenStatus.rushLevel === 'moderate'
-                    ? 'bg-amber-500'
-                    : 'bg-rose-500'
-                }`}
-              />
-              <span>
-                {kitchenStatus.isOpen
-                  ? `Kitchen: ${kitchenStatus.rushLabel} (~${kitchenStatus.estimatedWaitMinutes}m)`
-                  : 'Kitchen: Closed (Opens 8 AM)'}
-              </span>
-            </div>
-
-            {/* Clean Center Navigation — Desktop Only (No overlapping!) */}
-            <nav className="hidden md:flex items-center justify-center gap-1 bg-muted/60 p-1 rounded-2xl flex-shrink-0">
+            {/* ── Minimalist Clean Center Navigation (Desktop) ──────── */}
+            <nav className="hidden md:flex items-center gap-1 flex-shrink-0">
               <Link
                 to="/"
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                   isActive('/')
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'bg-foreground text-background shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 <Home className="h-3.5 w-3.5" />
@@ -179,10 +181,10 @@ export default function Header() {
               </Link>
               <Link
                 to="/offers"
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                   isActive('/offers')
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'bg-foreground text-background shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 <Percent className="h-3.5 w-3.5 text-amber-500" />
@@ -190,145 +192,203 @@ export default function Header() {
               </Link>
               <Link
                 to="/track"
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                   isActive('/track')
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'bg-foreground text-background shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 <Search className="h-3.5 w-3.5" />
-                Track
+                Track Order
               </Link>
               <Link
                 to="/display"
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                   isActive('/display')
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'bg-foreground text-background shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 <Monitor className="h-3.5 w-3.5" />
-                Display
+                TV Display
               </Link>
             </nav>
 
-            {/* Right actions */}
-            <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
-              {/* Admin Portal Dropdown (for Admin / Staff users) */}
-              {(role === 'admin' || role === 'staff') && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all border ${
-                        isAdminPage || isStaffPage
-                          ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                          : 'bg-primary/10 text-primary hover:bg-primary/20 border-primary/20'
-                      }`}
-                    >
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Admin Tools</span>
-                      <ChevronDown className="h-3 w-3 opacity-70" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-2xl shadow-xl border border-border bg-card">
-                    <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2 py-1">
-                      Canteen Management
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/menu" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
-                        <UtensilsCrossed className="w-4 h-4 text-primary" />
-                        <span>Menu & Orders</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/inventory" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
-                        <Package className="w-4 h-4 text-emerald-500" />
-                        <span>Inventory Control</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/analytics" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
-                        <TrendingUp className="w-4 h-4 text-blue-500" />
-                        <span>Sales Analytics</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/coupons" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
-                        <Tag className="w-4 h-4 text-purple-500" />
-                        <span>Coupons & Promos</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/users" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
-                        <Users className="w-4 h-4 text-cyan-500" />
-                        <span>Users & Staff Roles</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="my-1" />
-                    <DropdownMenuItem asChild>
-                      <Link to="/staff/dashboard" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-amber-600 rounded-xl cursor-pointer hover:bg-amber-500/10">
-                        <ChefHat className="w-4 h-4" />
-                        <span>Kitchen Display (Queue)</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
+            {/* ── Right Actions: Clean, Balanced, Uncluttered ────────── */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+              {/* Theme & Notifications */}
               <ThemeToggle />
               <NotificationBell />
 
-              {/* VIP Loyalty Coins Shortcut */}
-              {user && (
-                <Link
-                  to="/profile"
-                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all shadow-xs"
-                  title="View your VIP Loyalty Coins balance"
-                >
-                  <Coins className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Coins</span>
-                </Link>
-              )}
-
-              {/* Profile button */}
+              {/* User Avatar with Unified Dropdown (Replaces clutter!) */}
               {user ? (
-                <button
-                  onClick={() => (window.location.href = '/profile')}
-                  className="flex items-center gap-1.5 rounded-xl px-1.5 py-1 hover:bg-muted transition-colors"
-                >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {(user.user_metadata?.full_name || 'U').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="hidden lg:flex flex-col items-start text-left">
-                    <span className="text-xs font-semibold text-foreground leading-tight truncate max-w-[100px]">
-                      {user.user_metadata?.full_name || 'User'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-[120px]">
-                      {user.email}
-                    </span>
-                  </div>
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="flex items-center gap-1.5 p-1 rounded-full hover:bg-muted/80 transition-all focus:outline-none"
+                      title="Account & Portal"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center text-xs font-extrabold shadow-xs">
+                        {initials}
+                      </div>
+                      <ChevronDown className="w-3 h-3 text-muted-foreground hidden sm:block" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-64 p-2 rounded-2xl shadow-2xl border border-border bg-card"
+                  >
+                    {/* User Info Header */}
+                    <div className="px-2.5 py-2">
+                      <p className="text-xs font-black text-foreground truncate">
+                        {user.user_metadata?.full_name || 'Campus Student'}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate font-mono mt-0.5">
+                        {user.email}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border/50">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                          <Coins className="w-3 h-3" />
+                          <span>Loyalty Coins</span>
+                        </span>
+                        {role === 'admin' && (
+                          <span className="text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-full border border-rose-500/20">
+                            Admin
+                          </span>
+                        )}
+                        {role === 'staff' && (
+                          <span className="text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
+                            Kitchen Staff
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    {/* Standard User Links */}
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                      >
+                        <User className="w-3.5 h-3.5 text-primary" />
+                        <span>Profile &amp; Coin History</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/track"
+                        className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-blue-500" />
+                        <span>My Active Token Orders</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    {/* Admin / Staff Management Section */}
+                    {(role === 'admin' || role === 'staff') && (
+                      <>
+                        <DropdownMenuSeparator className="my-1" />
+                        <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground px-2.5 py-1">
+                          Management Tools
+                        </DropdownMenuLabel>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/admin/menu"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                          >
+                            <UtensilsCrossed className="w-3.5 h-3.5 text-primary" />
+                            <span>Menu &amp; Dish Control</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/admin/inventory"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                          >
+                            <Package className="w-3.5 h-3.5 text-emerald-500" />
+                            <span>Stock Inventory</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/admin/analytics"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                          >
+                            <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
+                            <span>Sales &amp; Analytics</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/admin/coupons"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                          >
+                            <Tag className="w-3.5 h-3.5 text-purple-500" />
+                            <span>Manage Promo Coupons</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/admin/users"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted"
+                          >
+                            <Users className="w-3.5 h-3.5 text-cyan-500" />
+                            <span>Accounts &amp; Roles</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/staff/dashboard"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 rounded-xl cursor-pointer hover:bg-amber-500/10"
+                          >
+                            <ChefHat className="w-3.5 h-3.5" />
+                            <span>Kitchen Order Queue</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    {/* Log Out */}
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 rounded-xl cursor-pointer hover:bg-rose-500/10"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Log Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors"
                 >
                   <User className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Login</span>
+                  <span>Login</span>
                 </Link>
               )}
 
-              {/* Cart Button */}
+              {/* Sleek Gourmet Cart Pill */}
               {!isStaffPage && (
                 <Link
                   to="/cart"
-                  className="relative inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:brightness-110 active:scale-95 transition-all duration-200"
-                  style={{ boxShadow: 'var(--shadow-primary)' }}
+                  className="relative inline-flex items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-3.5 py-1.5 text-xs font-black shadow-xs active:scale-95 transition-all"
                 >
-                  <ShoppingCart className="h-3.5 w-3.5" />
+                  <ShoppingCart className="h-3.5 w-3.5 stroke-[2.5]" />
                   <span className="hidden sm:inline">Cart</span>
                   {cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-secondary text-secondary-foreground text-[10px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center border-2 border-background animate-scale-in">
+                    <span className="bg-secondary text-secondary-foreground text-[10px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center border border-background">
                       {cartCount}
                     </span>
                   )}
@@ -339,16 +399,16 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Modern Floating Island Mobile Bottom Navigation */}
+      {/* ── Modern Floating Island Mobile Bottom Navigation ──────── */}
       {!isStaffPage && (
-        <nav
-          className="md:hidden fixed bottom-2 left-3 right-3 z-50 bg-background/90 backdrop-blur-xl border border-border/80 rounded-2xl safe-area-inset-bottom shadow-2xl shadow-black/10"
-        >
+        <nav className="md:hidden fixed bottom-2 left-3 right-3 z-50 bg-background/90 backdrop-blur-xl border border-border/80 rounded-2xl safe-area-inset-bottom shadow-2xl shadow-black/10">
           <div className="flex items-center justify-around px-1 py-1.5">
             <Link
               to="/"
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
-                isActive('/') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
+                isActive('/')
+                  ? 'text-primary font-bold scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Home className={`h-4 w-4 ${isActive('/') ? 'stroke-[2.5]' : ''}`} />
@@ -358,7 +418,9 @@ export default function Header() {
             <Link
               to="/offers"
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
-                isActive('/offers') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
+                isActive('/offers')
+                  ? 'text-primary font-bold scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Percent className={`h-4 w-4 ${isActive('/offers') ? 'stroke-[2.5]' : ''}`} />
@@ -368,7 +430,9 @@ export default function Header() {
             <Link
               to="/track"
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
-                isActive('/track') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
+                isActive('/track')
+                  ? 'text-primary font-bold scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Search className={`h-4 w-4 ${isActive('/track') ? 'stroke-[2.5]' : ''}`} />
@@ -378,7 +442,9 @@ export default function Header() {
             <Link
               to="/cart"
               className={`relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
-                isActive('/cart') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
+                isActive('/cart')
+                  ? 'text-primary font-bold scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <ShoppingCart className={`h-4 w-4 ${isActive('/cart') ? 'stroke-[2.5]' : ''}`} />
@@ -393,10 +459,16 @@ export default function Header() {
             <Link
               to={user ? '/profile' : '/login'}
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
-                isActive('/profile') || isActive('/login') ? 'text-primary font-bold scale-105' : 'text-muted-foreground hover:text-foreground'
+                isActive('/profile') || isActive('/login')
+                  ? 'text-primary font-bold scale-105'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <User className={`h-4 w-4 ${isActive('/profile') || isActive('/login') ? 'stroke-[2.5]' : ''}`} />
+              <User
+                className={`h-4 w-4 ${
+                  isActive('/profile') || isActive('/login') ? 'stroke-[2.5]' : ''
+                }`}
+              />
               <span className="text-[10px]">{user ? 'Profile' : 'Login'}</span>
             </Link>
           </div>
