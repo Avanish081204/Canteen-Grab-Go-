@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   UtensilsCrossed,
   Package,
@@ -8,6 +8,7 @@ import {
   Clock,
   Ticket,
   Star,
+  ChevronLeft,
   ChevronRight,
   Search,
   Coins,
@@ -33,18 +34,47 @@ import {
 import { useKitchenStatus } from '@/lib/kitchen-status';
 
 const CATEGORY_ITEMS = [
-  { name: 'All', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=300&q=80' },
-  { name: 'Snacks', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=300&q=80' },
-  { name: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=300&q=80' },
-  { name: 'Chinese', image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=300&q=80' },
-  { name: 'Meals', image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=300&q=80' },
-  { name: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=300&q=80' },
-  { name: 'Combos', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=300&q=80' },
+  {
+    name: 'All',
+    label: 'All Items',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    name: 'Snacks',
+    label: 'Snacks',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    name: 'Sandwich/Burger',
+    label: 'Burgers',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    name: 'Chinese',
+    label: 'Chinese',
+    image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    name: 'Meals',
+    label: 'Thali & Meals',
+    image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    name: 'Cold Drinks',
+    label: 'Beverages',
+    image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    name: 'Combos',
+    label: 'Combos',
+    image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=400&q=80',
+  },
 ];
 
 export default function Index() {
   const navigate = useNavigate();
   const kitchenStatus = useKitchenStatus();
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
   const [currentOrderType, setCurrentOrderType] = useState<OrderType>(() => getOrderType() || 'dine-in');
   const [searchQuery, setSearchQuery] = useState('');
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
@@ -52,6 +82,13 @@ export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [readyTokens, setReadyTokens] = useState<string[]>([]);
   const [cartUpdateTrigger, setCartUpdateTrigger] = useState(0);
+
+  const scrollCategory = (direction: 'left' | 'right') => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -260 : 260;
+      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     fetchMenuItems().then(items => {
@@ -237,50 +274,95 @@ export default function Index() {
           </div>
         </div>
 
-        {/* ── "What's on your mind?" Category Circle Strip ───────────── */}
-        <div>
+        {/* ── "What's on your mind?" Swiggy-Style Category Carousel ─── */}
+        <div className="relative">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base sm:text-lg font-black text-foreground tracking-tight">
-              What&apos;s on your mind?
-            </h2>
-            <button
-              onClick={() => navigate('/menu')}
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5"
-            >
-              <span>See All</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+            <div>
+              <h2 className="text-base sm:text-xl font-black text-foreground tracking-tight">
+                What&apos;s on your mind?
+              </h2>
+              <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
+                Explore campus favorites, quick snacks, hot meals &amp; combos
+              </p>
+            </div>
+
+            {/* Carousel navigation controls & See all */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => scrollCategory('left')}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-card hover:bg-muted border border-border/80 text-foreground flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Scroll left"
+                title="Scroll previous"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollCategory('right')}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-card hover:bg-muted border border-border/80 text-foreground flex items-center justify-center transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Scroll right"
+                title="Scroll next"
+              >
+                <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => navigate('/menu')}
+                className="text-xs font-bold text-primary hover:underline ml-1 sm:ml-2 hidden md:inline-flex items-center gap-0.5"
+              >
+                <span>Full Menu</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-5 overflow-x-auto pb-2 scrollbar-hide">
+          <div
+            ref={categoryScrollRef}
+            className="flex items-start gap-4 sm:gap-6 overflow-x-auto py-3 px-1.5 scrollbar-hide scroll-smooth"
+          >
             {CATEGORY_ITEMS.map((cat) => {
               const isSelected = selectedCategory === cat.name;
               return (
                 <button
                   key={cat.name}
                   onClick={() => setSelectedCategory(cat.name)}
-                  className="flex flex-col items-center gap-1.5 flex-shrink-0 group focus:outline-none"
+                  className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none cursor-pointer"
                 >
+                  {/* Outer Perfect Circle Frame: Uniform 3px Border Ring without gaps */}
                   <div
-                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden p-0.5 transition-all duration-300 ${
+                    className={`relative w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-full flex-shrink-0 p-[3px] transition-all duration-300 ${
                       isSelected
-                        ? 'ring-2 ring-primary ring-offset-2 scale-105 shadow-md'
-                        : 'border border-border/80 group-hover:scale-105'
+                        ? 'bg-gradient-to-tr from-rose-600 via-orange-500 to-amber-500 shadow-xl shadow-orange-500/30 scale-105'
+                        : 'bg-border/60 hover:bg-muted group-hover:scale-105'
                     }`}
                   >
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      className="w-full h-full object-cover rounded-full"
-                    />
+                    <div className="w-full h-full aspect-square rounded-full overflow-hidden bg-background p-[2px]">
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300 pointer-events-none"
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
-                  <span
-                    className={`text-xs text-center transition-colors font-bold ${
-                      isSelected ? 'text-primary' : 'text-foreground/80'
-                    }`}
-                  >
-                    {cat.name}
-                  </span>
+
+                  {/* Category Label with active dot */}
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={`text-xs text-center transition-colors font-bold whitespace-nowrap ${
+                        isSelected
+                          ? 'text-primary font-black'
+                          : 'text-foreground/80 group-hover:text-foreground'
+                      }`}
+                    >
+                      {cat.label || cat.name}
+                    </span>
+                    {isSelected ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1" />
+                    ) : (
+                      <span className="w-1.5 h-1.5 rounded-full bg-transparent mt-1" />
+                    )}
+                  </div>
                 </button>
               );
             })}

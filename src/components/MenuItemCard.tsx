@@ -1,8 +1,9 @@
-import { Plus, Minus, Star, Flame, Clock, SlidersHorizontal } from 'lucide-react';
+import { Plus, Minus, Star, Flame, Clock, SlidersHorizontal, Box } from 'lucide-react';
 import { MenuItem, addToCart, getCart, updateCartQuantity, CustomizationOption } from '@/lib/store';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import ItemCustomizationModal from './ItemCustomizationModal';
+import Product3DMockupModal from './Product3DMockupModal';
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -12,6 +13,7 @@ interface MenuItemCardProps {
 export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) {
   const [quantity, setQuantity] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [is3DModalOpen, setIs3DModalOpen] = useState(false);
 
   useEffect(() => {
     const cart = getCart();
@@ -138,6 +140,20 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
             </span>
           </div>
 
+          {/* Bottom-Left: Interactive 3D Mockup View Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIs3DModalOpen(true);
+            }}
+            className="absolute bottom-2 left-2.5 z-20 bg-black/75 hover:bg-black/95 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-xl shadow-lg border border-white/20 hover:border-amber-400/80 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer group/3d"
+            title="Inspect Interactive 3D Mockup"
+          >
+            <Box className="w-3 h-3 text-amber-400 group-hover/3d:rotate-12 transition-transform" />
+            <span className="tracking-wide">3D View</span>
+          </button>
+
           {/* Swiggy/Zomato Signature Bottom Floating "ADD" Pill Button */}
           <div className="absolute bottom-2 right-2.5 z-20">
             {item.isAvailable && (
@@ -220,6 +236,14 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleCustomizationConfirm}
+      />
+
+      {/* 3D Mockup Studio Modal */}
+      <Product3DMockupModal
+        item={item}
+        isOpen={is3DModalOpen}
+        onClose={() => setIs3DModalOpen(false)}
+        onCartUpdate={onCartUpdate}
       />
     </>
   );
