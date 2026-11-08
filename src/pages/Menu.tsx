@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, ShoppingCart, X } from 'lucide-react';
+import { ArrowLeft, Search, ShoppingCart, X, Sparkles, Flame, Star, Leaf } from 'lucide-react';
 import { getOrderType, setOrderType, getCart, getCartTotal, fetchMenuItems } from '@/lib/store';
 import { MenuItem } from '@/lib/store';
 import MenuItemCard from '@/components/MenuItemCard';
@@ -69,22 +69,35 @@ export default function Menu() {
     };
   }, []);
 
+  const [dietaryFilter, setDietaryFilter] = useState<'all' | 'veg' | 'non-veg' | 'jain' | 'spicy' | 'special'>('all');
+
   useEffect(() => {
     if (selectedCategory !== 'All' && !categoryList.includes(selectedCategory)) {
       setSelectedCategory('All');
     }
   }, [categoryList, selectedCategory]);
 
-  // Filter by category AND search query (name/description)
+  // Filter by category, dietary tag, AND search query
   const filteredItems = items.filter(item => {
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    
+    let matchesDietary = true;
+    if (dietaryFilter === 'veg') matchesDietary = item.dietary === 'veg';
+    else if (dietaryFilter === 'non-veg') matchesDietary = item.dietary === 'non-veg';
+    else if (dietaryFilter === 'jain') matchesDietary = item.dietary === 'jain';
+    else if (dietaryFilter === 'spicy') matchesDietary = Boolean(item.isSpicy);
+    else if (dietaryFilter === 'special') matchesDietary = Boolean(item.isSpecial);
+
     const q = searchQuery.trim().toLowerCase();
     const matchesSearch = !q ||
       item.name.toLowerCase().includes(q) ||
       (item.description && item.description.toLowerCase().includes(q)) ||
       item.category.toLowerCase().includes(q);
-    return matchesCategory && matchesSearch;
+
+    return matchesCategory && matchesDietary && matchesSearch;
   });
+
+  const specialItems = items.filter(i => i.isSpecial && i.isAvailable);
 
   const orderTypeLabels = {
     'dine-in': 'Dine In',
@@ -164,11 +177,111 @@ export default function Menu() {
               </button>
             ))}
           </div>
+
+          {/* Quick Dietary & Specials Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-1.5 pb-0.5 scrollbar-hide text-xs border-t border-border/40 mt-1">
+            <button
+              onClick={() => setDietaryFilter('all')}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                dietaryFilter === 'all'
+                  ? 'bg-foreground text-background font-semibold shadow-xs'
+                  : 'bg-muted/70 text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              All Types
+            </button>
+            <button
+              onClick={() => setDietaryFilter('special')}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+                dietaryFilter === 'special'
+                  ? 'bg-amber-500 text-white font-bold shadow-xs'
+                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+              }`}
+            >
+              <Star className="w-3 h-3 fill-current" />
+              Specials
+            </button>
+            <button
+              onClick={() => setDietaryFilter('veg')}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+                dietaryFilter === 'veg'
+                  ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 inline-block" />
+              Pure Veg
+            </button>
+            <button
+              onClick={() => setDietaryFilter('non-veg')}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+                dietaryFilter === 'non-veg'
+                  ? 'bg-rose-600 text-white font-bold shadow-xs'
+                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-500/20'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-600 dark:bg-rose-400 inline-block" />
+              Non-Veg
+            </button>
+            <button
+              onClick={() => setDietaryFilter('jain')}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+                dietaryFilter === 'jain'
+                  ? 'bg-teal-600 text-white font-bold shadow-xs'
+                  : 'bg-teal-500/10 text-teal-700 dark:text-teal-400 hover:bg-teal-500/20'
+              }`}
+            >
+              <Leaf className="w-3 h-3" />
+              Jain
+            </button>
+            <button
+              onClick={() => setDietaryFilter('spicy')}
+              className={`px-2.5 py-1 rounded-full font-medium transition-all flex items-center gap-1 ${
+                dietaryFilter === 'spicy'
+                  ? 'bg-orange-600 text-white font-bold shadow-xs'
+                  : 'bg-orange-500/10 text-orange-700 dark:text-orange-400 hover:bg-orange-500/20'
+              }`}
+            >
+              <span>🌶️</span>
+              Spicy
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Menu Grid */}
       <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+        {/* Today's Specials Hero Spotlight (Visible when on All & no search) */}
+        {!loading && selectedCategory === 'All' && !searchQuery && dietaryFilter === 'all' && specialItems.length > 0 && (
+          <div className="mb-6 rounded-3xl bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-primary/10 border border-amber-500/30 p-3.5 sm:p-5 relative overflow-hidden">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-sm">
+                  <Flame className="w-4 h-4 fill-white" />
+                </div>
+                <div>
+                  <h2 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-1.5">
+                    Today&apos;s Specials &amp; Chef&apos;s Picks
+                    <span className="text-[10px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Hot
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground">Handpicked canteen favorites for today</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-4">
+              {specialItems.slice(0, 4).map((special) => (
+                <MenuItemCard
+                  key={`special-${special.id}`}
+                  item={special}
+                  onCartUpdate={updateCartInfo}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         {loading ? (
           // ── Shimmer Skeleton Grid ──────────────────────────────────
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">

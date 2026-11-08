@@ -17,6 +17,7 @@ import AdminMenu from "./pages/AdminMenu";
 import AdminInventory from "./pages/AdminInventory";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCoupons from "./pages/AdminCoupons";
+import AdminUsers from "./pages/AdminUsers";
 import TrackOrder from "./pages/TrackOrder";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -91,6 +92,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminCoupons />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminUsers />
                 </ProtectedRoute>
               }
             />

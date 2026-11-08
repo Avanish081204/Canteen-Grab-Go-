@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, UtensilsCrossed, Package, TrendingUp, Tag, ChefHat, Sparkles } from 'lucide-react';
+import { ArrowLeft, UtensilsCrossed, Package, TrendingUp, Tag, ChefHat, Sparkles, Users } from 'lucide-react';
 import React from 'react';
 
 interface AdminSubNavProps {
@@ -17,6 +17,7 @@ export default function AdminSubNav({ title, icon, children }: AdminSubNavProps)
     { path: '/admin/inventory', label: 'Inventory', icon: Package },
     { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
     { path: '/admin/coupons', label: 'Coupons', icon: Tag },
+    { path: '/admin/users', label: 'Users & Roles', icon: Users },
     { path: '/staff/dashboard', label: 'Kitchen Display', icon: ChefHat },
   ];
 

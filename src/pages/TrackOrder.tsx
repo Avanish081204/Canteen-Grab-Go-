@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin, Star, Clock, ArrowRight } from 'lucide-react';
+import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin, Star, Clock, ArrowRight, Share2, Download, QrCode } from 'lucide-react';
 import { getOrderByToken, fetchOrderByToken, Order, OrderStatus, fetchUserOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
 import { supabase } from '@/integrations/supabase/client';
+import { QRCodeSVG } from 'qrcode.react';
+import { downloadBill } from '@/lib/bill-utils';
 
 const statusConfig: Record<OrderStatus, { label: string; icon: typeof Package; color: string }> = {
   placed: { label: 'Order Placed', icon: Package, color: 'text-blue-500' },
@@ -289,6 +291,57 @@ export default function TrackOrder() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Counter QR Pass & Quick Share */}
+            <div className="bg-card rounded-2xl p-4 sm:p-6 border border-border shadow-sm flex flex-col items-center text-center">
+              <div className="flex items-center gap-2 mb-3">
+                <QrCode className="w-4 h-4 text-primary" />
+                <h3 className="font-bold text-sm sm:text-base text-foreground">Digital Token QR Pass</h3>
+              </div>
+
+              <div className="p-3 bg-white text-black rounded-2xl border border-border/40 shadow-inner inline-block">
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    token: order.token,
+                    id: order.id,
+                    total: order.total,
+                    status: order.status,
+                  })}
+                  size={130}
+                  level="M"
+                  includeMargin
+                />
+              </div>
+
+              <p className="text-xs text-muted-foreground mt-2 max-w-xs">
+                Scan this QR at the canteen counter to verify and collect your food without waiting in line.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-2 w-full mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const itemsList = order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ');
+                    const text = `🍔 *Campus Canteen Order Update*\n🎫 *Token:* ${order.token}\n💰 *Amount:* ₹${order.total}\n📦 *Status:* ${order.status.toUpperCase()}\n🍽️ *Items:* ${itemsList}\n\n🔗 *Track Live:* ${window.location.origin}/track?token=${order.token}`;
+                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                  className="py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  WhatsApp
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => downloadBill(order)}
+                  className="py-2.5 px-3 rounded-xl bg-muted hover:bg-muted/80 text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 transition-all border border-border active:scale-95"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Save Bill PDF
+                </button>
               </div>
             </div>
 

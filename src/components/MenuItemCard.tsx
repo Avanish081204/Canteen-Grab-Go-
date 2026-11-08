@@ -50,17 +50,49 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
           alt={item.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {item.isCombo && (
-          <div className="absolute top-2 left-2 bg-gradient-to-r from-secondary to-amber-500 text-secondary-foreground px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-extrabold flex items-center gap-1 shadow-md">
-            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-            COMBO
-          </div>
-        )}
-        {item.isAvailable && item.dietary && (
-          <div className="absolute top-2 right-2 z-10">
-            <div className={`w-4 h-4 sm:w-5 sm:h-5 bg-white rounded border-2 ${item.dietary === 'veg' ? 'border-green-600' : 'border-red-600'} flex items-center justify-center shadow-sm`}>
-              <div className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${item.dietary === 'veg' ? 'bg-green-600' : 'bg-red-600'}`} />
+        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+          {item.isSpecial && (
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black flex items-center gap-1 shadow-md uppercase tracking-wider animate-pulse">
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white" />
+              Special
             </div>
+          )}
+          {item.isCombo && (
+            <div className="bg-gradient-to-r from-secondary to-amber-500 text-secondary-foreground px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-extrabold flex items-center gap-1 shadow-md">
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              COMBO
+            </div>
+          )}
+        </div>
+        {item.isAvailable && (
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+            {item.isSpicy && (
+              <span className="bg-background/90 backdrop-blur-xs px-1.5 py-0.5 rounded-md text-[10px] shadow-sm font-bold" title="Spicy">
+                🌶️
+              </span>
+            )}
+            {item.dietary && (
+              <div
+                className={`w-4 h-4 sm:w-5 sm:h-5 bg-white rounded border-2 ${
+                  item.dietary === 'veg'
+                    ? 'border-green-600'
+                    : item.dietary === 'jain'
+                    ? 'border-emerald-500'
+                    : 'border-red-600'
+                } flex items-center justify-center shadow-sm`}
+                title={item.dietary === 'jain' ? 'Jain Friendly' : item.dietary === 'veg' ? 'Pure Veg' : 'Non-Veg'}
+              >
+                {item.dietary === 'jain' ? (
+                  <span className="text-[8px] font-black text-emerald-600 leading-none">J</span>
+                ) : (
+                  <div
+                    className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
+                      item.dietary === 'veg' ? 'bg-green-600' : 'bg-red-600'
+                    }`}
+                  />
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

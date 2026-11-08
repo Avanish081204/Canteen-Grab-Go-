@@ -54,6 +54,9 @@ type ItemDraft = {
   image: string;
   isCombo: boolean;
   isAvailable: boolean;
+  dietary: 'veg' | 'non-veg' | 'jain';
+  isSpecial: boolean;
+  isSpicy: boolean;
 };
 
 function toDraft(item?: MenuItem): ItemDraft {
@@ -67,6 +70,9 @@ function toDraft(item?: MenuItem): ItemDraft {
       image: '',
       isCombo: false,
       isAvailable: true,
+      dietary: 'veg',
+      isSpecial: false,
+      isSpicy: false,
     };
   }
   return {
@@ -78,6 +84,9 @@ function toDraft(item?: MenuItem): ItemDraft {
     image: item.image,
     isCombo: Boolean(item.isCombo),
     isAvailable: item.isAvailable,
+    dietary: (item.dietary as any) || 'veg',
+    isSpecial: Boolean(item.isSpecial),
+    isSpicy: Boolean(item.isSpicy),
   };
 }
 
@@ -91,6 +100,9 @@ function draftToItem(d: ItemDraft): MenuItem {
     description: d.description.trim(),
     isCombo: d.isCombo ? true : undefined,
     isAvailable: d.isAvailable,
+    dietary: d.dietary,
+    isSpecial: d.isSpecial ? true : undefined,
+    isSpicy: d.isSpicy ? true : undefined,
   };
 }
 
@@ -732,6 +744,43 @@ export default function AdminMenu() {
                     </Button>
                   </div>
                 ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Dietary Preference</Label>
+                <Select
+                  value={draft.dietary}
+                  onValueChange={(val: any) => setDraft((d) => ({ ...d, dietary: val }))}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="veg" className="text-xs">🟢 Pure Veg</SelectItem>
+                    <SelectItem value="non-veg" className="text-xs">🔴 Non-Veg</SelectItem>
+                    <SelectItem value="jain" className="text-xs">🌱 Jain Friendly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Tags & Badges</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-1.5 rounded-xl border border-border p-2">
+                    <Switch
+                      checked={draft.isSpecial}
+                      onCheckedChange={(checked) => setDraft((d) => ({ ...d, isSpecial: checked }))}
+                    />
+                    <span className="text-[11px] font-medium">⭐ Special</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-xl border border-border p-2">
+                    <Switch
+                      checked={draft.isSpicy}
+                      onCheckedChange={(checked) => setDraft((d) => ({ ...d, isSpicy: checked }))}
+                    />
+                    <span className="text-[11px] font-medium">🌶️ Spicy</span>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1 md:col-span-2">

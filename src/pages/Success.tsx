@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle, Home, Monitor, Download, Star, Send, MessageSquare } from 'lucide-react';
+import { CheckCircle, Home, Monitor, Download, Star, Send, MessageSquare, Share2 } from 'lucide-react';
 import { fetchOrderByToken, Order, clearOrderType, submitReview, hasReviewForOrder } from '@/lib/store';
 import { toast } from 'sonner';
 import { printBill } from '@/lib/bill-utils';
+import { QRCodeSVG } from 'qrcode.react';
 
 const tokenClasses = {
   'dine-in': 'bg-sky-500',
@@ -105,6 +106,24 @@ export default function Success() {
             {statusMessages[order.type]}
           </p>
 
+          {/* Counter QR Code Verification */}
+          <div className="mt-5 p-4 rounded-2xl bg-white text-black shadow-inner flex flex-col items-center justify-center border border-border/40">
+            <QRCodeSVG
+              value={JSON.stringify({
+                token: order.token,
+                id: order.id,
+                total: order.total,
+                status: order.status,
+              })}
+              size={135}
+              level="M"
+              includeMargin
+            />
+            <p className="text-[11px] font-bold text-gray-700 mt-2">
+              Scan at canteen counter for instant verification
+            </p>
+          </div>
+
           {/* Order Details */}
           <div className="mt-8 pt-6 border-t border-border text-left">
             <h3 className="font-semibold mb-3">Order Details</h3>
@@ -139,14 +158,28 @@ export default function Success() {
           )}
         </div>
 
-        {/* Download Invoice */}
-        <button
-          onClick={() => printBill(order)}
-          className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold text-xs sm:text-base py-2.5 sm:py-3.5 rounded-xl hover:brightness-110 transition-all mb-4 shadow-md"
-        >
-          <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-          Download Invoice
-        </button>
+        {/* Action Buttons: WhatsApp Share & Download Invoice */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+          <button
+            onClick={() => {
+              const itemsList = order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ');
+              const text = `🍔 *Campus Canteen Order Update*\n🎫 *Token:* ${order.token}\n💰 *Amount:* ₹${order.total}\n🍽️ *Items:* ${itemsList}\n📍 *Type:* ${order.type.toUpperCase()}\n\n🔗 *Track your order:* ${window.location.origin}/track`;
+              window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+            }}
+            className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3.5 rounded-xl shadow-md transition-all active:scale-[0.98]"
+          >
+            <Share2 className="w-4 h-4" />
+            Share on WhatsApp
+          </button>
+
+          <button
+            onClick={() => printBill(order)}
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold text-xs sm:text-sm py-2.5 sm:py-3.5 rounded-xl hover:brightness-110 transition-all shadow-md active:scale-[0.98]"
+          >
+            <Download className="w-4 h-4" />
+            Download Invoice
+          </button>
+        </div>
 
         {/* ── Review Section ────────────────────────────────────── */}
         <div className="bg-card rounded-2xl shadow-md border border-border mb-4 overflow-hidden animate-slide-up">

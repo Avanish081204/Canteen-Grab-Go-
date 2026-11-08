@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   ChevronDown,
   ChefHat,
+  Users,
 } from 'lucide-react';
 import { getCart } from '@/lib/store';
 import { useEffect, useState } from 'react';
@@ -224,6 +225,12 @@ export default function Header() {
                       <Link to="/admin/coupons" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
                         <Tag className="w-4 h-4 text-purple-500" />
                         <span>Coupons & Promos</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/users" className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold rounded-xl cursor-pointer hover:bg-muted">
+                        <Users className="w-4 h-4 text-cyan-500" />
+                        <span>Users & Staff Roles</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="my-1" />
