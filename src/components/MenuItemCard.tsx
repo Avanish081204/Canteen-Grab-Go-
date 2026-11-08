@@ -74,7 +74,10 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
         }`}
       >
         {/* Top Image Section */}
-        <div className="relative h-32 sm:h-40 md:h-48 w-full bg-muted overflow-hidden">
+        <div
+          onClick={() => setIs3DModalOpen(true)}
+          className="relative h-32 sm:h-40 md:h-48 w-full bg-muted overflow-hidden cursor-pointer"
+        >
           <img
             src={item.image}
             alt={item.name}
