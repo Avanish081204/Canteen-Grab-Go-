@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ChefHat, Clock, UtensilsCrossed } from 'lucide-react';
+import { CheckCircle, ChefHat, Clock, UtensilsCrossed, Maximize, Minimize } from 'lucide-react';
 import { fetchStaffOrders, Order } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,6 +8,17 @@ export default function Display() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [now, setNow] = useState(new Date());
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -73,22 +84,36 @@ export default function Display() {
           className="flex items-center gap-2 sm:gap-3 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => navigate('/')}
         >
-          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 bg-gradient-to-br from-amber-400 to-orange-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
             <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 md:h-7 md:w-7 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-none">
-              Campus Bites
+            <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-none">
+              Campus Gourmet
             </h1>
-            <p className="text-slate-400 text-[9px] sm:text-xs tracking-[0.15em] uppercase">Order Status Display</p>
+            <p className="text-amber-400/90 text-[9px] sm:text-xs tracking-[0.15em] uppercase font-semibold">Live Kitchen &amp; Token Counter</p>
           </div>
         </div>
 
-        <div className="text-right">
-          <p className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-light text-white tracking-wide leading-none">
-            {formatTime(now)}
-          </p>
-          <p className="text-slate-400 text-[9px] sm:text-xs mt-0.5">{formatDate(now)}</p>
+        <div className="flex items-center gap-3 sm:gap-5 text-right">
+          <div>
+            <p className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-light text-white tracking-wide leading-none font-mono">
+              {formatTime(now)}
+            </p>
+            <p className="text-slate-400 text-[9px] sm:text-xs mt-0.5">{formatDate(now)}</p>
+          </div>
+
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-all flex items-center justify-center"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter TV Fullscreen Mode'}
+          >
+            {isFullscreen ? (
+              <Minimize className="w-4 h-4 sm:w-5 sm:h-5" />
+            ) : (
+              <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
+            )}
+          </button>
         </div>
       </div>
 

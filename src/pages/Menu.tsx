@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, ShoppingCart, X, Sparkles, Flame, Star, Leaf } from 'lucide-react';
 import { getOrderType, setOrderType, getCart, getCartTotal, fetchMenuItems } from '@/lib/store';
 import { MenuItem } from '@/lib/store';
+import { useKitchenStatus } from '@/lib/kitchen-status';
 import MenuItemCard from '@/components/MenuItemCard';
 
 // ── Shimmer Skeleton Card ─────────────────────────────────────────
@@ -24,8 +25,10 @@ function SkeletonCard() {
 
 export default function Menu() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const kitchenStatus = useKitchenStatus();
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
   const [cartTotal, setCartTotal] = useState(0);
   const [cartCount, setCartCount] = useState(0);
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -119,26 +122,34 @@ export default function Menu() {
                   navigate('/');
                 }
               }}
-              className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back
             </button>
-            <button
-              onClick={() => {
-                if (orderType === 'staff-delivery') return;
-                const nextType = orderType === 'take-away' ? 'dine-in' : 'take-away';
-                setOrderType(nextType as any);
-                setOrderTypeState(nextType);
-              }}
-              title={orderType === 'staff-delivery' ? 'Staff Delivery' : 'Click to switch between Dine In & Take Away'}
-              className="text-xs sm:text-sm font-medium bg-muted hover:bg-muted/80 text-foreground px-2.5 py-0.5 sm:py-1 rounded-full transition-colors flex items-center gap-1"
-            >
-              <span>{orderTypeLabels[orderType] || 'Dine In'}</span>
-              {orderType !== 'staff-delivery' && (
-                <span className="text-[10px] text-muted-foreground ml-0.5">⇄</span>
-              )}
-            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full border border-border/40">
+                <span className={`w-1.5 h-1.5 rounded-full ${kitchenStatus.rushLevel === 'low' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                {kitchenStatus.rushLabel} (~{kitchenStatus.estimatedWaitMinutes}m wait)
+              </span>
+
+              <button
+                onClick={() => {
+                  if (orderType === 'staff-delivery') return;
+                  const nextType = orderType === 'take-away' ? 'dine-in' : 'take-away';
+                  setOrderType(nextType as any);
+                  setOrderTypeState(nextType);
+                }}
+                title={orderType === 'staff-delivery' ? 'Staff Delivery' : 'Click to switch between Dine In & Take Away'}
+                className="text-xs sm:text-sm font-semibold bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 rounded-full transition-colors flex items-center gap-1 border border-primary/20"
+              >
+                <span>{orderTypeLabels[orderType] || 'Dine In'}</span>
+                {orderType !== 'staff-delivery' && (
+                  <span className="text-[10px] opacity-70 ml-0.5">⇄</span>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Search Bar */}

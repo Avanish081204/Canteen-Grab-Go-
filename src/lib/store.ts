@@ -18,10 +18,22 @@ export interface MenuItem {
   dietary?: 'veg' | 'non-veg' | 'jain';
   isSpecial?: boolean;
   isSpicy?: boolean;
+  prepTimeMinutes?: number;
+  calories?: number;
+  customizable?: boolean;
+}
+
+export interface CustomizationOption {
+  spiceLevel?: 'Mild' | 'Medium' | 'Extra Spicy';
+  addons?: { id: string; name: string; price: number }[];
+  instructions?: string;
 }
 
 export interface CartItem extends MenuItem {
+  cartItemId?: string;
   quantity: number;
+  customizations?: CustomizationOption;
+  customizedPrice?: number;
 }
 
 export interface Order {
@@ -53,38 +65,38 @@ import coldCoffeeImg from '@/assets/food/cold-coffee.jpg';
 // Menu data
 export const menuItems: MenuItem[] = [
   // Snacks
-  { id: '1', name: 'Samosa', price: 15, category: 'Snacks', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80', description: 'Crispy potato filled pastry with spices', isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true },
-  { id: '2', name: 'Vada Pav', price: 20, category: 'Snacks', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Mumbai style spicy potato burger in a bun', isAvailable: true, dietary: 'veg', isSpicy: true },
-  { id: '3', name: 'French Fries', price: 50, category: 'Snacks', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80', description: 'Crispy golden fries with classic seasoning', isAvailable: true, dietary: 'jain' },
-  { id: '4', name: 'Pav Bhaji', price: 60, category: 'Snacks', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Spicy mashed vegetables served with buttered pav', isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true },
+  { id: '1', name: 'Samosa', price: 15, category: 'Snacks', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80', description: 'Crispy potato filled pastry with spices', isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true, prepTimeMinutes: 4, calories: 180 },
+  { id: '2', name: 'Vada Pav', price: 20, category: 'Snacks', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Mumbai style spicy potato burger in a bun', isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 5, calories: 240, customizable: true },
+  { id: '3', name: 'French Fries', price: 50, category: 'Snacks', image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80', description: 'Crispy golden fries with classic seasoning', isAvailable: true, dietary: 'jain', prepTimeMinutes: 7, calories: 310, customizable: true },
+  { id: '4', name: 'Pav Bhaji', price: 60, category: 'Snacks', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Spicy mashed vegetables served with buttered pav', isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true, prepTimeMinutes: 8, calories: 420, customizable: true },
   
   // Sandwich & Burger
-  { id: '5', name: 'Veg Burger', price: 45, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80', description: 'Classic vegetable patty burger with fresh lettuce', isAvailable: true, dietary: 'veg' },
-  { id: '6', name: 'Cheese Burger', price: 60, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80', description: 'Loaded with melted cheese and fresh veggies', isAvailable: true, dietary: 'non-veg' },
-  { id: '7', name: 'Grilled Sandwich', price: 40, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80', description: 'Perfectly toasted sandwich with seasonal vegetables', isAvailable: true, dietary: 'jain' },
-  { id: '8', name: 'Club Sandwich', price: 70, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1553909489-cd47e0907980?auto=format&fit=crop&w=800&q=80', description: 'Triple layered premium sandwich with assorted fillings', isAvailable: true, dietary: 'non-veg' },
+  { id: '5', name: 'Veg Burger', price: 45, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80', description: 'Classic vegetable patty burger with fresh lettuce', isAvailable: true, dietary: 'veg', prepTimeMinutes: 8, calories: 340, customizable: true },
+  { id: '6', name: 'Cheese Burger', price: 60, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80', description: 'Loaded with melted cheese and fresh veggies', isAvailable: true, dietary: 'non-veg', prepTimeMinutes: 9, calories: 440, customizable: true },
+  { id: '7', name: 'Grilled Sandwich', price: 40, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80', description: 'Perfectly toasted sandwich with seasonal vegetables', isAvailable: true, dietary: 'jain', prepTimeMinutes: 7, calories: 290, customizable: true },
+  { id: '8', name: 'Club Sandwich', price: 70, category: 'Sandwich/Burger', image: 'https://images.unsplash.com/photo-1553909489-cd47e0907980?auto=format&fit=crop&w=800&q=80', description: 'Triple layered premium sandwich with assorted fillings', isAvailable: true, dietary: 'non-veg', prepTimeMinutes: 10, calories: 510, customizable: true },
   
   // Chinese
-  { id: '9', name: 'Veg Noodles', price: 60, category: 'Chinese', image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=800&q=80', description: 'Authentic stir-fried noodles with crisp vegetables', isAvailable: true, dietary: 'veg', isSpicy: true },
-  { id: '10', name: 'Manchurian', price: 70, category: 'Chinese', image: 'https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=800&q=80', description: 'Crispy vegetable balls in a spicy, tangy sauce', isAvailable: true, dietary: 'veg', isSpicy: true },
-  { id: '11', name: 'Fried Rice', price: 60, category: 'Chinese', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80', description: 'Wok-tossed aromatic rice with sautéed vegetables', isAvailable: true, dietary: 'veg' },
-  { id: '12', name: 'Spring Roll', price: 40, category: 'Chinese', image: 'https://images.unsplash.com/photo-1548507200-1cd5cf07b722?auto=format&fit=crop&w=800&q=80', description: 'Crispy rolls with a delicious vegetable filling', isAvailable: true, dietary: 'veg' },
+  { id: '9', name: 'Veg Noodles', price: 60, category: 'Chinese', image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=800&q=80', description: 'Authentic stir-fried noodles with crisp vegetables', isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 10, calories: 380, customizable: true },
+  { id: '10', name: 'Manchurian', price: 70, category: 'Chinese', image: 'https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=800&q=80', description: 'Crispy vegetable balls in a spicy, tangy sauce', isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 10, calories: 360 },
+  { id: '11', name: 'Fried Rice', price: 60, category: 'Chinese', image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80', description: 'Wok-tossed aromatic rice with sautéed vegetables', isAvailable: true, dietary: 'veg', prepTimeMinutes: 9, calories: 350 },
+  { id: '12', name: 'Spring Roll', price: 40, category: 'Chinese', image: 'https://images.unsplash.com/photo-1548507200-1cd5cf07b722?auto=format&fit=crop&w=800&q=80', description: 'Crispy rolls with a delicious vegetable filling', isAvailable: true, dietary: 'veg', prepTimeMinutes: 8, calories: 260 },
   
   // Meals
-  { id: '13', name: 'Thali', price: 80, category: 'Meals', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80', description: 'Complete Indian meal with roti, rice, dal, and sabzi', isAvailable: true, dietary: 'veg', isSpecial: true },
-  { id: '14', name: 'Rajma Chawal', price: 60, category: 'Meals', image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=800&q=80', description: 'Slow-cooked kidney beans curry served with steamed rice', isAvailable: true, dietary: 'veg' },
-  { id: '15', name: 'Chole Bhature', price: 70, category: 'Meals', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Spicy chickpeas served with fluffy deep-fried bread', isAvailable: true, dietary: 'veg', isSpicy: true },
+  { id: '13', name: 'Thali', price: 80, category: 'Meals', image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80', description: 'Complete Indian meal with roti, rice, dal, and sabzi', isAvailable: true, dietary: 'veg', isSpecial: true, prepTimeMinutes: 6, calories: 650 },
+  { id: '14', name: 'Rajma Chawal', price: 60, category: 'Meals', image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=800&q=80', description: 'Slow-cooked kidney beans curry served with steamed rice', isAvailable: true, dietary: 'veg', prepTimeMinutes: 5, calories: 480 },
+  { id: '15', name: 'Chole Bhature', price: 70, category: 'Meals', image: 'https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80', description: 'Spicy chickpeas served with fluffy deep-fried bread', isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 8, calories: 590 },
   
   // Cold Drinks
-  { id: '16', name: 'Cold Coffee', price: 40, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=800&q=80', description: 'Chilled creamy coffee served with a scoop of ice cream', isAvailable: true, dietary: 'jain', isSpecial: true },
-  { id: '17', name: 'Lemonade', price: 25, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=800&q=80', description: 'Refreshing fresh lime soda with a hint of mint', isAvailable: true, dietary: 'jain' },
-  { id: '18', name: 'Mango Shake', price: 50, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?auto=format&fit=crop&w=800&q=80', description: 'Thick and creamy mango milkshake made with real fruit', isAvailable: true, dietary: 'jain' },
-  { id: '19', name: 'Masala Chai', price: 15, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?auto=format&fit=crop&w=800&q=80', description: 'Traditional hot Indian spiced tea with aromatic herbs', isAvailable: true, dietary: 'veg', isSpicy: true },
+  { id: '16', name: 'Cold Coffee', price: 40, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=800&q=80', description: 'Chilled creamy coffee served with a scoop of ice cream', isAvailable: true, dietary: 'jain', isSpecial: true, prepTimeMinutes: 4, calories: 220, customizable: true },
+  { id: '17', name: 'Lemonade', price: 25, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?auto=format&fit=crop&w=800&q=80', description: 'Refreshing fresh lime soda with a hint of mint', isAvailable: true, dietary: 'jain', prepTimeMinutes: 3, calories: 95 },
+  { id: '18', name: 'Mango Shake', price: 50, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?auto=format&fit=crop&w=800&q=80', description: 'Thick and creamy mango milkshake made with real fruit', isAvailable: true, dietary: 'jain', prepTimeMinutes: 4, calories: 260 },
+  { id: '19', name: 'Masala Chai', price: 15, category: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?auto=format&fit=crop&w=800&q=80', description: 'Traditional hot Indian spiced tea with aromatic herbs', isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 3, calories: 85 },
   
   // Combos
-  { id: '20', name: 'Burger Combo', price: 99, category: 'Combos', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80', description: 'A satisfying meal of Burger, Fries, and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'non-veg', isSpecial: true },
-  { id: '21', name: 'Vada Pav Combo', price: 40, category: 'Combos', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Classic Bombay Vada Pav served with hot Masala Chai', isCombo: true, isAvailable: true, dietary: 'veg', isSpicy: true },
-  { id: '22', name: 'Chinese Combo', price: 120, category: 'Combos', image: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80', description: 'Delicious Noodles with Manchurian and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true },
+  { id: '20', name: 'Burger Combo', price: 99, category: 'Combos', image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80', description: 'A satisfying meal of Burger, Fries, and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'non-veg', isSpecial: true, prepTimeMinutes: 10, calories: 680, customizable: true },
+  { id: '21', name: 'Vada Pav Combo', price: 40, category: 'Combos', image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80', description: 'Classic Bombay Vada Pav served with hot Masala Chai', isCombo: true, isAvailable: true, dietary: 'veg', isSpicy: true, prepTimeMinutes: 6, calories: 340 },
+  { id: '22', name: 'Chinese Combo', price: 120, category: 'Combos', image: 'https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80', description: 'Delicious Noodles with Manchurian and a Cold Drink', isCombo: true, isAvailable: true, dietary: 'veg', isSpecial: true, isSpicy: true, prepTimeMinutes: 12, calories: 620 },
 ];
 
 export const categories = ['All', 'Snacks', 'Sandwich/Burger', 'Chinese', 'Meals', 'Cold Drinks', 'Combos'];
@@ -196,29 +208,49 @@ export function saveCart(cart: CartItem[]) {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
 }
 
-export function addToCart(item: MenuItem) {
+export function addToCart(
+  item: MenuItem,
+  customizations?: CustomizationOption,
+  customizedPrice?: number
+) {
   const cart = getCart();
-  const existingIndex = cart.findIndex(i => i.id === item.id);
+  const effectivePrice = customizedPrice ?? item.price;
+  const customizationKey = customizations ? JSON.stringify(customizations) : '';
+  const cartItemId = customizations ? `${item.id}_${Date.now().toString(36)}` : item.id;
+
+  // Find exact matching item (same id and same customizations)
+  const existingIndex = cart.findIndex(i => {
+    if (customizations) {
+      return i.id === item.id && JSON.stringify(i.customizations) === customizationKey;
+    }
+    return (i.cartItemId || i.id) === item.id && !i.customizations;
+  });
   
   if (existingIndex >= 0) {
     cart[existingIndex].quantity++;
   } else {
-    cart.push({ ...item, quantity: 1 });
+    cart.push({
+      ...item,
+      cartItemId,
+      quantity: 1,
+      customizations,
+      customizedPrice: effectivePrice,
+    });
   }
   
   saveCart(cart);
   return cart;
 }
 
-export function removeFromCart(itemId: string) {
-  const cart = getCart().filter(i => i.id !== itemId);
+export function removeFromCart(cartItemIdOrId: string) {
+  const cart = getCart().filter(i => (i.cartItemId || i.id) !== cartItemIdOrId);
   saveCart(cart);
   return cart;
 }
 
-export function updateCartQuantity(itemId: string, quantity: number) {
+export function updateCartQuantity(cartItemIdOrId: string, quantity: number) {
   const cart = getCart();
-  const index = cart.findIndex(i => i.id === itemId);
+  const index = cart.findIndex(i => (i.cartItemId || i.id) === cartItemIdOrId);
   
   if (index >= 0) {
     if (quantity <= 0) {
@@ -237,7 +269,7 @@ export function clearCart() {
 }
 
 export function getCartTotal(): number {
-  return getCart().reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return getCart().reduce((sum, item) => sum + (item.customizedPrice ?? item.price) * item.quantity, 0);
 }
 
 // Order type functions

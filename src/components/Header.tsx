@@ -13,11 +13,14 @@ import {
   ChevronDown,
   ChefHat,
   Users,
+  Coins,
+  Sparkles,
 } from 'lucide-react';
 import { getCart } from '@/lib/store';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/use-profile';
+import { useKitchenStatus } from '@/lib/kitchen-status';
 import Logo from './Logo';
 import NotificationBell from './NotificationBell';
 import ThemeToggle from './ThemeToggle';
@@ -34,6 +37,7 @@ export default function Header() {
   const location = useLocation();
   const [cartCount, setCartCount] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const kitchenStatus = useKitchenStatus();
 
   useEffect(() => {
     // Check initial session
@@ -132,6 +136,32 @@ export default function Header() {
                 </span>
               </div>
             </Link>
+
+            {/* Live Kitchen Rush Indicator */}
+            <div
+              className={`hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                kitchenStatus.rushLevel === 'low'
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                  : kitchenStatus.rushLevel === 'moderate'
+                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full animate-pulse ${
+                  kitchenStatus.rushLevel === 'low'
+                    ? 'bg-emerald-500'
+                    : kitchenStatus.rushLevel === 'moderate'
+                    ? 'bg-amber-500'
+                    : 'bg-rose-500'
+                }`}
+              />
+              <span>
+                {kitchenStatus.isOpen
+                  ? `Kitchen: ${kitchenStatus.rushLabel} (~${kitchenStatus.estimatedWaitMinutes}m)`
+                  : 'Kitchen: Closed (Opens 8 AM)'}
+              </span>
+            </div>
 
             {/* Clean Center Navigation — Desktop Only (No overlapping!) */}
             <nav className="hidden md:flex items-center justify-center gap-1 bg-muted/60 p-1 rounded-2xl flex-shrink-0">
@@ -246,6 +276,18 @@ export default function Header() {
 
               <ThemeToggle />
               <NotificationBell />
+
+              {/* VIP Loyalty Coins Shortcut */}
+              {user && (
+                <Link
+                  to="/profile"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all shadow-xs"
+                  title="View your VIP Loyalty Coins balance"
+                >
+                  <Coins className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Coins</span>
+                </Link>
+              )}
 
               {/* Profile button */}
               {user ? (
