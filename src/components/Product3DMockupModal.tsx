@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   X,
   RotateCw,
@@ -10,18 +10,16 @@ import {
   Layers,
   Info,
   ShoppingCart,
-  Plus,
-  Minus,
-  Check,
   ZoomIn,
   ZoomOut,
-  Maximize2,
   Box,
   Eye,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { MenuItem, addToCart, CustomizationOption } from '@/lib/store';
 import { toast } from 'sonner';
 import ItemCustomizationModal from './ItemCustomizationModal';
+import RealFood3DViewer from './RealFood3DViewer';
 
 interface Product3DMockupModalProps {
   item: MenuItem | null;
@@ -30,73 +28,71 @@ interface Product3DMockupModalProps {
   onCartUpdate: () => void;
 }
 
-// Intelligent realistic layer anatomy based on item name & category
 function getDishAnatomy(item: MenuItem): { title: string; desc: string; icon: string }[] {
   const name = item.name.toLowerCase();
   const cat = item.category.toLowerCase();
 
   if (name.includes('burger')) {
     return [
-      { title: 'Toasted Sesame Brioche', desc: 'Butter-toasted golden bun top', icon: '🍞' },
+      { title: 'Toasted Sesame Brioche', desc: 'Butter-toasted golden bun top with sesame', icon: '🍞' },
+      { title: 'Melted Cheddar Cheese', desc: 'Rich gooey melted cheese draped over patty', icon: '🧀' },
       { title: 'Crispy Gourmet Patty', desc: 'Herb-infused crispy golden filling', icon: '🍔' },
-      { title: 'Melted Cheddar Cheese', desc: 'Rich gooey melted cheese slice', icon: '🧀' },
-      { title: 'Garden Fresh Veggies', desc: 'Crunchy lettuce, sliced tomatoes & gherkins', icon: '🥬' },
+      { title: 'Garden Fresh Veggies', desc: 'Crunchy lettuce & ripe sliced tomatoes', icon: '🥬' },
       { title: 'Signature Canteen Sauce', desc: 'Creamy spicy secret house mayo', icon: '🥫' },
-      { title: 'Seared Base Bun', desc: 'Lightly toasted bun base for extra crunch', icon: '🍞' },
+      { title: 'Seared Base Bun', desc: 'Lightly toasted bun base for crunch', icon: '🍞' },
     ];
   }
 
   if (name.includes('samosa') || name.includes('kachori')) {
     return [
       { title: 'Golden Flaky Crust', desc: 'Crispy ajwain-infused fried pastry', icon: '🥟' },
-      { title: 'Spiced Potato Filling', desc: 'Crushed potatoes, green peas & fresh ginger', icon: '🥔' },
+      { title: 'Spiced Potato Mash', desc: 'Crushed potatoes, green peas & ginger', icon: '🥔' },
       { title: 'Secret Masala Blend', desc: 'Roasted cumin, coriander & garam masala', icon: '🌶️' },
       { title: 'Sweet Saunth Chutney', desc: 'Authentic jaggery & tamarind reduction', icon: '🍯' },
-      { title: 'Zesty Mint Dip', desc: 'Fresh mint, coriander & green chilli chutney', icon: '🌿' },
+      { title: 'Zesty Mint Dip', desc: 'Fresh mint & green chilli chutney', icon: '🌿' },
     ];
   }
 
-  if (name.includes('vada pav')) {
+  if (name.includes('vada')) {
     return [
-      { title: 'Soft Mumbai Pav', desc: 'Fresh bakery ladi pav with butter smear', icon: '🍞' },
-      { title: 'Crispy Batata Vada', desc: 'Spiced potato ball fried in gram flour batter', icon: '🥔' },
-      { title: 'Dry Garlic Chutney', desc: 'Fiery roasted garlic & coconut powder', icon: '🧄' },
-      { title: 'Fried Green Chilli', desc: 'Lightly salted tempered green chilli', icon: '🌶️' },
+      { title: 'Soft Mumbai Ladi Pav', desc: 'Bakery fresh pav with butter smear', icon: '🍞' },
+      { title: 'Batata Vada Ball', desc: 'Spiced potato ball fried in gram flour', icon: '🥔' },
+      { title: 'Fiery Garlic Chutney', desc: 'Roasted dry garlic & chilli dust', icon: '🧄' },
+      { title: 'Tempered Green Chilli', desc: 'Lightly salted fried green chilli', icon: '🌶️' },
     ];
   }
 
   if (name.includes('noodle') || cat.includes('chinese') || name.includes('rice')) {
     return [
-      { title: 'Wok-Tossed Base', desc: 'Sizzling noodles tossed in smoking wok hei', icon: '🍜' },
-      { title: 'Julienned Vegetables', desc: 'Crisp bell peppers, cabbage & spring onions', icon: '🫑' },
-      { title: 'Dark Soy & Garlic Glaze', desc: 'Rich umami dark soy sauce & chilli oil', icon: '🥢' },
-      { title: 'Scallion Garnish', desc: 'Fresh finely chopped spring onion greens', icon: '🧅' },
-    ];
-  }
-
-  if (name.includes('combo')) {
-    return [
-      { title: 'Main Entrée Dish', desc: 'Signature gourmet burger or loaded meal', icon: '🍔' },
-      { title: 'Golden Crisp Sides', desc: 'Salted potato fries or crispy spring rolls', icon: '🍟' },
-      { title: 'Chilled Drink Pairing', desc: 'Ice-cold refreshing beverage or frappe', icon: '🥤' },
-      { title: 'Signature Dips Duo', desc: 'Chef special garlic mayo & tangy salsa', icon: '🥣' },
+      { title: 'Wok-Tossed Hakka Noodles', desc: 'Sizzling noodles tossed in smoking wok hei', icon: '🍜' },
+      { title: 'Julienned Capsicum & Carrots', desc: 'Crisp bell peppers & spring onion greens', icon: '🫑' },
+      { title: 'Dark Soy & Chilli Glaze', desc: 'Rich umami dark soy sauce & chilli oil', icon: '🥢' },
+      { title: 'Wooden Chopsticks Pair', desc: 'Traditional dining chopsticks', icon: '🥢' },
     ];
   }
 
   if (cat.includes('meals') || name.includes('thali') || name.includes('paneer')) {
     return [
-      { title: 'Signature Gravy Bowl', desc: 'Rich butter gravy slow-cooked with fresh cream', icon: '🍲' },
-      { title: 'Tandoori Roti / Naan', desc: 'Freshly baked Indian flatbread with butter glaze', icon: '🫓' },
-      { title: 'Fragrant Basmati Rice', desc: 'Long-grain cumin scented steamed rice', icon: '🍚' },
-      { title: 'Lentil Dal & Salad', desc: 'Slow simmered dal tadka with crisp salad', icon: '🥗' },
+      { title: 'Shahi Paneer Katori', desc: 'Rich butter gravy with tender paneer cubes', icon: '🍲' },
+      { title: 'Slow-Simmered Dal Tadka', desc: 'Golden yellow lentils with garlic tempering', icon: '🥣' },
+      { title: 'Fragrant Steamed Rice', desc: 'Steamed aromatic long-grain rice mound', icon: '🍚' },
+      { title: 'Folded Butter Roti', desc: 'Fresh whole-wheat flatbread with butter glaze', icon: '🫓' },
     ];
   }
 
-  // Default Beverage / Snack
+  if (cat.includes('cold') || name.includes('coffee') || name.includes('drink')) {
+    return [
+      { title: 'Whipped Cream Swirl', desc: 'Rich frothy sweet cream topping', icon: '🍦' },
+      { title: 'Chilled Coffee Brew', desc: 'Fresh roasted coffee blend with whole milk', icon: '☕' },
+      { title: 'Solid Ice Cubes', desc: 'Purified water crystal ice cubes', icon: '🧊' },
+      { title: 'Signature Drinking Straw', desc: 'Retro red & white striped straw', icon: '🥤' },
+    ];
+  }
+
   return [
-    { title: 'Premium Ingredients', desc: 'Sourced fresh daily from verified campus vendors', icon: '✨' },
-    { title: 'Fresh Preparation', desc: 'Made to order at our hygienic kitchen counter', icon: '🔥' },
-    { title: 'Chef Presentation', desc: 'Served in eco-friendly biodegradable packaging', icon: '📦' },
+    { title: 'Gourmet Mini Burger', desc: 'Toasted bun with crispy patty & cheese', icon: '🍔' },
+    { title: 'Golden French Fries Stack', desc: 'Crisp crinkle-cut salted potato fries', icon: '🍟' },
+    { title: 'Chilled Beverage Cup', desc: 'Refreshing cold drink pairing', icon: '🥤' },
   ];
 }
 
@@ -106,65 +102,14 @@ export default function Product3DMockupModal({
   onClose,
   onCartUpdate,
 }: Product3DMockupModalProps) {
-  const [rotationX, setRotationX] = useState(15);
-  const [rotationY, setRotationY] = useState(0);
   const [isAutoRotate, setIsAutoRotate] = useState(true);
   const [lightingMode, setLightingMode] = useState<'warm' | 'studio' | 'night'>('warm');
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isExploded, setIsExploded] = useState(false);
   const [activeTab, setActiveTab] = useState<'3d' | 'anatomy' | 'specs'>('3d');
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
 
-  const isDragging = useRef(false);
-  const lastMousePos = useRef({ x: 0, y: 0 });
-  const animFrameId = useRef<number | null>(null);
-
-  // Auto-rotate animation loop
-  useEffect(() => {
-    if (!isOpen || !isAutoRotate) return;
-
-    let currentY = rotationY;
-    const animate = () => {
-      currentY = (currentY + 0.45) % 360;
-      setRotationY(currentY);
-      animFrameId.current = requestAnimationFrame(animate);
-    };
-
-    animFrameId.current = requestAnimationFrame(animate);
-    return () => {
-      if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
-    };
-  }, [isOpen, isAutoRotate]);
-
   if (!isOpen || !item) return null;
-
-  // Mouse & Touch Drag Handlers for 3D Turntable
-  const handlePointerDown = (e: React.PointerEvent) => {
-    isDragging.current = true;
-    setIsAutoRotate(false);
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging.current) return;
-    const deltaX = e.clientX - lastMousePos.current.x;
-    const deltaY = e.clientY - lastMousePos.current.y;
-
-    setRotationY(prev => (prev + deltaX * 0.7) % 360);
-    setRotationX(prev => Math.max(-25, Math.min(45, prev - deltaY * 0.5)));
-
-    lastMousePos.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handlePointerUp = () => {
-    isDragging.current = false;
-  };
-
-  const handleResetView = () => {
-    setRotationX(15);
-    setRotationY(0);
-    setZoomLevel(1);
-    setIsAutoRotate(true);
-  };
 
   const handleAddToCart = () => {
     if (item.customizable) {
@@ -200,159 +145,104 @@ export default function Product3DMockupModal({
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-base sm:text-lg font-black tracking-tight">{item.name}</h3>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-primary/10 text-primary border border-primary/25 px-2 py-0.5 rounded-full">
-                    3D Mockup
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Real 3D WebGL Mesh
                   </span>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Interactive 360° Studio • Drag to rotate &amp; inspect layers
+                  Interactive 3D Studio • Drag to orbit 360° • Volumetric PBR geometry
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Reset view */}
-              <button
-                onClick={handleResetView}
-                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
-                title="Reset 3D View"
-              >
-                <RotateCw className="w-4 h-4" />
-              </button>
               {/* Close Button */}
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* ── Modal Body: 3D Stage on Left, Inspector on Right ───── */}
+          {/* ── Modal Body: Real 3D Canvas on Left, Controls & Details on Right ── */}
           <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-y-auto">
-            {/* 3D Stage (Cols 1-7) */}
+            {/* Real 3D WebGL Canvas (Cols 1-7) */}
             <div
-              className={`lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] flex flex-col items-center justify-center p-6 select-none overflow-hidden transition-colors duration-500 cursor-grab active:cursor-grabbing ${
+              className={`lg:col-span-7 relative min-h-[380px] sm:min-h-[460px] flex flex-col items-center justify-center overflow-hidden transition-colors duration-500 ${
                 lightingMode === 'warm'
-                  ? 'bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent'
+                  ? 'bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-card'
                   : lightingMode === 'studio'
-                  ? 'bg-gradient-to-b from-slate-200/50 via-slate-100/20 to-transparent dark:from-slate-800/40'
-                  : 'bg-gradient-to-b from-indigo-950/40 via-purple-950/20 to-black/40'
+                  ? 'bg-gradient-to-b from-slate-200/50 via-slate-100/20 to-card dark:from-slate-800/40'
+                  : 'bg-gradient-to-b from-indigo-950/40 via-purple-950/20 to-card'
               }`}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={handlePointerUp}
             >
-              {/* Ambient Spotlight Glow */}
-              <div
-                className={`absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-                  lightingMode === 'warm'
-                    ? 'bg-amber-400/20'
-                    : lightingMode === 'studio'
-                    ? 'bg-blue-400/15'
-                    : 'bg-indigo-500/25'
-                }`}
-              />
-
-              {/* ── 3D Turntable Platter ────────────────────────────── */}
-              <div
-                className="relative transition-transform duration-75 ease-out"
-                style={{
-                  perspective: '1200px',
-                  transform: `scale(${zoomLevel})`,
-                }}
-              >
-                <div
-                  className="relative transition-transform duration-75 ease-out"
-                  style={{
-                    transformStyle: 'preserve-3d',
-                    transform: `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`,
-                  }}
-                >
-                  {/* Floating Platter Pedestal */}
-                  <div
-                    className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full p-2.5 transition-all shadow-2xl flex items-center justify-center"
-                    style={{
-                      transformStyle: 'preserve-3d',
-                      background:
-                        lightingMode === 'night'
-                          ? 'radial-gradient(circle, #2d3748 0%, #1a202c 80%)'
-                          : 'radial-gradient(circle, #ffffff 0%, #f1f5f9 85%, #e2e8f0 100%)',
-                      boxShadow:
-                        '0 25px 50px -12px rgba(0,0,0,0.45), 0 0 0 6px rgba(255,255,255,0.15) inset',
-                    }}
-                  >
-                    {/* Outer Platter Edge Ring */}
-                    <div className="absolute inset-1 rounded-full border border-black/10 dark:border-white/10 pointer-events-none" />
-
-                    {/* Food Image Circle with 3D Pop Elevation */}
-                    <div
-                      className="w-48 h-48 sm:w-56 sm:h-56 rounded-full overflow-hidden shadow-2xl relative"
-                      style={{
-                        transform: 'translateZ(30px)',
-                        boxShadow: '0 15px 35px -5px rgba(0, 0, 0, 0.4)',
-                      }}
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover pointer-events-none"
-                      />
-
-                      {/* Dynamic Reflection Glare */}
-                      <div
-                        className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-                        style={{
-                          background: `linear-gradient(${rotationY + 45}deg, rgba(255,255,255,0.4) 0%, transparent 60%)`,
-                        }}
-                      />
-                    </div>
-
-                    {/* Floating 3D Badge on Dish */}
-                    <div
-                      className="absolute -top-2 right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg border border-white/30 flex items-center gap-1"
-                      style={{
-                        transform: 'translateZ(50px)',
-                      }}
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      ₹{item.price}
-                    </div>
-                  </div>
-
-                  {/* 3D Ambient Platter Shadow on Floor */}
-                  <div
-                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-12 bg-black/40 rounded-full blur-xl pointer-events-none"
-                    style={{
-                      transform: 'rotateX(90deg) translateZ(-40px)',
-                    }}
-                  />
-                </div>
+              {/* Floating Live 3D Badge */}
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                <span className="bg-card/90 backdrop-blur-md border border-border/80 text-[11px] font-bold px-3 py-1 rounded-full shadow-xs flex items-center gap-1.5">
+                  <Box className="w-3.5 h-3.5 text-amber-500" />
+                  <span>360° Real 3D Model</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground hidden sm:inline">
+                  (Drag to rotate)
+                </span>
               </div>
 
+              {/* Price Pill */}
+              <div className="absolute top-3 right-3 z-10">
+                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  ₹{item.price}
+                </span>
+              </div>
+
+              {/* REAL THREE.JS 3D CANVAS */}
+              <RealFood3DViewer
+                item={item}
+                isAutoRotate={isAutoRotate}
+                lightingMode={lightingMode}
+                isExploded={isExploded}
+                zoomLevel={zoomLevel}
+              />
+
               {/* ── 3D Stage Overlay Controls ───────────────────────── */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs">
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs z-10 gap-2">
                 {/* Auto-Rotate Switch */}
                 <button
                   type="button"
                   onClick={() => setIsAutoRotate(!isAutoRotate)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-md border transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-md border transition-all cursor-pointer ${
                     isAutoRotate
                       ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                      : 'bg-card/80 text-foreground border-border/80 hover:bg-card'
+                      : 'bg-card/90 text-foreground border-border/80 hover:bg-card'
                   }`}
                 >
                   <RotateCw className={`w-3 h-3 ${isAutoRotate ? 'animate-spin' : ''}`} />
-                  <span>{isAutoRotate ? '360° Rotating' : 'Rotate Paused'}</span>
+                  <span>{isAutoRotate ? 'Auto Orbit' : 'Orbit Paused'}</span>
+                </button>
+
+                {/* Explode 3D Layers Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsExploded(!isExploded)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black backdrop-blur-md border transition-all cursor-pointer ${
+                    isExploded
+                      ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-105'
+                      : 'bg-card/90 text-foreground border-border/80 hover:border-amber-500/50'
+                  }`}
+                  title="Explode 3D Anatomy Layers"
+                >
+                  <Layers className="w-3 h-3" />
+                  <span>{isExploded ? 'Collapse 3D' : 'Explode 3D'}</span>
                 </button>
 
                 {/* Lighting mode switcher */}
-                <div className="flex items-center gap-1 bg-card/85 backdrop-blur-md p-1 rounded-full border border-border/80 shadow-xs">
+                <div className="flex items-center gap-1 bg-card/90 backdrop-blur-md p-1 rounded-full border border-border/80 shadow-xs">
                   <button
                     onClick={() => setLightingMode('warm')}
-                    className={`p-1.5 rounded-full transition-all ${
+                    className={`p-1.5 rounded-full transition-all cursor-pointer ${
                       lightingMode === 'warm'
                         ? 'bg-amber-500 text-white'
                         : 'text-muted-foreground hover:text-foreground'
@@ -363,7 +253,7 @@ export default function Product3DMockupModal({
                   </button>
                   <button
                     onClick={() => setLightingMode('studio')}
-                    className={`p-1.5 rounded-full transition-all ${
+                    className={`p-1.5 rounded-full transition-all cursor-pointer ${
                       lightingMode === 'studio'
                         ? 'bg-slate-700 text-white'
                         : 'text-muted-foreground hover:text-foreground'
@@ -374,7 +264,7 @@ export default function Product3DMockupModal({
                   </button>
                   <button
                     onClick={() => setLightingMode('night')}
-                    className={`p-1.5 rounded-full transition-all ${
+                    className={`p-1.5 rounded-full transition-all cursor-pointer ${
                       lightingMode === 'night'
                         ? 'bg-indigo-600 text-white'
                         : 'text-muted-foreground hover:text-foreground'
@@ -386,10 +276,10 @@ export default function Product3DMockupModal({
                 </div>
 
                 {/* Zoom controls */}
-                <div className="flex items-center gap-1 bg-card/85 backdrop-blur-md p-1 rounded-full border border-border/80 shadow-xs">
+                <div className="hidden sm:flex items-center gap-1 bg-card/90 backdrop-blur-md p-1 rounded-full border border-border/80 shadow-xs">
                   <button
-                    onClick={() => setZoomLevel(prev => Math.max(0.8, prev - 0.15))}
-                    className="p-1.5 rounded-full hover:bg-muted text-foreground transition-all"
+                    onClick={() => setZoomLevel(prev => Math.max(0.7, prev - 0.15))}
+                    className="p-1.5 rounded-full hover:bg-muted text-foreground transition-all cursor-pointer"
                     title="Zoom Out"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
@@ -397,7 +287,7 @@ export default function Product3DMockupModal({
                   <span className="text-[10px] font-mono font-bold px-1">{Math.round(zoomLevel * 100)}%</span>
                   <button
                     onClick={() => setZoomLevel(prev => Math.min(1.4, prev + 0.15))}
-                    className="p-1.5 rounded-full hover:bg-muted text-foreground transition-all"
+                    className="p-1.5 rounded-full hover:bg-muted text-foreground transition-all cursor-pointer"
                     title="Zoom In"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
@@ -413,7 +303,7 @@ export default function Product3DMockupModal({
                 <div className="flex items-center p-1 bg-muted/80 rounded-2xl border border-border/50 text-xs font-bold">
                   <button
                     onClick={() => setActiveTab('3d')}
-                    className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                    className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeTab === '3d'
                         ? 'bg-primary text-primary-foreground shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'
@@ -424,18 +314,18 @@ export default function Product3DMockupModal({
                   </button>
                   <button
                     onClick={() => setActiveTab('anatomy')}
-                    className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                    className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeTab === 'anatomy'
                         ? 'bg-primary text-primary-foreground shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    <span>3D Layers</span>
+                    <span>3D Anatomy</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('specs')}
-                    className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                    className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeTab === 'specs'
                         ? 'bg-primary text-primary-foreground shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'
@@ -477,11 +367,11 @@ export default function Product3DMockupModal({
                       </div>
                     </div>
 
-                    {/* Dietary & Customization notice */}
-                    <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-2.5">
-                      <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                      <div className="text-[11px] text-amber-900 dark:text-amber-300">
-                        <span className="font-bold">Freshly Prepared on Order:</span> All items are cooked hot at the counter. Customizable toppings &amp; spice levels available at checkout.
+                    {/* Interactive 3D Guide */}
+                    <div className="p-3 rounded-2xl bg-primary/10 border border-primary/25 flex items-start gap-2.5">
+                      <Box className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div className="text-[11px] text-foreground">
+                        <span className="font-bold">Interactive 3D Features:</span> Click and drag on the 3D model above to rotate the platter freely. Click <span className="font-bold text-amber-600 dark:text-amber-400">&ldquo;Explode 3D&rdquo;</span> to see the culinary layer breakdown!
                       </div>
                     </div>
                   </div>
@@ -490,9 +380,17 @@ export default function Product3DMockupModal({
                 {/* Tab 2: 3D Layers Breakdown */}
                 {activeTab === 'anatomy' && (
                   <div className="space-y-2 animate-fade-in max-h-[260px] overflow-y-auto pr-1">
-                    <p className="text-[11px] font-bold text-muted-foreground">
-                      Layer-by-Layer Culinary Construction:
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[11px] font-bold text-muted-foreground">
+                        Culinary Construction:
+                      </p>
+                      <button
+                        onClick={() => setIsExploded(!isExploded)}
+                        className="text-[10px] font-bold text-primary hover:underline"
+                      >
+                        {isExploded ? 'Reset Layers' : 'Animate Explode'}
+                      </button>
+                    </div>
                     {anatomy.map((layer, idx) => (
                       <div
                         key={idx}
@@ -503,7 +401,7 @@ export default function Product3DMockupModal({
                           <p className="text-xs font-bold text-foreground truncate">{layer.title}</p>
                           <p className="text-[10px] text-muted-foreground truncate">{layer.desc}</p>
                         </div>
-                        <span className="text-[10px] font-mono text-muted-foreground">L{idx + 1}</span>
+                        <span className="text-[10px] font-mono text-muted-foreground font-bold">L{idx + 1}</span>
                       </div>
                     ))}
                   </div>
@@ -548,7 +446,7 @@ export default function Product3DMockupModal({
                     <button
                       type="button"
                       onClick={() => setIsCustomizeOpen(true)}
-                      className="px-3.5 py-2.5 rounded-2xl border border-border/80 hover:bg-muted text-xs font-bold text-foreground transition-all"
+                      className="px-3.5 py-2.5 rounded-2xl border border-border/80 hover:bg-muted text-xs font-bold text-foreground transition-all cursor-pointer"
                     >
                       Customize
                     </button>
@@ -556,7 +454,7 @@ export default function Product3DMockupModal({
                   <button
                     type="button"
                     onClick={handleAddToCart}
-                    className="px-5 py-2.5 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs shadow-md shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"
+                    className="px-5 py-2.5 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs shadow-md shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
                   >
                     <ShoppingCart className="w-4 h-4" />
                     <span>Add to Order</span>
