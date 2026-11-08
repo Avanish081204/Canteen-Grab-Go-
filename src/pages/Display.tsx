@@ -1,14 +1,58 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ChefHat, Clock, UtensilsCrossed, Maximize, Minimize } from 'lucide-react';
+import {
+  CheckCircle2,
+  ChefHat,
+  Clock,
+  Maximize,
+  Minimize,
+  Volume2,
+  VolumeX,
+  ArrowLeft,
+  Sparkles,
+  Flame,
+  Radio,
+  BellRing,
+} from 'lucide-react';
 import { fetchStaffOrders, Order } from '@/lib/store';
+import { useKitchenStatus } from '@/lib/kitchen-status';
 import { supabase } from '@/integrations/supabase/client';
+import Logo from '@/components/Logo';
+
+// ── Built-in High-End Web Audio Chime (Zero external network MP3) ──────
+function playPickupChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    // Dual-tone Ding-Dong Chime (D5 to A5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, now); // D5
+    osc1.frequency.setValueAtTime(880, now + 0.14); // A5
+
+    gain1.gain.setValueAtTime(0.25, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.75);
+  } catch {}
+}
 
 export default function Display() {
   const navigate = useNavigate();
+  const kitchenStatus = useKitchenStatus();
   const [orders, setOrders] = useState<Order[]>([]);
   const [now, setNow] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+
+  const prevReadyIdsRef = useRef<Set<string>>(new Set());
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -25,6 +69,18 @@ export default function Display() {
       try {
         const data = await fetchStaffOrders();
         setOrders(data);
+
+        // Check if any new order became ready and play chime
+        const currentReady = data.filter((o) => o.status === 'ready' && o.type !== 'staff-delivery');
+        const currentReadyIds = new Set(currentReady.map((o) => o.id));
+
+        if (prevReadyIdsRef.current.size > 0 && isAudioEnabled) {
+          const hasNewReady = currentReady.some((o) => !prevReadyIdsRef.current.has(o.id));
+          if (hasNewReady) {
+            playPickupChime();
+          }
+        }
+        prevReadyIdsRef.current = currentReadyIds;
       } catch (err) {
         console.error('Failed to load orders for display:', err);
       }
@@ -32,14 +88,10 @@ export default function Display() {
 
     loadOrders();
 
-    // Subscribe to real-time status updates
+    // Subscribe to real-time status updates from Supabase
     const channel = supabase
       .channel('display-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => loadOrders()
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadOrders())
       .subscribe();
 
     const clockInterval = setInterval(() => setNow(new Date()), 1000);
@@ -48,212 +100,350 @@ export default function Display() {
       supabase.removeChannel(channel);
       clearInterval(clockInterval);
     };
-  }, []);
+  }, [isAudioEnabled]);
 
   const categorizedOrders = useMemo(() => {
-    const nonDelivery = orders.filter(o => o.type !== 'staff-delivery');
+    const nonDelivery = orders.filter((o) => o.type !== 'staff-delivery');
     return {
-      ready: nonDelivery.filter(o => o.status === 'ready'),
-      cooking: nonDelivery.filter(o => o.status === 'cooking'),
-      waiting: nonDelivery.filter(o => o.status === 'placed'),
+      ready: nonDelivery.filter((o) => o.status === 'ready'),
+      cooking: nonDelivery.filter((o) => o.status === 'cooking'),
+      waiting: nonDelivery.filter((o) => o.status === 'placed'),
     };
   }, [orders]);
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true
-    }).toLowerCase();
+      second: '2-digit',
+      hour12: true,
+    });
   };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       day: 'numeric',
-      month: 'short'
+      month: 'long',
+      year: 'numeric',
     });
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1f2e] flex flex-col p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-[#070b14] text-white flex flex-col justify-between p-3 sm:p-5 md:p-6 select-none font-sans overflow-hidden">
+      {/* ── Top TV Header Bar ────────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-4 border-b border-white/10">
+        {/* Brand & Campus Identity */}
+        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto justify-between md:justify-start">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 transition-all flex items-center justify-center cursor-pointer"
+            title="Return to Home"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
-        <div
-          className="flex items-center gap-2 sm:gap-3 md:gap-4 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => navigate('/')}
-        >
-          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 bg-gradient-to-br from-amber-400 to-orange-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
-            <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 md:h-7 md:w-7 text-white" />
+          <div className="flex items-center gap-3">
+            <Logo size="md" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white leading-none">
+                  Campus Canteen
+                </h1>
+                <span className="hidden sm:inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live TV Feed
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                SLRTCE Smart Food Court • Order Collection Display
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-none">
-              Campus Gourmet
-            </h1>
-            <p className="text-amber-400/90 text-[9px] sm:text-xs tracking-[0.15em] uppercase font-semibold">Live Kitchen &amp; Token Counter</p>
+
+          {/* Mobile TV Controls */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+              className={`p-2 rounded-xl border transition-all ${
+                isAudioEnabled ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-white/5 border-white/10 text-white/60'
+              }`}
+            >
+              {isAudioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={toggleFullscreen}
+              className="p-2 rounded-xl bg-white/5 border border-white/10 text-white"
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-5 text-right">
+        {/* Center Live Kitchen Badge */}
+        <div className="hidden lg:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+            <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <span>Kitchen Online</span>
+          </div>
+          <div className="w-px h-4 bg-white/20" />
+          <span className="text-xs text-slate-300 font-medium">
+            Wait Time: <strong className="text-white">~{kitchenStatus.estimatedWaitMinutes} mins</strong>
+          </span>
+          <div className="w-px h-4 bg-white/20" />
+          <span className="text-xs text-slate-300 font-medium">
+            Active Rush: <strong className="text-amber-400 uppercase">{kitchenStatus.rushLevel}</strong>
+          </span>
+        </div>
+
+        {/* Right Digital Clock & Controls */}
+        <div className="hidden md:flex items-center gap-4 text-right">
           <div>
-            <p className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-light text-white tracking-wide leading-none font-mono">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono tracking-tight text-white leading-none">
               {formatTime(now)}
             </p>
-            <p className="text-slate-400 text-[9px] sm:text-xs mt-0.5">{formatDate(now)}</p>
+            <p className="text-xs text-slate-400 font-medium mt-1">{formatDate(now)}</p>
           </div>
 
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-all flex items-center justify-center"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter TV Fullscreen Mode'}
-          >
-            {isFullscreen ? (
-              <Minimize className="w-4 h-4 sm:w-5 sm:h-5" />
-            ) : (
-              <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Chime Audio Switch */}
+            <button
+              type="button"
+              onClick={() => {
+                const next = !isAudioEnabled;
+                setIsAudioEnabled(next);
+                if (next) playPickupChime();
+              }}
+              className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-center ${
+                isAudioEnabled
+                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/30'
+                  : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border-white/10'
+              }`}
+              title={isAudioEnabled ? 'Pickup Chime Active (Ding-Dong on Ready)' : 'Mute Pickup Chime'}
+            >
+              {isAudioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </button>
+
+            {/* TV Fullscreen Button */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center justify-center cursor-pointer"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter TV Fullscreen Mode'}
+            >
+              {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Grid — stacked on mobile, side-by-side on large screens */}
-      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[2fr_1fr] gap-3 sm:gap-4 md:gap-5">
+      {/* ── Main Split Board: Now Serving (60%) vs Kitchen Queue (40%) ── */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 my-4 min-h-[480px]">
+        {/* ── LEFT: NOW SERVING (READY FOR COUNTER PICKUP) ─────────────── */}
+        <div className="lg:col-span-7 rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-950/70 via-slate-950 to-slate-950 p-5 sm:p-7 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+          {/* Subtle Ambient Radial Glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Now Serving - Large Panel */}
-        <div
-          className="rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-8 flex flex-col min-h-[180px] sm:min-h-[220px] md:min-h-[320px]"
-          style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)' }}
-        >
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4 md:mb-6">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-white leading-tight">Now Serving</h2>
-              <p className="text-white/70 text-xs sm:text-sm md:text-lg">Please collect your order</p>
-            </div>
-          </div>
-
-          {categorizedOrders.ready.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-4">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-24 md:h-24 bg-white/15 rounded-full flex items-center justify-center mb-3 md:mb-6">
-                <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 md:w-12 md:h-12 text-white/50" />
-              </div>
-              <p className="text-white/60 text-base sm:text-lg md:text-2xl font-medium text-center">No orders ready for pickup</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 animate-fade-in">
-              {categorizedOrders.ready.map((order) => (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-xl md:rounded-2xl py-3 sm:py-4 md:py-5 px-3 text-center shadow-xl hover:scale-105 transition-transform duration-200"
-                >
-                  <span className="text-xs sm:text-sm md:text-base lg:text-xl font-bold text-emerald-600 whitespace-nowrap block tracking-tight">
-                    {order.token}
-                  </span>
+          <div>
+            <div className="flex items-center justify-between pb-4 border-b border-emerald-500/30 mb-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 flex-shrink-0 shadow-lg">
+                  <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
                 </div>
-              ))}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight uppercase">
+                      Now Serving
+                    </h2>
+                    <span className="bg-emerald-500 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow-sm">
+                      {categorizedOrders.ready.length} Ready
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-emerald-300/80 font-medium">
+                    Please collect your food at Ground Floor Counter with Token
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* Tokens Display Grid */}
+            {categorizedOrders.ready.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center">
+                <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400/60 mb-4">
+                  <Clock className="w-10 h-10" />
+                </div>
+                <h3 className="text-lg sm:text-2xl font-bold text-white/80">
+                  All Ready Orders Collected!
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 max-w-sm mt-1">
+                  Kitchen is actively cooking the next orders. Tokens will flash here as soon as they are ready.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4.5 animate-fade-in max-h-[460px] overflow-y-auto pr-1 scrollbar-hide">
+                {categorizedOrders.ready.map((order) => (
+                  <div
+                    key={order.id}
+                    className="p-4 sm:p-5 rounded-2xl md:rounded-3xl bg-emerald-500/15 border-2 border-emerald-400/70 text-center shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+                  >
+                    {/* Top Order Type Pill */}
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full inline-block mb-1.5 shadow-xs">
+                      {order.type === 'take-away' ? 'Take Away' : 'Dine In'}
+                    </span>
+
+                    {/* Massive Token Number */}
+                    <span className="text-4xl sm:text-5xl md:text-6xl font-black font-mono tracking-tight text-white block my-1 drop-shadow-lg">
+                      #{order.token}
+                    </span>
+
+                    <span className="text-[11px] text-emerald-300 font-bold block mt-1">
+                      Ready at Counter Window
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Left Panel Footer Notice */}
+          <div className="pt-4 border-t border-emerald-500/25 flex items-center justify-between text-xs text-emerald-300/80 font-medium mt-4">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              Counter Staff verifies token number before handover
+            </span>
+            <span className="hidden sm:inline font-bold">Station: Counter A / B</span>
+          </div>
         </div>
 
-        {/* Right Column */}
-        <div className="flex flex-col gap-3 sm:gap-4 md:gap-5">
+        {/* ── RIGHT: KITCHEN PREPARATION & QUEUE (40%) ─────────────────── */}
+        <div className="lg:col-span-5 flex flex-col justify-between gap-4">
+          {/* Top Card: Preparing in Kitchen */}
+          <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-br from-amber-950/60 via-slate-950 to-slate-950 p-5 shadow-xl flex-1 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-amber-500/30 mb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 flex-shrink-0 shadow-md">
+                    <ChefHat className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                      <span>Preparing</span>
+                      <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+                        {categorizedOrders.cooking.length} Cooking
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-amber-300/80">Active in pan &amp; wok</p>
+                  </div>
+                </div>
+              </div>
 
-          {/* Preparing Panel */}
-          <div
-            className="rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 min-h-[110px] sm:min-h-[130px] md:min-h-[160px]"
-            style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' }}
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 md:mb-4">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-                <ChefHat className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">Preparing</h2>
-                <p className="text-white/70 text-xs sm:text-sm">Being prepared</p>
-              </div>
+              {categorizedOrders.cooking.length === 0 ? (
+                <div className="text-center py-6 text-slate-400 text-xs sm:text-sm font-medium">
+                  No orders currently cooking
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 animate-fade-in max-h-[140px] overflow-y-auto pr-1 scrollbar-hide">
+                  {categorizedOrders.cooking.map((order) => (
+                    <span
+                      key={order.id}
+                      className="bg-amber-500/20 border border-amber-400/50 text-white font-mono font-black text-base sm:text-lg px-3.5 py-1.5 rounded-xl shadow-md flex items-center gap-1.5"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      #{order.token}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {categorizedOrders.cooking.length === 0 ? (
-              <p className="text-white/60 text-sm sm:text-base md:text-lg text-center mt-2 md:mt-4">No orders cooking</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 animate-fade-in">
-                {categorizedOrders.cooking.map((order) => (
-                  <span
-                    key={order.id}
-                    className="bg-white/25 backdrop-blur-sm text-white px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg md:rounded-xl font-bold text-xs sm:text-sm"
-                  >
-                    {order.token}
-                  </span>
-                ))}
-              </div>
-            )}
+            <span className="text-[10px] text-amber-400/70 font-mono pt-2 border-t border-amber-500/20 block text-right">
+              Est. time remaining: 4-6 mins
+            </span>
           </div>
 
-          {/* In Queue Panel */}
-          <div className="rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 min-h-[100px] sm:min-h-[120px] md:min-h-[140px] bg-[#252d3d]">
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 md:mb-4">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-slate-600/50 rounded-full flex items-center justify-center flex-shrink-0">
-                <Clock className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-slate-300" />
+          {/* Middle Card: In Queue / Order Placed */}
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5 shadow-lg flex-1 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-300 flex-shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                      <span>In Queue</span>
+                      <span className="bg-slate-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                        {categorizedOrders.waiting.length} Waiting
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Order placed, awaiting kitchen prep</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">In Queue</h2>
-                <p className="text-slate-400 text-xs sm:text-sm">Waiting to start</p>
-              </div>
+
+              {categorizedOrders.waiting.length === 0 ? (
+                <div className="text-center py-6 text-slate-500 text-xs sm:text-sm font-medium">
+                  Queue is clear! Orders start immediately.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 animate-fade-in max-h-[120px] overflow-y-auto pr-1 scrollbar-hide">
+                  {categorizedOrders.waiting.map((order) => (
+                    <span
+                      key={order.id}
+                      className="bg-white/10 border border-white/15 text-slate-200 font-mono font-bold text-sm sm:text-base px-3 py-1 rounded-xl"
+                    >
+                      #{order.token}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {categorizedOrders.waiting.length === 0 ? (
-              <p className="text-slate-500 text-sm sm:text-base md:text-lg text-center mt-1 md:mt-2">No orders in queue</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 animate-fade-in">
-                {categorizedOrders.waiting.map((order) => (
-                  <span
-                    key={order.id}
-                    className="bg-slate-600/50 text-slate-200 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-lg md:rounded-xl font-bold text-xs sm:text-sm"
-                  >
-                    {order.token}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Today's Summary Panel */}
-          <div className="rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 bg-[#252d3d]">
-            <h3 className="text-slate-400 text-[10px] sm:text-xs font-semibold tracking-wider uppercase mb-3 md:mb-5">
-              Today's Summary
-            </h3>
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              <div className="text-center">
-                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-emerald-400">
+          {/* Bottom Card: Live Metrics Summary */}
+          <div className="rounded-3xl border border-white/10 bg-slate-950 p-4 shadow-md">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-[10px] font-bold text-emerald-400 block uppercase">Ready</span>
+                <span className="text-2xl font-black text-emerald-300 font-mono">
                   {categorizedOrders.ready.length}
-                </p>
-                <p className="text-slate-400 text-xs sm:text-sm mt-0.5 md:mt-1">Ready</p>
+                </span>
               </div>
-              <div className="text-center">
-                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-400">
+              <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                <span className="text-[10px] font-bold text-amber-400 block uppercase">Cooking</span>
+                <span className="text-2xl font-black text-amber-300 font-mono">
                   {categorizedOrders.cooking.length}
-                </p>
-                <p className="text-slate-400 text-xs sm:text-sm mt-0.5 md:mt-1">Cooking</p>
+                </span>
               </div>
-              <div className="text-center">
-                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+              <div className="p-2.5 rounded-2xl bg-white/5 border border-white/10">
+                <span className="text-[10px] font-bold text-slate-400 block uppercase">Queued</span>
+                <span className="text-2xl font-black text-white font-mono">
                   {categorizedOrders.waiting.length}
-                </p>
-                <p className="text-slate-400 text-xs sm:text-sm mt-0.5 md:mt-1">Queued</p>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center mt-3 sm:mt-4 md:mt-6 pt-3 md:pt-4 border-t border-slate-700/50">
-        <p className="text-slate-500 text-[10px] sm:text-xs">
-          Powered by <span className="text-orange-400 font-semibold">Campus Bites</span> • Auto-refreshes in real-time
-        </p>
+      {/* ── Bottom Live Scrolling Ticker Marquee ─────────────────────── */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-white/15 rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs text-slate-300 shadow-md overflow-hidden">
+        <div className="flex items-center gap-2 flex-shrink-0 mr-4">
+          <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping" />
+          <span className="font-extrabold uppercase text-[10px] tracking-wider text-primary">
+            Canteen Live Broadcast:
+          </span>
+        </div>
+
+        <div className="overflow-hidden whitespace-nowrap flex-1">
+          <p className="animate-marquee inline-block font-medium">
+            📢 Keep your token number handy for instant counter pickup • Fast preparation active • Average kitchen wait time: ~6 mins • Order on your mobile to skip the physical line • Enjoy fresh food at SLRTCE Campus Canteen!
+          </p>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ml-4 font-mono text-[11px] text-slate-400">
+          <span>Real-time Sync Active</span>
+        </div>
       </div>
     </div>
   );
