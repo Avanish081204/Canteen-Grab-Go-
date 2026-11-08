@@ -64,3 +64,4 @@ CREATE POLICY "Allow all read on profiles" ON public.profiles FOR SELECT USING (
 
 DROP POLICY IF EXISTS "Allow all update on profiles" ON public.profiles;
 CREATE POLICY "Allow all update on profiles" ON public.profiles FOR ALL USING (true) WITH CHECK (true);
+

@@ -11,7 +11,9 @@ import {
   Mail,
   AlertCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Trash2,
+  UserX
 } from 'lucide-react';
 import AdminSubNav from '@/components/AdminSubNav';
 import { useProfile, UserRole } from '@/hooks/use-profile';
@@ -182,12 +184,15 @@ export default function AdminUsers() {
         });
       }
 
-      // Convert map to sorted array
-      const finalUsers = Array.from(userMap.values()).sort((a, b) => {
-        if (a.role === 'admin' && b.role !== 'admin') return -1;
-        if (b.role === 'admin' && a.role !== 'admin') return 1;
-        return (b.total_orders || 0) - (a.total_orders || 0);
-      });
+      // Convert map to sorted array (excluding any deleted accounts)
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('deleted_user_ids') || '[]');
+      const finalUsers = Array.from(userMap.values())
+        .filter(u => !deletedIds.includes(u.id) && !deletedIds.includes(u.email.toLowerCase()))
+        .sort((a, b) => {
+          if (a.role === 'admin' && b.role !== 'admin') return -1;
+          if (b.role === 'admin' && a.role !== 'admin') return 1;
+          return (b.total_orders || 0) - (a.total_orders || 0);
+        });
 
       setUsers(finalUsers);
       localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(finalUsers));
@@ -204,6 +209,64 @@ export default function AdminUsers() {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  const handleDeleteUser = async (userToDelete: UserAccount) => {
+    if (userToDelete.email.toLowerCase() === 'avanishshukla234@gmail.com') {
+      toast.error('Cannot delete the primary admin account!');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to permanently delete account "${userToDelete.full_name}" (${userToDelete.email})?`)) {
+      return;
+    }
+
+    try {
+      // 1. Delete from Supabase profiles
+      await (supabase
+        .from('profiles' as any)
+        .delete()
+        .eq('id', userToDelete.id) as any);
+
+      // 2. Track deleted ID in localStorage
+      const deletedIds = JSON.parse(localStorage.getItem('deleted_user_ids') || '[]');
+      deletedIds.push(userToDelete.id);
+      deletedIds.push(userToDelete.email.toLowerCase());
+      localStorage.setItem('deleted_user_ids', JSON.stringify(deletedIds));
+
+      // 3. Update current state
+      const updated = users.filter(u => u.id !== userToDelete.id);
+      setUsers(updated);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updated));
+
+      toast.success(`Account "${userToDelete.full_name}" deleted.`);
+    } catch (err) {
+      console.error('Error deleting account:', err);
+      const updated = users.filter(u => u.id !== userToDelete.id);
+      setUsers(updated);
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updated));
+      toast.success(`Account removed.`);
+    }
+  };
+
+  const handlePurgeDemoAccounts = () => {
+    const demoIds = ['admin-01', 'staff-01', 'user-02', 'user-03', 'user-04'];
+    const deletedIds: string[] = JSON.parse(localStorage.getItem('deleted_user_ids') || '[]');
+    
+    demoIds.forEach(id => {
+      if (!deletedIds.includes(id)) deletedIds.push(id);
+    });
+    deletedIds.push('rahul.sharma@slrtce.in', 'priya.p@slrtce.in', 'amit.verma@slrtce.in');
+    localStorage.setItem('deleted_user_ids', JSON.stringify(deletedIds));
+
+    const realUsersOnly = users.filter(u => 
+      !demoIds.includes(u.id) && 
+      !['rahul.sharma@slrtce.in', 'priya.p@slrtce.in', 'amit.verma@slrtce.in'].includes(u.email.toLowerCase())
+    );
+
+    setUsers(realUsersOnly);
+    localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(realUsersOnly));
+    toast.success('All dummy accounts removed successfully!');
+  };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     const targetUser = users.find(u => u.id === userId);
@@ -252,15 +315,28 @@ export default function AdminUsers() {
         title="User & Staff Management" 
         icon={<Users className="w-5 h-5 text-primary" />}
       >
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={loadUsers}
-          className="gap-1.5 text-xs rounded-xl"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handlePurgeDemoAccounts}
+            className="gap-1.5 text-xs rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 border-rose-500/30"
+            title="Remove all dummy/demo placeholder accounts"
+          >
+            <UserX className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Purge Dummy Accounts</span>
+            <span className="sm:hidden">Purge Demo</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={loadUsers}
+            className="gap-1.5 text-xs rounded-xl"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </Button>
+        </div>
       </AdminSubNav>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl space-y-6">
@@ -365,7 +441,7 @@ export default function AdminUsers() {
                   <th className="py-3 px-4 text-center">Orders</th>
                   <th className="py-3 px-4 text-center">Spent</th>
                   <th className="py-3 px-4 text-center">Coins</th>
-                  <th className="py-3 px-4 text-right">Assign Role</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -441,27 +517,44 @@ export default function AdminUsers() {
                           🪙 {user.loyalty_points ?? 50}
                         </td>
 
-                        {/* Role Changer Select */}
+                        {/* Actions: Role Changer & Delete Button */}
                         <td className="py-3 px-4 text-right">
-                          <Select
-                            value={user.role}
-                            onValueChange={(val: UserRole) => handleRoleChange(user.id, val)}
-                          >
-                            <SelectTrigger className="w-32 h-8 text-xs font-semibold rounded-xl ml-auto">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl text-xs">
-                              <SelectItem value="user" className="text-xs">
-                                👤 Customer
-                              </SelectItem>
-                              <SelectItem value="staff" className="text-xs">
-                                👨‍🍳 Staff
-                              </SelectItem>
-                              <SelectItem value="admin" className="text-xs text-rose-600 font-bold">
-                                🛡️ Admin
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Select
+                              value={user.role}
+                              onValueChange={(val: UserRole) => handleRoleChange(user.id, val)}
+                            >
+                              <SelectTrigger className="w-28 sm:w-32 h-8 text-xs font-semibold rounded-xl">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl text-xs">
+                                <SelectItem value="user" className="text-xs">
+                                  👤 Customer
+                                </SelectItem>
+                                <SelectItem value="staff" className="text-xs">
+                                  👨‍🍳 Staff
+                                </SelectItem>
+                                <SelectItem value="admin" className="text-xs text-rose-600 font-bold">
+                                  🛡️ Admin
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteUser(user)}
+                              disabled={user.email.toLowerCase() === 'avanishshukla234@gmail.com'}
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors flex-shrink-0"
+                              title={
+                                user.email.toLowerCase() === 'avanishshukla234@gmail.com'
+                                  ? 'Root admin cannot be deleted'
+                                  : `Delete ${user.full_name}`
+                              }
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
