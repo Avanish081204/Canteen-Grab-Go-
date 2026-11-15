@@ -1,5 +1,6 @@
 import { Plus, Minus, Star, Flame, Clock, SlidersHorizontal, Box } from 'lucide-react';
 import { MenuItem, addToCart, getCart, updateCartQuantity, CustomizationOption } from '@/lib/store';
+import { useKitchenStatus } from '@/lib/kitchen-status';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import ItemCustomizationModal from './ItemCustomizationModal';
@@ -11,6 +12,7 @@ interface MenuItemCardProps {
 }
 
 export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) {
+  const kitchenStatus = useKitchenStatus();
   const [quantity, setQuantity] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [is3DModalOpen, setIs3DModalOpen] = useState(false);
@@ -25,6 +27,12 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
 
   const handleAddClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!kitchenStatus.isOpen) {
+      toast.error('Canteen is currently closed.', {
+        description: kitchenStatus.closedReason || 'New orders cannot be placed at this time.',
+      });
+      return;
+    }
     if (item.customizable) {
       setIsModalOpen(true);
     } else {
@@ -37,6 +45,10 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
   };
 
   const handleCustomizationConfirm = (customizations: CustomizationOption, customizedPrice: number) => {
+    if (!kitchenStatus.isOpen) {
+      toast.error('Canteen is currently closed.');
+      return;
+    }
     addToCart(item, customizations, customizedPrice);
     setQuantity(prev => prev + 1);
     onCartUpdate();
@@ -46,6 +58,10 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
 
   const handleIncrease = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!kitchenStatus.isOpen) {
+      toast.error('Canteen is currently closed.');
+      return;
+    }
     if (item.customizable) {
       setIsModalOpen(true);
     } else {
@@ -159,7 +175,16 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
 
           {/* Swiggy/Zomato Signature Bottom Floating "ADD" Pill Button */}
           <div className="absolute bottom-2 right-2.5 z-20">
-            {item.isAvailable && (
+            {!kitchenStatus.isOpen ? (
+              <button
+                type="button"
+                onClick={handleAddClick}
+                className="bg-muted/95 text-muted-foreground border border-border font-extrabold text-[10px] px-3.5 py-1.5 rounded-xl shadow-sm tracking-wider uppercase opacity-85 cursor-not-allowed hover:bg-muted"
+                title="Canteen is currently closed"
+              >
+                Closed
+              </button>
+            ) : item.isAvailable && (
               quantity === 0 ? (
                 <button
                   type="button"

@@ -22,10 +22,12 @@ import {
   addToCart,
 } from '@/lib/store';
 import CartItemCard from '@/components/CartItemCard';
+import { useKitchenStatus } from '@/lib/kitchen-status';
 import { toast } from 'sonner';
 
 export default function Cart() {
   const navigate = useNavigate();
+  const kitchenStatus = useKitchenStatus();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [orderType, setOrderTypeState] = useState(() => getOrderType());
@@ -258,13 +260,24 @@ export default function Cart() {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate('/checkout')}
-            className="flex-1 max-w-xs bg-gradient-to-r from-amber-500 via-orange-500 to-primary text-white font-black py-3 sm:py-3.5 px-6 rounded-2xl shadow-lg hover:brightness-110 active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center gap-2"
-          >
-            <span>Proceed to Payment</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          {kitchenStatus.isOpen ? (
+            <button
+              onClick={() => navigate('/checkout')}
+              className="flex-1 max-w-xs bg-gradient-to-r from-amber-500 via-orange-500 to-primary text-white font-black py-3 sm:py-3.5 px-6 rounded-2xl shadow-lg hover:brightness-110 active:scale-95 transition-all text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Proceed to Payment</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex-1 max-w-xs bg-muted text-muted-foreground font-black py-3 sm:py-3.5 px-6 rounded-2xl border border-border text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed opacity-80"
+              title="Canteen is currently closed"
+            >
+              <span>Canteen Closed • Orders Paused</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, RefreshCw, ClipboardList, Download, Edit, Search, UtensilsCrossed, Upload, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import AdminSubNav from '@/components/AdminSubNav';
+import CanteenStatusToggle from '@/components/CanteenStatusToggle';
 import { 
   MenuItem, 
   Order, 
@@ -321,6 +322,9 @@ export default function AdminMenu() {
       </AdminSubNav>
 
       <main className="container mx-auto px-3 sm:px-4 py-4">
+        {/* Master Canteen ON/OFF Switch */}
+        <CanteenStatusToggle className="mb-4" />
+
         <Tabs defaultValue="menu" className="w-full">
           <TabsList className="mb-4 w-full sm:w-auto grid grid-cols-2">
             <TabsTrigger value="menu" className="text-xs sm:text-sm py-1.5">Menu Items</TabsTrigger>

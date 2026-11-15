@@ -71,9 +71,21 @@ export default function Offers() {
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
             <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
             <span>SLRTCE Campus Canteen • Ground Floor</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
-            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              {kitchenStatus.isOpen ? `Open (~${kitchenStatus.estimatedWaitMinutes}m prep)` : 'Closed'}
+            <span
+              className={`w-2 h-2 rounded-full ${
+                kitchenStatus.isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+              } ml-1`}
+            />
+            <span
+              className={`text-[11px] font-bold ${
+                kitchenStatus.isOpen
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
+              }`}
+            >
+              {kitchenStatus.isOpen
+                ? `Open (~${kitchenStatus.estimatedWaitMinutes}m prep)`
+                : 'Closed (Orders Paused)'}
             </span>
           </div>
 

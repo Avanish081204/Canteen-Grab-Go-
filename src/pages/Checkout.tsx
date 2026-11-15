@@ -12,6 +12,8 @@ import {
   CalendarClock,
   Coins,
   Sparkles,
+  Power,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   getCart,
@@ -37,9 +39,11 @@ import {
 } from '@/lib/loyalty';
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/use-notifications';
+import { useKitchenStatus } from '@/lib/kitchen-status';
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const kitchenStatus = useKitchenStatus();
   const { addNotification } = useNotifications();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -229,6 +233,13 @@ export default function Checkout() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!kitchenStatus.isOpen) {
+      toast.error('Canteen is currently closed.', {
+        description: kitchenStatus.closedReason || 'New orders cannot be placed at this time.',
+      });
+      return;
+    }
     
     const trimmedName = name.trim();
     if (!trimmedName || trimmedName.length < 2) {
@@ -339,6 +350,29 @@ export default function Checkout() {
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         <h1 className="text-2xl font-bold text-foreground mb-6">Checkout</h1>
+
+        {/* Canteen Closed Alert Banner */}
+        {!kitchenStatus.isOpen && (
+          <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-rose-500/15 border-2 border-rose-500/30 text-rose-800 dark:text-rose-300 flex items-center gap-3.5 shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
+              <Power className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h4 className="font-extrabold text-sm sm:text-base text-foreground leading-tight">
+                  Canteen is Currently Closed
+                </h4>
+                <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                  Orders Blocked
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {kitchenStatus.closedReason ||
+                  'New orders are currently paused by the canteen. You cannot checkout at this moment.'}
+              </p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Order Summary */}
@@ -676,10 +710,16 @@ export default function Checkout() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full btn-hero !py-3 sm:!py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            disabled={isSubmitting || !kitchenStatus.isOpen}
+            className={`w-full !py-3 sm:!py-4 text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-all ${
+              !kitchenStatus.isOpen
+                ? 'bg-muted text-muted-foreground border border-border cursor-not-allowed opacity-80'
+                : 'btn-hero disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer'
+            }`}
           >
-            {isSubmitting ? (
+            {!kitchenStatus.isOpen ? (
+              'Canteen Closed • Orders Paused'
+            ) : isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                 Processing...

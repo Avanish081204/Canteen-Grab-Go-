@@ -5,6 +5,7 @@ import { Order, fetchStaffOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
 import { useNotifications } from '@/hooks/use-notifications';
 import OrderCard from '@/components/OrderCard';
+import CanteenStatusToggle from '@/components/CanteenStatusToggle';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -131,6 +132,9 @@ export default function StaffDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Master Canteen ON/OFF Switch */}
+          <CanteenStatusToggle className="mb-4" />
 
           {/* Stats Bar */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-muted/50 p-2 sm:p-3 rounded-2xl border border-border/60 mb-4">

@@ -19,6 +19,8 @@ import {
   MapPin,
   Leaf,
   Percent,
+  Power,
+  AlertCircle,
 } from 'lucide-react';
 import MenuItemCard from '@/components/MenuItemCard';
 import {
@@ -150,9 +152,21 @@ export default function Index() {
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
             <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
             <span>SLRTCE Campus Canteen • Ground Floor</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-1" />
-            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              {kitchenStatus.isOpen ? `Open (~${kitchenStatus.estimatedWaitMinutes}m prep)` : 'Closed'}
+            <span
+              className={`w-2 h-2 rounded-full ${
+                kitchenStatus.isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+              } ml-1`}
+            />
+            <span
+              className={`text-[11px] font-bold ${
+                kitchenStatus.isOpen
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
+              }`}
+            >
+              {kitchenStatus.isOpen
+                ? `Open (~${kitchenStatus.estimatedWaitMinutes}m prep)`
+                : 'Closed (Orders Paused)'}
             </span>
           </div>
 
@@ -210,6 +224,29 @@ export default function Index() {
             Search
           </button>
         </form>
+
+        {/* ── Canteen Closed Alert Banner (When Turned OFF) ───────────── */}
+        {!kitchenStatus.isOpen && (
+          <div className="p-4 sm:p-5 rounded-3xl bg-rose-500/10 border-2 border-rose-500/30 flex items-center gap-3.5 text-rose-800 dark:text-rose-300 animate-fade-in shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
+              <Power className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h4 className="font-extrabold text-sm sm:text-base text-foreground leading-tight">
+                  Canteen is Currently Closed
+                </h4>
+                <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
+                  Orders Paused
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {kitchenStatus.closedReason ||
+                  'New orders are paused at the moment. You can still explore the menu and combos!'}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── Live Kitchen Counter Ticker ────────────────────────────── */}
         {readyTokens.length > 0 && (
