@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { Search, Package, ChefHat, Bell, CheckCircle2, Truck, MapPin, Star, Clock, ArrowRight, Share2, Download, QrCode } from 'lucide-react';
 import { getOrderByToken, fetchOrderByToken, Order, OrderStatus, fetchUserOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
@@ -26,7 +26,8 @@ function getStepIndex(status: OrderStatus, isDelivery: boolean) {
 
 export default function TrackOrder() {
   const [searchParams] = useSearchParams();
-  const tokenParam = searchParams.get('token');
+  const { token: routeToken } = useParams<{ token?: string }>();
+  const tokenParam = searchParams.get('token') || routeToken;
 
   const [tokenInput, setTokenInput] = useState('');
   const [order, setOrder] = useState<Order | null>(null);

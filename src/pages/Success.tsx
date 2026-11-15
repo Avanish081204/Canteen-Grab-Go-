@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle, Home, Monitor, Download, Star, Send, MessageSquare, Share2 } from 'lucide-react';
+import { CheckCircle, Home, Monitor, Download, Star, Send, MessageSquare, Share2, ExternalLink, Clock } from 'lucide-react';
 import { fetchOrderByToken, Order, clearOrderType, submitReview, hasReviewForOrder } from '@/lib/store';
 import { toast } from 'sonner';
 import { printBill } from '@/lib/bill-utils';
@@ -99,29 +99,47 @@ export default function Success() {
         {/* Token Display */}
         <div className="bg-card rounded-2xl sm:rounded-3xl shadow-md p-4 sm:p-6 border border-border mb-4 animate-slide-up">
           <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Your Token Number</p>
-          <div className={`token-badge !text-sm sm:!text-2xl font-mono font-extrabold tracking-tight ${tokenClasses[order.type]} mb-3 sm:mb-4 whitespace-nowrap overflow-hidden text-ellipsis px-3 py-2 rounded-xl`}>
-            {order.token}
+          <div
+            onClick={() => navigate(`/track?token=${encodeURIComponent(order.token)}`)}
+            className={`token-badge !text-sm sm:!text-2xl font-mono font-extrabold tracking-tight ${tokenClasses[order.type]} mb-3 sm:mb-4 whitespace-nowrap overflow-hidden text-ellipsis px-4 py-2.5 rounded-xl cursor-pointer hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2`}
+            title="Click to track this order live"
+          >
+            <span>{order.token}</span>
+            <ExternalLink className="w-4 h-4 opacity-75" />
           </div>
           <p className="text-xs text-muted-foreground">
             {statusMessages[order.type]}
           </p>
 
-          {/* Counter QR Code Verification */}
+          {/* Counter QR Code Verification (Real Working Order Tracking URL) */}
           <div className="mt-5 p-4 rounded-2xl bg-white text-black shadow-inner flex flex-col items-center justify-center border border-border/40">
-            <QRCodeSVG
-              value={JSON.stringify({
-                token: order.token,
-                id: order.id,
-                total: order.total,
-                status: order.status,
-              })}
-              size={135}
-              level="M"
-              includeMargin
-            />
+            <a
+              href={`${window.location.origin}/track?token=${encodeURIComponent(order.token)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block transition-transform hover:scale-105 active:scale-95"
+              title="Click or scan to open live order tracking"
+            >
+              <QRCodeSVG
+                value={`${typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app'}/track?token=${encodeURIComponent(order.token)}`}
+                size={145}
+                level="M"
+                includeMargin
+              />
+            </a>
             <p className="text-[11px] font-bold text-gray-700 mt-2">
-              Scan at canteen counter for instant verification
+              Scan at canteen counter or tap below to open live order
             </p>
+
+            {/* Direct Clickable Order Tracking Link */}
+            <button
+              type="button"
+              onClick={() => navigate(`/track?token=${encodeURIComponent(order.token)}`)}
+              className="mt-3 w-full py-2 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open Live Order Tracking Link</span>
+            </button>
           </div>
 
           {/* Order Details */}

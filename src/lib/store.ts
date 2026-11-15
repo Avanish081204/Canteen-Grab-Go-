@@ -447,45 +447,58 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
 }
 
 export async function fetchOrderByToken(token: string): Promise<Order | null> {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(`
-      *,
-      order_items (*)
-    `)
-    .eq('token', token)
-    .single();
+  const clean = (token || '').trim();
+  if (!clean) return null;
+  const raw = clean.replace(/^#/, '');
 
-  if (error || !data) {
-    console.error('Error fetching order by token:', error);
-    return null;
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (*)
+      `)
+      .or(`token.eq.${clean},token.eq.${raw},token.eq.#${raw},token.ilike.%${raw}%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && data) {
+      return {
+        id: data.id,
+        token: data.token,
+        type: data.order_type as OrderType,
+        total: data.total,
+        status: data.status as OrderStatus,
+        customerName: data.customer_name,
+        customerPhone: data.customer_phone,
+        department: data.department,
+        location: data.location,
+        timeSlot: data.time_slot,
+        paymentMethod: data.payment_method as 'upi' | 'cash',
+        paymentStatus: data.payment_status as 'pending' | 'paid',
+        createdAt: data.created_at,
+        items: (data.order_items || []).map((item: any) => ({
+          id: item.menu_item_id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          category: '',
+          image: '',
+          description: '',
+          isAvailable: true
+        }))
+      };
+    }
+  } catch (err) {
+    console.warn('Supabase fetchOrderByToken error:', err);
   }
 
-  return {
-    id: data.id,
-    token: data.token,
-    type: data.order_type as OrderType,
-    total: data.total,
-    status: data.status as OrderStatus,
-    customerName: data.customer_name,
-    customerPhone: data.customer_phone,
-    department: data.department,
-    location: data.location,
-    timeSlot: data.time_slot,
-    paymentMethod: data.payment_method as 'upi' | 'cash',
-    paymentStatus: data.payment_status as 'pending' | 'paid',
-    createdAt: data.created_at,
-    items: data.order_items.map((item: any) => ({
-      id: item.menu_item_id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      category: '',
-      image: '',
-      description: '',
-      isAvailable: true
-    }))
-  };
+  // Fallback to local storage
+  const localOrder = getOrderByToken(clean) || getOrderByToken(raw) || getOrders().find(o => o.token.toLowerCase().includes(raw.toLowerCase()));
+  if (localOrder) return localOrder;
+
+  return null;
 }
 
 export async function fetchUserOrders(): Promise<Order[]> {

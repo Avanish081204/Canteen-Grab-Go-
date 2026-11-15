@@ -277,7 +277,9 @@ export default function Display() {
                   return (
                     <div
                       key={order.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-background border border-border/80 shadow-xs flex flex-col items-center justify-center hover:shadow-md transition-all group"
+                      onClick={() => navigate(`/track?token=${encodeURIComponent(order.token)}`)}
+                      className="p-4 sm:p-5 rounded-2xl bg-background border border-border/80 shadow-xs flex flex-col items-center justify-center hover:shadow-md hover:border-amber-500/60 active:scale-95 transition-all cursor-pointer group"
+                      title={`Click to view live tracking for order ${order.token}`}
                     >
                       {/* Order Type Tag */}
                       <span
@@ -369,7 +371,9 @@ export default function Display() {
                   return (
                     <div
                       key={order.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-card border-2 border-emerald-500 text-foreground shadow-md shadow-emerald-500/10 flex flex-col items-center justify-center hover:scale-[1.02] transition-all animate-fade-in relative overflow-hidden"
+                      onClick={() => navigate(`/track?token=${encodeURIComponent(order.token)}`)}
+                      className="p-4 sm:p-5 rounded-2xl bg-card border-2 border-emerald-500 text-foreground shadow-md shadow-emerald-500/10 flex flex-col items-center justify-center hover:scale-[1.03] active:scale-95 transition-all animate-fade-in relative overflow-hidden cursor-pointer"
+                      title={`Click to view live tracking for order ${order.token}`}
                     >
                       {/* Top Ready Tag */}
                       <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white px-3 py-0.5 rounded-full mb-2 shadow-xs">
