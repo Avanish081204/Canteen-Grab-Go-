@@ -19,6 +19,7 @@ import { fetchLoyaltyAccount, LoyaltyAccount } from '@/lib/loyalty';
 import { useKitchenStatus } from '@/lib/kitchen-status';
 import { supabase } from '@/integrations/supabase/client';
 import MenuItemCard from '@/components/MenuItemCard';
+import CanteenClosedNotice from '@/components/CanteenClosedNotice';
 import { toast } from 'sonner';
 
 export default function Offers() {
@@ -118,6 +119,9 @@ export default function Offers() {
             </span>
           </div>
         </div>
+
+        {/* ── Canteen Closed Notice ───────────────────────────────────── */}
+        <CanteenClosedNotice />
 
         {/* ── 1. Canteen Loyalty Coins Card (Matches Home Promo Banner 2) ── */}
         <div className="p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white border border-border/40 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">

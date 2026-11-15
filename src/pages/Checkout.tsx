@@ -12,7 +12,6 @@ import {
   CalendarClock,
   Coins,
   Sparkles,
-  Power,
   AlertTriangle,
 } from 'lucide-react';
 import {
@@ -40,6 +39,7 @@ import {
 import { toast } from 'sonner';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useKitchenStatus } from '@/lib/kitchen-status';
+import CanteenClosedNotice from '@/components/CanteenClosedNotice';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -352,27 +352,7 @@ export default function Checkout() {
         <h1 className="text-2xl font-bold text-foreground mb-6">Checkout</h1>
 
         {/* Canteen Closed Alert Banner */}
-        {!kitchenStatus.isOpen && (
-          <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-rose-500/15 border-2 border-rose-500/30 text-rose-800 dark:text-rose-300 flex items-center gap-3.5 shadow-xs">
-            <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
-              <Power className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h4 className="font-extrabold text-sm sm:text-base text-foreground leading-tight">
-                  Canteen is Currently Closed
-                </h4>
-                <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-                  Orders Blocked
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {kitchenStatus.closedReason ||
-                  'New orders are currently paused by the canteen. You cannot checkout at this moment.'}
-              </p>
-            </div>
-          </div>
-        )}
+        <CanteenClosedNotice className="mb-6" />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Order Summary */}

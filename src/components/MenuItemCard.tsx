@@ -59,7 +59,11 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
   const handleIncrease = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!kitchenStatus.isOpen) {
-      toast.error('Canteen is currently closed.');
+      toast.error(
+        kitchenStatus.closedReason
+          ? `Canteen Closed: ${kitchenStatus.closedReason}`
+          : 'Canteen is currently closed. New orders are paused.'
+      );
       return;
     }
     if (item.customizable) {

@@ -28,3 +28,4 @@ CREATE POLICY "Allow public read on canteen_settings"
 DROP POLICY IF EXISTS "Allow update on canteen_settings" ON canteen_settings;
 CREATE POLICY "Allow update on canteen_settings"
   ON canteen_settings FOR ALL USING (true) WITH CHECK (true);
+

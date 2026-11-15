@@ -22,6 +22,7 @@ import {
   addToCart,
 } from '@/lib/store';
 import CartItemCard from '@/components/CartItemCard';
+import CanteenClosedNotice from '@/components/CanteenClosedNotice';
 import { useKitchenStatus } from '@/lib/kitchen-status';
 import { toast } from 'sonner';
 
@@ -153,6 +154,9 @@ export default function Cart() {
             <span>Earn +{estimatedCoins} Coins</span>
           </div>
         </div>
+
+        {/* Canteen Closed Notice Banner */}
+        <CanteenClosedNotice className="mb-4" />
 
         {/* Cart Item Cards */}
         <div className="space-y-3 mb-6">

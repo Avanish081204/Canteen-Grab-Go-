@@ -19,10 +19,10 @@ import {
   MapPin,
   Leaf,
   Percent,
-  Power,
   AlertCircle,
 } from 'lucide-react';
 import MenuItemCard from '@/components/MenuItemCard';
+import CanteenClosedNotice from '@/components/CanteenClosedNotice';
 import {
   setOrderType,
   getOrderType,
@@ -225,28 +225,8 @@ export default function Index() {
           </button>
         </form>
 
-        {/* ── Canteen Closed Alert Banner (When Turned OFF) ───────────── */}
-        {!kitchenStatus.isOpen && (
-          <div className="p-4 sm:p-5 rounded-3xl bg-rose-500/10 border-2 border-rose-500/30 flex items-center gap-3.5 text-rose-800 dark:text-rose-300 animate-fade-in shadow-xs">
-            <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
-              <Power className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h4 className="font-extrabold text-sm sm:text-base text-foreground leading-tight">
-                  Canteen is Currently Closed
-                </h4>
-                <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-                  Orders Paused
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {kitchenStatus.closedReason ||
-                  'New orders are paused at the moment. You can still explore the menu and combos!'}
-              </p>
-            </div>
-          </div>
-        )}
+        {/* ── Canteen Closed Notice (When Orders Paused) ────────────── */}
+        <CanteenClosedNotice />
 
         {/* ── Live Kitchen Counter Ticker ────────────────────────────── */}
         {readyTokens.length > 0 && (
