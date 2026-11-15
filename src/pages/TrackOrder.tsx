@@ -36,10 +36,18 @@ export default function TrackOrder() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const { profile, loading: profileLoading } = useProfile();
 
-  // Automatically load token from URL if opened from a notification
+  // Automatically load token from URL if opened from a notification or link
   useEffect(() => {
     if (tokenParam) {
-      const trimmed = tokenParam.trim().toUpperCase();
+      let trimmed = tokenParam.trim();
+      // Auto-extract token if JSON was passed
+      if (trimmed.startsWith('{') && trimmed.includes('"token"')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed.token) trimmed = String(parsed.token).trim();
+        } catch {}
+      }
+      trimmed = trimmed.toUpperCase();
       setTokenInput(trimmed);
       fetchOrderByToken(trimmed).then(found => {
         if (found) {
@@ -96,9 +104,19 @@ export default function TrackOrder() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = tokenInput.trim().toUpperCase();
+    let trimmed = tokenInput.trim();
     if (!trimmed) return;
-    
+
+    // Auto-extract token if user pastes JSON from QR code payload
+    if (trimmed.startsWith('{') && trimmed.includes('"token"')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed.token) trimmed = String(parsed.token).trim();
+      } catch {}
+    }
+
+    trimmed = trimmed.toUpperCase();
+    setTokenInput(trimmed);
     setSearched(false);
     try {
       const found = await fetchOrderByToken(trimmed);
@@ -302,17 +320,20 @@ export default function TrackOrder() {
               </div>
 
               <div className="p-3 bg-white text-black rounded-2xl border border-border/40 shadow-inner inline-block">
-                <QRCodeSVG
-                  value={JSON.stringify({
-                    token: order.token,
-                    id: order.id,
-                    total: order.total,
-                    status: order.status,
-                  })}
-                  size={130}
-                  level="M"
-                  includeMargin
-                />
+                <a
+                  href={`${typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app'}/track?token=${encodeURIComponent(order.token)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block transition-transform hover:scale-105 active:scale-95"
+                  title="Click or scan to open live order tracking"
+                >
+                  <QRCodeSVG
+                    value={`${typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app'}/track?token=${encodeURIComponent(order.token)}`}
+                    size={135}
+                    level="M"
+                    includeMargin
+                  />
+                </a>
               </div>
 
               <p className="text-xs text-muted-foreground mt-2 max-w-xs">

@@ -447,8 +447,17 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'token' | 'statu
 }
 
 export async function fetchOrderByToken(token: string): Promise<Order | null> {
-  const clean = (token || '').trim();
+  let clean = (token || '').trim();
   if (!clean) return null;
+
+  // Auto-extract token if input is a JSON string (e.g. from QR scanner payload)
+  if (clean.startsWith('{') && clean.includes('"token"')) {
+    try {
+      const parsed = JSON.parse(clean);
+      if (parsed.token) clean = String(parsed.token).trim();
+    } catch {}
+  }
+
   const raw = clean.replace(/^#/, '');
 
   try {
