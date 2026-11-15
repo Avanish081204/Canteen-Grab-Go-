@@ -109,11 +109,13 @@ export const categories = ['All', 'Snacks', 'Sandwich/Burger', 'Chinese', 'Meals
 
 export const departments = [
   'Computer Science',
+  'IT',
+  'Electronics & Computer (ECS)',
+  'EXTC',
   'Electronics',
   'Mechanical',
   'Civil',
   'Electrical',
-  'IT',
   'MBA',
   'Library',
   'Admin Office',

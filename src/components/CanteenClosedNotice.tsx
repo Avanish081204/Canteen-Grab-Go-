@@ -83,3 +83,4 @@ export default function CanteenClosedNotice({ className = '', compact = false }:
     </div>
   );
 }
+
