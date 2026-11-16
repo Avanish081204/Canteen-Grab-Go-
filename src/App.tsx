@@ -20,6 +20,7 @@ import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCoupons from "./pages/AdminCoupons";
 import AdminUsers from "./pages/AdminUsers";
 import TrackOrder from "./pages/TrackOrder";
+import CanteenQR from "./pages/CanteenQR";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -59,6 +60,9 @@ const App = () => (
             <Route path="/track-order/:token" element={<TrackOrder />} />
             <Route path="/order/:token" element={<TrackOrder />} />
             <Route path="/display" element={<Display />} />
+            <Route path="/qr" element={<CanteenQR />} />
+            <Route path="/canteen-qr" element={<CanteenQR />} />
+            <Route path="/table-qr" element={<CanteenQR />} />
             <Route path="/staff-code" element={<StaffCode />} />
             <Route path="/staff/login" element={<StaffLogin />} />
             <Route

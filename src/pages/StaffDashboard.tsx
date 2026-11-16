@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Clock, ChefHat, CheckCircle, Truck, RefreshCw, PackageCheck, Volume2, VolumeX, BellRing } from 'lucide-react';
+import { LogOut, Clock, ChefHat, CheckCircle, Truck, RefreshCw, PackageCheck, Volume2, VolumeX, BellRing, QrCode } from 'lucide-react';
 import { Order, fetchStaffOrders } from '@/lib/store';
 import { useProfile } from '@/hooks/use-profile';
 import { useNotifications } from '@/hooks/use-notifications';
@@ -108,6 +108,15 @@ export default function StaffDashboard() {
                   <span>Desktop Alerts</span>
                 </button>
               )}
+
+              <button
+                onClick={() => navigate('/qr')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer"
+                title="Print or view Canteen Table QR Standee"
+              >
+                <QrCode className="w-3.5 h-3.5 text-primary" />
+                <span>Table QR</span>
+              </button>
 
               <button
                 onClick={toggleSound}

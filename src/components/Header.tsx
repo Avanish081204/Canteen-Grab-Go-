@@ -18,6 +18,7 @@ import {
   Percent,
   LogOut,
   Clock,
+  QrCode,
 } from 'lucide-react';
 import { getCart } from '@/lib/store';
 import { useEffect, useState } from 'react';
@@ -213,6 +214,18 @@ export default function Header() {
                 <Monitor className="h-3.5 w-3.5" />
                 TV Display
               </Link>
+              <Link
+                to="/qr"
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
+                  isActive('/qr')
+                    ? 'bg-foreground text-background shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                }`}
+                title="Canteen Table & Counter QR Standee"
+              >
+                <QrCode className="h-3.5 w-3.5 text-primary" />
+                Table QR
+              </Link>
             </nav>
 
             {/* ── Right Actions: Clean, Balanced, Uncluttered ────────── */}
@@ -353,6 +366,16 @@ export default function Header() {
                           >
                             <ChefHat className="w-3.5 h-3.5" />
                             <span>Kitchen Order Queue</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/qr"
+                            className="flex items-center gap-2.5 px-2.5 py-2 text-xs font-bold text-foreground rounded-xl cursor-pointer hover:bg-muted"
+                          >
+                            <QrCode className="w-3.5 h-3.5 text-primary" />
+                            <span>Canteen Table QR Standee</span>
                           </Link>
                         </DropdownMenuItem>
                       </>
