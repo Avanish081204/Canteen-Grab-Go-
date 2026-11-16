@@ -185,6 +185,10 @@ export default function Profile() {
     month: 'long',
     year: 'numeric',
   });
+  const memberSinceShort = new Date(user.created_at).toLocaleDateString('en-IN', {
+    month: 'short',
+    year: 'numeric',
+  });
 
   const displayedOrders = showAllOrders ? orders : orders.slice(0, 3);
   const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
@@ -195,71 +199,82 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-muted/30 pb-24 md:pb-8">
       {/* Header */}
-      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-3">
+      <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/70 py-2.5 px-4 shadow-2xs">
+        <div className="container mx-auto max-w-lg flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back
+            <span>Back</span>
           </button>
+          <span className="text-xs font-extrabold text-foreground">My Profile</span>
+          <div className="w-8" />
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 max-w-lg space-y-5">
+      <div className="container mx-auto px-3.5 sm:px-4 py-4 sm:py-6 max-w-lg space-y-4 sm:space-y-5">
 
         {/* Profile Card */}
-        <div className="bg-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-border animate-fade-in">
+        <div className="bg-card rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs border border-border animate-fade-in">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-md flex-shrink-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 text-white flex items-center justify-center text-xl sm:text-2xl font-black shadow-md flex-shrink-0 border border-slate-700/50">
               {userInitial}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{userName}</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">{userEmail}</p>
-              {userPhone && (
-                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <Phone className="w-3 h-3" />
-                  {userPhone}
-                </p>
-              )}
+              <h1 className="text-base sm:text-xl font-black text-foreground truncate">{userName}</h1>
+              <p className="text-xs text-muted-foreground truncate font-medium">{userEmail}</p>
+              
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-1 flex-wrap">
+                {userPhone && (
+                  <span className="flex items-center gap-1 font-medium">
+                    <Phone className="w-3 h-3 text-primary" />
+                    {userPhone}
+                  </span>
+                )}
+                {userPhone && <span className="opacity-40">•</span>}
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-muted-foreground/70" />
+                  <span>Joined {memberSinceShort}</span>
+                </span>
+              </div>
+
               <button
                 onClick={() => setIsEditing(!isEditing)}
-                className="text-primary text-xs sm:text-sm font-semibold mt-1 flex items-center gap-1 hover:underline"
+                className="text-primary text-xs font-bold mt-1.5 inline-flex items-center gap-1 hover:underline cursor-pointer"
               >
                 <Edit3 className="w-3 h-3" />
-                {isEditing ? 'Cancel' : 'Edit profile'}
+                <span>{isEditing ? 'Cancel Edit' : 'Edit profile'}</span>
               </button>
             </div>
           </div>
 
           {/* Edit Form */}
           {isEditing && (
-            <div className="mt-5 pt-5 border-t border-border space-y-3 animate-fade-in">
+            <div className="mt-4 pt-4 border-t border-border space-y-3 animate-fade-in">
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Full Name</label>
+                <label className="text-xs font-bold text-muted-foreground mb-1 block">Full Name</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3.5 py-2 rounded-xl border border-input bg-background text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Phone</label>
+                <label className="text-xs font-bold text-muted-foreground mb-1 block">Phone</label>
                 <input
                   type="tel"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
                   placeholder="Enter phone number"
-                  className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3.5 py-2 rounded-xl border border-input bg-background text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <button
                 onClick={handleSaveProfile}
                 disabled={saving}
-                className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm disabled:opacity-70 cursor-pointer shadow-xs"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
               </button>
@@ -267,75 +282,77 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Quick Stats / Info */}
-        <div className="grid grid-cols-3 gap-3 animate-fade-in">
+        {/* Quick Stats / Info - Mobile Perfect Grid */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 animate-fade-in">
           {(role === 'admin' || role === 'staff') ? (
             <>
-              <div className="bg-card rounded-2xl p-4 shadow-sm border border-primary/20 bg-primary/5 text-center col-span-3 sm:col-span-1">
-                <p className="text-xl font-bold text-primary capitalize">{role}</p>
-                <p className="text-xs text-muted-foreground mt-1">Current Role</p>
+              <div className="bg-card rounded-2xl p-3 sm:p-4 shadow-xs border border-primary/25 bg-primary/5 text-center flex flex-col justify-center min-h-[78px]">
+                <p className="text-lg sm:text-xl font-black text-primary capitalize truncate">{role}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Role</p>
               </div>
-              <div className="bg-card rounded-2xl p-4 shadow-sm border border-border text-center">
-                <p className="text-xl font-bold text-foreground">Active</p>
-                <p className="text-xs text-muted-foreground mt-1">Status</p>
+              <div className="bg-card rounded-2xl p-3 sm:p-4 shadow-xs border border-border text-center flex flex-col justify-center min-h-[78px]">
+                <p className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400">Active</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Status</p>
               </div>
-              <div className="bg-card rounded-2xl p-4 shadow-sm border border-border text-center">
-                <p className="text-lg font-bold text-foreground leading-tight">{memberSince}</p>
-                <p className="text-xs text-muted-foreground mt-1">Joined</p>
+              <div className="bg-card rounded-2xl p-3 sm:p-4 shadow-xs border border-border text-center flex flex-col justify-center min-h-[78px]">
+                <p className="text-xs sm:text-sm font-black text-foreground truncate">{memberSinceShort}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Joined</p>
               </div>
             </>
           ) : (
             <>
-              <div className="bg-card rounded-2xl p-4 shadow-sm border border-border text-center">
-                <p className="text-2xl font-bold text-primary">{orders.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">Orders</p>
+              <div className="bg-card rounded-2xl p-3 sm:p-4 shadow-xs border border-border text-center flex flex-col justify-center min-h-[78px]">
+                <p className="text-xl sm:text-2xl font-black text-primary">{orders.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Orders</p>
               </div>
-              <div className="bg-card rounded-2xl p-4 shadow-sm border border-border text-center">
-                <p className="text-2xl font-bold text-primary">₹{totalSpent}</p>
-                <p className="text-xs text-muted-foreground mt-1">Total Spent</p>
+              <div className="bg-card rounded-2xl p-3 sm:p-4 shadow-xs border border-border text-center flex flex-col justify-center min-h-[78px]">
+                <p className="text-xl sm:text-2xl font-black text-primary">₹{totalSpent}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Total Spent</p>
               </div>
-              <div className="bg-card rounded-2xl p-4 shadow-sm border border-border text-center">
-                <p className="text-lg font-bold text-primary leading-tight">{memberSince}</p>
-                <p className="text-xs text-muted-foreground mt-1">Member Since</p>
+              <div className="bg-card rounded-2xl p-3 sm:p-4 shadow-xs border border-border text-center flex flex-col justify-center min-h-[78px]">
+                <p className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
+                  {loyaltyAccount?.points_balance ?? 50}
+                </p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Coins</p>
               </div>
             </>
           )}
         </div>
 
         {/* Campus Loyalty Rewards Card */}
-        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xs animate-fade-in">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+        <div className="bg-gradient-to-br from-amber-500/10 via-card to-orange-500/5 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-xs animate-fade-in">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
                 <Coins className="w-5 h-5" />
               </div>
-              <div>
-                <h3 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-1.5">
-                  Campus Coins & Rewards
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <div className="min-w-0">
+                <h3 className="font-extrabold text-xs sm:text-sm text-foreground flex items-center gap-1.5 truncate">
+                  <span>Campus Coins &amp; Rewards</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
                 </h3>
-                <p className="text-[11px] text-muted-foreground">Earn 1 pt per ₹10 spent • Redeem at checkout</p>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">Earn 1 pt per ₹10 spent • Redeem at checkout</p>
               </div>
             </div>
-            <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5">
+            <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-extrabold text-[11px] px-2.5 py-1 whitespace-nowrap flex-shrink-0 shadow-2xs">
               {loyaltyAccount?.tier || 'Bronze'} Tier
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-amber-500/20">
-            <div className="bg-card/90 p-3 rounded-xl border border-border">
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-2 border-t border-amber-500/20">
+            <div className="bg-card/90 p-3 rounded-xl border border-border/80">
               <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Available Coins</span>
-              <p className="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5">
+              <p className="text-lg sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5">
                 {loyaltyAccount?.points_balance ?? 50} pts
               </p>
-              <p className="text-[11px] text-muted-foreground font-medium">Worth ₹{loyaltyAccount?.points_balance ?? 50} discount</p>
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">Worth ₹{loyaltyAccount?.points_balance ?? 50} discount</p>
             </div>
-            <div className="bg-card/90 p-3 rounded-xl border border-border">
+            <div className="bg-card/90 p-3 rounded-xl border border-border/80">
               <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Lifetime Earned</span>
-              <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5">
+              <p className="text-lg sm:text-2xl font-black text-foreground mt-0.5">
                 {loyaltyAccount?.lifetime_earned ?? 50} pts
               </p>
-              <p className="text-[11px] text-muted-foreground font-medium">
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium line-clamp-1">
                 {loyaltyAccount?.tier === 'Gold'
                   ? 'Max Gold Perks (1.5x)'
                   : loyaltyAccount?.tier === 'Silver'
