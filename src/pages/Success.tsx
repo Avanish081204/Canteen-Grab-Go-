@@ -5,6 +5,7 @@ import { fetchOrderByToken, Order, clearOrderType, submitReview, hasReviewForOrd
 import { toast } from 'sonner';
 import { printBill } from '@/lib/bill-utils';
 import { QRCodeSVG } from 'qrcode.react';
+import { getPublicCanteenUrl } from '@/lib/api-config';
 
 const tokenClasses = {
   'dine-in': 'bg-sky-500',
@@ -121,7 +122,7 @@ export default function Success() {
               title="Click or scan to open live order tracking"
             >
               <QRCodeSVG
-                value={`${typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app'}/track?token=${encodeURIComponent(order.token)}`}
+                value={`${getPublicCanteenUrl()}/track?token=${encodeURIComponent(order.token)}`}
                 size={145}
                 level="M"
                 includeMargin

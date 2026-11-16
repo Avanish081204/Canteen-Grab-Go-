@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
+import { CANTEEN_ORIGINAL_URL } from '@/lib/api-config';
 
 export default function CanteenQR() {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ export default function CanteenQR() {
   const [copied, setCopied] = useState(false);
   const [selectedTable, setSelectedTable] = useState<string>('all');
 
-  const originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app';
+  // Fixed Original Production Website URL (Always https://canteen-grab-go.vercel.app)
+  const originUrl = CANTEEN_ORIGINAL_URL;
   
   const targetUrl = selectedTable === 'all'
     ? originUrl
@@ -206,8 +208,8 @@ export default function CanteenQR() {
                 <Smartphone className="w-3.5 h-3.5" />
                 Scan with Any Camera or UPI App
               </span>
-              <p className="text-[11px] font-mono text-slate-600 font-bold mt-1.5 break-all">
-                {originUrl}
+              <p className="text-xs font-mono text-slate-800 font-extrabold mt-1.5 break-all">
+                {targetUrl}
               </p>
             </div>
           </div>

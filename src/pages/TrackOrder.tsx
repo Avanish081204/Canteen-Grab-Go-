@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/use-profile';
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
 import { downloadBill } from '@/lib/bill-utils';
+import { getPublicCanteenUrl } from '@/lib/api-config';
 
 const statusConfig: Record<OrderStatus, { label: string; icon: typeof Package; color: string }> = {
   placed: { label: 'Order Placed', icon: Package, color: 'text-blue-500' },
@@ -321,14 +322,14 @@ export default function TrackOrder() {
 
               <div className="p-3 bg-white text-black rounded-2xl border border-border/40 shadow-inner inline-block">
                 <a
-                  href={`${typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app'}/track?token=${encodeURIComponent(order.token)}`}
+                  href={`${getPublicCanteenUrl()}/track?token=${encodeURIComponent(order.token)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block transition-transform hover:scale-105 active:scale-95"
                   title="Click or scan to open live order tracking"
                 >
                   <QRCodeSVG
-                    value={`${typeof window !== 'undefined' ? window.location.origin : 'https://canteen-grab-go.vercel.app'}/track?token=${encodeURIComponent(order.token)}`}
+                    value={`${getPublicCanteenUrl()}/track?token=${encodeURIComponent(order.token)}`}
                     size={135}
                     level="M"
                     includeMargin
@@ -346,7 +347,7 @@ export default function TrackOrder() {
                   type="button"
                   onClick={() => {
                     const itemsList = order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ');
-                    const text = `*Campus Canteen — Order Update*\nToken: ${order.token}\nAmount: ₹${order.total}\nStatus: ${order.status.toUpperCase()}\nItems: ${itemsList}\n\nTrack Live: ${window.location.origin}/track?token=${order.token}`;
+                    const text = `*Campus Canteen — Order Update*\nToken: ${order.token}\nAmount: ₹${order.total}\nStatus: ${order.status.toUpperCase()}\nItems: ${itemsList}\n\nTrack Live: ${getPublicCanteenUrl()}/track?token=${order.token}`;
                     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className="py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"
