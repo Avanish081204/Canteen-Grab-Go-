@@ -170,11 +170,11 @@ export default function MenuItemCard({ item, onCartUpdate }: MenuItemCardProps) 
               e.stopPropagation();
               setIs3DModalOpen(true);
             }}
-            className="absolute bottom-2 left-2.5 z-20 bg-black/75 hover:bg-black/95 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-xl shadow-lg border border-white/20 hover:border-amber-400/80 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer group/3d"
+            className="absolute bottom-2 left-2.5 z-20 bg-black/75 hover:bg-black/95 backdrop-blur-md text-white text-[10px] font-black p-1.5 sm:px-2.5 sm:py-1 rounded-xl shadow-lg border border-white/20 hover:border-amber-400/80 flex items-center gap-1 active:scale-95 transition-all cursor-pointer group/3d"
             title="Inspect Interactive 3D Mockup"
           >
-            <Box className="w-3 h-3 text-amber-400 group-hover/3d:rotate-12 transition-transform" />
-            <span className="tracking-wide">3D View</span>
+            <Box className="w-3.5 h-3.5 text-amber-400 group-hover/3d:rotate-12 transition-transform" />
+            <span className="tracking-wide hidden xs:inline sm:inline">3D</span>
           </button>
 
           {/* Swiggy/Zomato Signature Bottom Floating "ADD" Pill Button */}

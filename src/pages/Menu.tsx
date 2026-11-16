@@ -336,7 +336,7 @@ export default function Menu() {
 
       {/* Ultra-Modern Floating Cart Drawer Pill */}
       {cartCount > 0 && (
-        <div className="fixed bottom-16 sm:bottom-20 md:bottom-6 left-3 right-3 sm:left-4 sm:right-4 z-50 pointer-events-none">
+        <div className="fixed bottom-[4.5rem] sm:bottom-20 md:bottom-6 left-3 right-3 sm:left-4 sm:right-4 z-40 pointer-events-none">
           <div className="max-w-lg mx-auto pointer-events-auto">
             <button
               onClick={() => navigate('/cart')}

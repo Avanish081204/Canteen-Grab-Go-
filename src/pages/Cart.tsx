@@ -103,7 +103,7 @@ export default function Cart() {
   const estimatedCoins = Math.floor(total * 0.1);
 
   return (
-    <div className="min-h-screen bg-background pb-36 md:pb-24">
+    <div className="min-h-screen bg-background pb-32 sm:pb-24">
       {/* ── Sticky Header ────────────────────────────────────────── */}
       <div className="sticky top-14 sm:top-16 z-40 bg-background/95 backdrop-blur-md border-b border-border/60">
         <div className="container mx-auto px-4 py-3">
@@ -253,7 +253,7 @@ export default function Cart() {
       </div>
 
       {/* ── Sticky Checkout Bar ──────────────────────────────────── */}
-      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/80 p-3 sm:p-4 z-40 shadow-xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/80 p-3 sm:p-4 z-50 shadow-xl safe-area-inset-bottom">
         <div className="container mx-auto max-w-2xl flex items-center justify-between gap-4">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">

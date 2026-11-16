@@ -115,7 +115,7 @@ export default function Success() {
           {/* Counter QR Code Verification (Real Working Order Tracking URL) */}
           <div className="mt-5 p-4 rounded-2xl bg-white text-black shadow-inner flex flex-col items-center justify-center border border-border/40">
             <a
-              href={`${window.location.origin}/track?token=${encodeURIComponent(order.token)}`}
+              href={`${getPublicCanteenUrl()}/track?token=${encodeURIComponent(order.token)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block transition-transform hover:scale-105 active:scale-95"

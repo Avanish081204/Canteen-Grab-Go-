@@ -124,6 +124,8 @@ export default function Header() {
   const isDisplayPage = location.pathname === '/display';
   const isStaffPage = location.pathname.startsWith('/staff');
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isCheckoutPage = location.pathname === '/checkout';
+  const isCartPage = location.pathname === '/cart';
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -155,11 +157,11 @@ export default function Header() {
             {/* ── Brand Logo ────────────────────────────────────────── */}
             <Link
               to="/"
-              className="flex items-center gap-2.5 text-foreground group flex-shrink-0"
+              className="flex items-center gap-2 sm:gap-2.5 text-foreground group flex-shrink-0 min-w-0"
             >
               <Logo size="sm" />
-              <div className="flex flex-col">
-                <span className="text-sm sm:text-base font-black tracking-tight leading-none text-foreground">
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs sm:text-base font-black tracking-tight leading-none text-foreground truncate max-w-[130px] xs:max-w-none">
                   Campus Canteen
                 </span>
                 <span className="text-[10px] text-muted-foreground font-medium hidden sm:block">
@@ -424,8 +426,8 @@ export default function Header() {
       </header>
 
       {/* ── Modern Floating Island Mobile Bottom Navigation ──────── */}
-      {!isStaffPage && (
-        <nav className="md:hidden fixed bottom-2 left-3 right-3 z-50 bg-background/90 backdrop-blur-xl border border-border/80 rounded-2xl safe-area-inset-bottom shadow-2xl shadow-black/10">
+      {!isStaffPage && !isAdminPage && !isCheckoutPage && !isCartPage && (
+        <nav className="md:hidden fixed bottom-2 left-3 right-3 z-50 bg-background/95 backdrop-blur-xl border border-border/80 rounded-2xl safe-area-inset-bottom shadow-2xl shadow-black/10">
           <div className="flex items-center justify-around px-1 py-1.5">
             <Link
               to="/"
